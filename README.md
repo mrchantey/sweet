@@ -13,7 +13,7 @@
   </p>
 
   <h3>
-    <a href="https://mrchantey.github.io/forky/docs/sweet">Book</a>
+    <a href="https://mrchantey.github.io/sweet/docs">Book</a>
     <span> | </span>
     <a href="https://docs.rs/sweet">API Docs</a>
     <span> | </span>
