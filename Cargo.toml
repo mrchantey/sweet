@@ -153,9 +153,10 @@ forky_fs = { workspace = true }
 fantoccini = { workspace = true }
 
 
-[[example]]
+[[test]]
 name = "test_sweet"
 path = "test/sweet.rs"
+harness = false
 required-features = ["bevy"]
 
 [[example]]

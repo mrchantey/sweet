@@ -13,7 +13,7 @@ install *args:
 	cargo install --path ./cli {{args}}
 
 test *args:
-	cargo run -p sweet --example test_sweet --features sweet/bevy -- --parallel {{args}}
+	cargo test --test test_sweet --features sweet/bevy -- --parallel {{args}}
 
 test-w *args:
 	just watch just test -w {{args}}
