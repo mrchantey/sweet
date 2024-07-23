@@ -25,6 +25,15 @@ fn e2e() -> Result<()> {
     Ok(())
 }
 
+#[cfg(test)]
+mod test {
+    // use sweet::*;
+    #[sweet::test]
+    fn checks_inside_mod() {
+        // panic!()
+    }
+}
+
 // #[cfg(not(target_arch = "wasm32"))]
 // #[sweet::test(e2e, non_send)]
 // async fn can_be_async() -> Result<()> {
