@@ -12,8 +12,11 @@ book:
 install *args:
 	cargo install --path ./cli {{args}}
 
-test:
-	cargo run -p sweet --example test_sweet --features sweet/bevy -- --parallel
+test *args:
+	cargo run -p sweet --example test_sweet --features sweet/bevy -- --parallel {{args}}
+
+test-w *args:
+	just watch just test -w {{args}}
 
 
 publish-all:
@@ -30,3 +33,12 @@ test-all-wasm *args:
 
 test-wasm crate *args:
 	cargo run -p sweet-cli -- -p {{crate}} --example test_{{crate}}_wasm {{args}}
+
+
+watch *command:
+	forky watch \
+	-w '**/*.rs' \
+	-i '{.git,target,html}/**' \
+	-i '**/mod.rs' \
+	-i '**/*_g.rs' \
+	-- {{command}}

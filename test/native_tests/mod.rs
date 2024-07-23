@@ -10,9 +10,6 @@ pub use self::multithreaded::*;
 pub mod multithreaded2;
 #[allow(unused_imports)]
 pub use self::multithreaded2::*;
-pub mod test_case;
-#[allow(unused_imports)]
-pub use self::test_case::*;
 pub mod test_case_native;
 #[allow(unused_imports)]
 pub use self::test_case_native::*;
