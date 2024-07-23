@@ -1,6 +1,9 @@
 pub mod lifecycle;
 #[allow(unused_imports)]
 pub use self::lifecycle::*;
+pub mod macros;
+#[allow(unused_imports)]
+pub use self::macros::*;
 pub mod matcher;
 #[allow(unused_imports)]
 pub use self::matcher::*;

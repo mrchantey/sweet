@@ -14,7 +14,7 @@ use fantoccini::ClientBuilder;
 use fantoccini::Locator;
 use sweet::*;
 
-#[sweet_test(non_send)]
+#[sweet::test(non_send)]
 async fn connects_to_example()->Result<()>{
 	let client = ClientBuilder::native()
 		.connect("http://localhost:9515").await?;

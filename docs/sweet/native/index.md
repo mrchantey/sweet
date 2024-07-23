@@ -14,7 +14,7 @@
 	```rs
 	pub use sweet::*;
 
-	#[sweet_test]
+	#[sweet::test]
 	fn it_works() -> Result<()>{
 		assert!(true == true);
 		expect(true).to_be_true()?;

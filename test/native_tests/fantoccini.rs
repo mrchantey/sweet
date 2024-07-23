@@ -5,7 +5,7 @@ use std::process::Command;
 use sweet::*;
 
 // long running test, usually skipped
-#[sweet_test(non_send, skip)]
+#[sweet::test(non_send, skip)]
 pub async fn works() -> Result<()> {
 	let mut chromedriver = Command::new("chromedriver")
 		.args(["--silent", "--port=9515"])
