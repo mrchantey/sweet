@@ -36,12 +36,13 @@ jobs:
           version: '0.12.6'
       - name: 🔨 Build Book
         run: mdbook build
-        working-directory: ./docs
+        # working-directory: ./docs
       - name: 🌍 Deploy
         uses: peaceiris/actions-gh-pages@v3
         if: ${{ github.ref == 'refs/heads/main' }}
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_branch: pages
-          publish_dir: ./docs/book
+          publish_dir: ./book
+          # publish_dir: ./docs/book
           destination_dir: docs
