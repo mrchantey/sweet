@@ -1,3 +1,4 @@
+use sweet::sweet_test;
 use sweet::*;
 
 #[sweet_test]
@@ -27,6 +28,7 @@ fn e2e() -> Result<()> {
 
 #[cfg(test)]
 mod test {
+    use sweet::sweet_test;
     // use sweet::*;
     #[sweet_test]
     fn checks_inside_mod() {

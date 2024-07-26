@@ -30,7 +30,9 @@ inventory = "0.3.2"
 extend = "1.1.2"
 
 ## game
-bevy = "0.14"
+# bevy = {version = "0.14", default-features = false}
+#💡 observer reflect attributes, required until 0.14.1
+bevy = { git = "https://github.com/bevyengine/bevy.git", rev = "b8416b3043eb5d2a49c6044e9680f0c5f189f243", default-features = false }
 
 ### io ###
 flume = "0.11.0"

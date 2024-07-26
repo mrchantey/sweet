@@ -4,9 +4,8 @@
 //!
 //! ```rust
 //! // examples/sweet.rs
-//!
-//! use sweet::{sweet::test, expect, Result};
-//!
+//! # use sweet::{sweet_test, expect};
+//! # use anyhow::Result;
 //! #[sweet_test]
 //! fn it_passes() -> Result<()>{
 //! 	expect(true).to_be_true()
@@ -21,6 +20,8 @@
 
 #![feature(async_closure, doc_cfg)]
 #![allow(async_fn_in_trait)]
+
+pub use sweet_macros::sweet_test;
 pub use sweet_macros::*;
 
 mod common;
