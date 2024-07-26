@@ -7,7 +7,7 @@
 //!
 //! use sweet::{sweet::test, expect, Result};
 //!
-//! #[sweet::test]
+//! #[sweet_test]
 //! fn it_passes() -> Result<()>{
 //! 	expect(true).to_be_true()
 //! }

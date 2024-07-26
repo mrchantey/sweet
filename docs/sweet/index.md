@@ -28,7 +28,7 @@ The in-browser tests are architecturally similar to Cypress [Component][1] and [
 ## Usage
 
 ```rs
-#[sweet::test]
+#[sweet_test]
 fn true_is_true() -> Result<()> {
   expect(true).to_be_true()
 }
@@ -51,6 +51,6 @@ Check out the [quickstart page](./native/index.md) or have a browse of the [test
 Sweet has four main components:
 
 - [`sweet!` defines a test suite](./macros.md)
-- [`#[sweet::test]` defines a test](./native/index.md)
+- [`#[sweet_test]` defines a test](./native/index.md)
 - [`expect()` returns a matcher](./matchers.md)
 - [`visit()` returns an iframe (e2e)](./web/end-to-end.md)

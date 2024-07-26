@@ -26,7 +26,7 @@
 ## Usage
 
 ```rs
-#[sweet::test]
+#[sweet_test]
 fn true_is_true() -> Result<()> {
   expect(true).to_be_true()
 }
