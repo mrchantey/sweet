@@ -3,7 +3,7 @@ resolver = "2"              # Important! wgpu/Bevy needs this!
 members = ["macros", "cli"]
 
 [workspace.package]
-version = "0.2.0-rc.2"
+version = "0.2.0-rc.3"
 edition = "2021"
 license = "MIT OR Apache-2.0"
 readme = "README.md"
@@ -13,12 +13,16 @@ documentation = "https://mrchantey.github.io/forky/docs"
 repository = "https://github.com/mrchantey/sweet"
 
 [workspace.dependencies]
-sweet = { path = ".", version = "0.2.0-rc.2" }
-sweet_macros = { path = "./macros", version = "0.2.0-rc.2" }
-forky_core = { version = "0.2.0-rc.1", path = "../forky/crates/forky_core" }
-forky_fs = { version = "0.2.0-rc.1", path = "../forky/crates/forky_fs" }
-forky_web = { version = "0.2.0-rc.1", path = "../forky/crates/forky_web" }
-forky_cli = { version = "0.2.0-rc.1", path = "../forky/crates/forky_cli" }
+sweet = { path = ".", version = "0.2.0-rc.3" }
+sweet_macros = { path = "./macros", version = "0.2.0-rc.3" }
+# forky_core = { version = "0.2.0-rc.2", path = "../forky/crates/forky_core" }
+# forky_fs = { version = "0.2.0-rc.2", path = "../forky/crates/forky_fs" }
+# forky_web = { version = "0.2.0-rc.2", path = "../forky/crates/forky_web" }
+# forky_cli = { version = "0.2.0-rc.2", path = "../forky/crates/forky_cli" }
+forky_core = { version = "0.2.0-rc.3" }
+forky_fs = { version = "0.2.0-rc.3" }
+forky_web = { version = "0.2.0-rc.3" }
+forky_cli = { version = "0.2.0-rc.3" }
 
 
 ## utility
