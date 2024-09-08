@@ -3,7 +3,7 @@ resolver = "2"              # Important! wgpu/Bevy needs this!
 members = ["macros", "cli"]
 
 [workspace.package]
-version = "0.1.50"
+version = "0.2.0-rc.2"
 edition = "2021"
 license = "MIT OR Apache-2.0"
 readme = "README.md"
@@ -13,12 +13,12 @@ documentation = "https://mrchantey.github.io/forky/docs"
 repository = "https://github.com/mrchantey/sweet"
 
 [workspace.dependencies]
-sweet = { path = ".", version = "0.1.50" }
-sweet_macros = { path = "./macros", version = "0.1.50" }
-forky_core = "0.1.50"
-forky_fs = "0.1.50"
-forky_web = "0.1.50"
-forky_cli = "0.1.50"
+sweet = { path = ".", version = "0.2.0-rc.2" }
+sweet_macros = { path = "./macros", version = "0.2.0-rc.2" }
+forky_core = { version = "0.2.0-rc.1", path = "../forky/crates/forky_core" }
+forky_fs = { version = "0.2.0-rc.1", path = "../forky/crates/forky_fs" }
+forky_web = { version = "0.2.0-rc.1", path = "../forky/crates/forky_web" }
+forky_cli = { version = "0.2.0-rc.1", path = "../forky/crates/forky_cli" }
 
 
 ## utility
@@ -32,7 +32,7 @@ extend = "1.1.2"
 ## game
 # bevy = {version = "0.14", default-features = false}
 #💡 observer reflect attributes, required until 0.14.1
-bevy = { path = "../bevy", default-features = false }
+bevy = { version = "0.14", default-features = false }
 
 ### io ###
 flume = "0.11.0"
