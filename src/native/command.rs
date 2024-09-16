@@ -5,7 +5,7 @@ use clap::Arg;
 use clap::ArgAction;
 use clap::ArgMatches;
 use clap::Command;
-use forky_fs::*;
+use forky::prelude::Subcommand;
 
 pub struct RunTestsNativeCommand;
 

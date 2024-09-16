@@ -1,8 +1,8 @@
 use super::*;
 use crate::test_runner::*;
 use crate::wasm::*;
-use forky_core::*;
-use forky_web::forky_style;
+use forky::core::*;
+use forky::web::forky::style;
 use leptos::*;
 use web_sys::console;
 
@@ -21,7 +21,7 @@ pub fn SuitesView(
 
 	view! {
 		<h3
-			class=forky_style::BUTTON_LIKE
+			class=forky::style::BUTTON_LIKE
 			on:click=move |_| {
 				console::clear();
 				set_matches(vec!["!".to_string()])
@@ -59,7 +59,7 @@ pub fn SuiteView<'a>(
 		.replace(".rs > ", "");
 	view! {
 		<div
-			class=spacecat!(forky_style::BUTTON_LIKE, sweet_style::SWEET_SUITE)
+			class=spacecat!(forky::style::BUTTON_LIKE, sweet_style::SWEET_SUITE)
 			on:click=move |_| set_matches(vec![file_str.clone()])
 		>
 			{pretty}
@@ -75,7 +75,7 @@ pub fn SuiteButton(
 ) -> impl IntoView {
 	view! {
 		<div
-			class=spacecat!(forky_style::BUTTON_LIKE, sweet_style::SWEET_SUITE)
+			class=spacecat!(forky::style::BUTTON_LIKE, sweet_style::SWEET_SUITE)
 			on:click=move |_| set_matches(vec![matcher.clone()])
 		>
 			{name}

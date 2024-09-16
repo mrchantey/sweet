@@ -1,7 +1,7 @@
 use super::settings::Settings;
 use super::*;
 use crate::wasm::MATCHES_KEY;
-use forky_web::*;
+use forky::web::*;
 use leptos::*;
 
 #[component]

@@ -1,5 +1,5 @@
 use crate::test_runner::*;
-use forky_web::SearchParams;
+use forky::web::SearchParams;
 use glob::Pattern;
 
 pub const MATCHES_KEY: &str = "m";

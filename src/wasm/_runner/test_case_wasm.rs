@@ -1,6 +1,6 @@
 use crate::test_case::*;
 use anyhow::Result;
-use forky_core::*;
+use forky::core::*;
 use js_sys::Function;
 use js_sys::Promise;
 use js_sys::Reflect;

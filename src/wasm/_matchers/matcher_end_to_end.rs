@@ -1,5 +1,5 @@
 use anyhow::Result;
-use forky_web::*;
+use forky::web::*;
 use web_sys::Document;
 use web_sys::HtmlIFrameElement;
 

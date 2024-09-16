@@ -49,7 +49,7 @@ impl TestRunnerWasm {
 	pub fn run(config: &TestRunnerConfig, iframe: HtmlIFrameElement) {
 		let config = config.clone();
 		wasm_bindgen_futures::spawn_local(async move {
-			forky_web::set_panic_hook();
+			forky::web::set_panic_hook();
 
 			let collector = TestCollectorWasm::new();
 			let logger = if config.silent {

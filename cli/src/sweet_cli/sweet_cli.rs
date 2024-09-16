@@ -1,5 +1,5 @@
 use super::*;
-use forky_cli::server::*;
+use forky::cli::server::*;
 use std::fmt::Display;
 
 #[derive(Debug, Clone)]

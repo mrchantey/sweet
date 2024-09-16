@@ -1,4 +1,4 @@
-@import '../../../forky/forky_web/src/style/index.css';
+@import '../../../forky/forky::web/src/style/index.css';
 
 .hidden {
 	display: none;

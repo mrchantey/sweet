@@ -1,6 +1,6 @@
 use crate::matchers::*;
 use anyhow::Result;
-use forky_web::*;
+use forky::web::*;
 use web_sys::*;
 
 pub trait MatcherHtml<T>: MatcherTrait<T>
@@ -43,7 +43,7 @@ where
 		expect_suffix: &str,
 	) -> Result<()> {
 		let result = receive.contains(other);
-		// forky_core::log!("result: {result}");
+		// forky::core::log!("result: {result}");
 		let mut received = receive.chars().take(100).collect::<String>();
 		if received.len() == 100 {
 			received.push_str("...TRUNCATED...");

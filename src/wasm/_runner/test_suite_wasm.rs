@@ -3,7 +3,7 @@ use crate::test_case::*;
 use crate::test_runner::*;
 use crate::test_suite::*;
 use anyhow::Ok;
-use forky_web::*;
+use forky::web::*;
 use std::path::PathBuf;
 use web_sys::HtmlIFrameElement;
 use web_sys::MessageEvent;
@@ -75,7 +75,7 @@ async fn run_case_unit(
 	let ev = HtmlEventListener::wait("message").await;
 	let ev: MessageEvent = ev.into();
 	let data = ev.data();
-	// forky_core::log!("data: {:?}",data);
+	// forky::core::log!("data: {:?}",data);
 	if data.is_string() {
 		Err(anyhow::anyhow!(data.as_string().unwrap()))
 	} else {

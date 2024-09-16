@@ -3,7 +3,7 @@ resolver = "2"              # Important! wgpu/Bevy needs this!
 members = ["macros", "cli"]
 
 [workspace.package]
-version = "0.2.0-rc.3"
+version = "0.2.0-rc.4"
 edition = "2021"
 license = "MIT OR Apache-2.0"
 readme = "README.md"
@@ -13,16 +13,10 @@ documentation = "https://mrchantey.github.io/forky/docs"
 repository = "https://github.com/mrchantey/sweet"
 
 [workspace.dependencies]
-sweet = { path = ".", version = "0.2.0-rc.3" }
-sweet_macros = { path = "./macros", version = "0.2.0-rc.3" }
-# forky_core = { version = "0.2.0-rc.2", path = "../forky/crates/forky_core" }
-# forky_fs = { version = "0.2.0-rc.2", path = "../forky/crates/forky_fs" }
-# forky_web = { version = "0.2.0-rc.2", path = "../forky/crates/forky_web" }
-# forky_cli = { version = "0.2.0-rc.2", path = "../forky/crates/forky_cli" }
-forky_core = { version = "0.2.0-rc.3" }
-forky_fs = { version = "0.2.0-rc.3" }
-forky_web = { version = "0.2.0-rc.3" }
-forky_cli = { version = "0.2.0-rc.3" }
+sweet = { path = ".", version = "0.2.0-rc.4" }
+sweet_macros = { path = "./macros", version = "0.2.0-rc.4" }
+# forky = { version = "0.2.0-rc.2", path = "../forky/crates/forky" }
+forky = { version = "0.2.0-rc.6" }
 
 
 ## utility
@@ -110,7 +104,7 @@ bevy = ["dep:bevy"]
 
 [dependencies]
 ### internal ###
-forky_core = { workspace = true }
+forky = { workspace = true }
 sweet_macros = { workspace = true }
 
 ### misc ###
@@ -140,7 +134,7 @@ bevy = { workspace = true, optional = true }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 console_log = { workspace = true }
-forky_web = { workspace = true }
+forky = { workspace = true, features = ["web"] }
 js-sys = { workspace = true }
 wasm-bindgen = { workspace = true }
 wasm-bindgen-futures = { workspace = true }
@@ -150,12 +144,11 @@ leptos = { workspace = true }
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 tokio = { workspace = true }
 clap = { workspace = true }
-forky_fs = { workspace = true }
+forky = { workspace = true, features = ["fs"] }
 crossterm = { workspace = true }
 gag = { workspace = true }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
-forky_fs = { workspace = true }
 fantoccini = { workspace = true }
 
 

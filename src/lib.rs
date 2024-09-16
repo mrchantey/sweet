@@ -86,6 +86,6 @@ pub fn main() -> anyhow::Result<()> {
 #[cfg(not(target_arch = "wasm32"))]
 // #[tokio::main]
 pub fn main() -> anyhow::Result<()> {
-    use forky_fs::*;
+    use forky::prelude::*;
     native::RunTestsNativeCommand.run_with_cli_args()
 }

@@ -1,6 +1,6 @@
 use crate::test_runner::*;
 use crate::test_suite::SuiteLogger;
-use forky_web::*;
+use forky::web::*;
 use std::time::Duration;
 use web_sys::console;
 

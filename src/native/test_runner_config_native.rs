@@ -32,7 +32,7 @@ impl TestRunnerConfig {
 // 	}
 
 // 	const FLAGS: &'static [&str] = &["-w"];
-// 	let mut args = forky_fs::cli_args::get();
+// 	let mut args = forky::fs::cli_args::get();
 // 	let watch = vec_contains_str("-w", &args);
 // 	args.retain(|v| !arr_contains_str(v, FLAGS));
 // 	Self {

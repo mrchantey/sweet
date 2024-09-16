@@ -1218,10 +1218,22 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "00b0228411908ca8685dba7fc2cdd70ec9990a6e753e89b6ac91a84c40fbaf4b"
 
 [[package]]
-name = "forky_cli"
-version = "0.2.0-rc.3"
+name = "forky"
+version = "0.2.0-rc.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "847487d4df1f0cd2950cbf8609362cde1a09e678f21549d7712165a8f711dce3"
+checksum = "ac29aa45bd05424ca52de937458c1d5fb887192d45411f6826e51f1ac0a3d1c2"
+dependencies = [
+ "forky_cli",
+ "forky_core",
+ "forky_fs",
+ "forky_web",
+]
+
+[[package]]
+name = "forky_cli"
+version = "0.2.0-rc.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8b1a35ec50467c4de517de0c7fd643f2a01a6af97226703dc9e0de8609394567"
 dependencies = [
  "anyhow",
  "axum",
@@ -1244,9 +1256,9 @@ dependencies = [
 
 [[package]]
 name = "forky_core"
-version = "0.2.0-rc.3"
+version = "0.2.0-rc.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8c14859615a791fc1127d14959fc30305f52ee289c89c4196a1903ecebc05005"
+checksum = "16f5edc9b4f6307e74a3c8d2b73b7612be6f317324acbb6eb0ccbfca91fa946a"
 dependencies = [
  "anyhow",
  "extend",
@@ -1258,9 +1270,9 @@ dependencies = [
 
 [[package]]
 name = "forky_fs"
-version = "0.2.0-rc.3"
+version = "0.2.0-rc.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6977e3a9a59949759e1e3c81aeb4fc110e6405d97cc76f40c200697c0209fcd9"
+checksum = "cd33c69fe57176cb4c98989aab14fe76a6939f3ee1b1db55da340550866f0d52"
 dependencies = [
  "anyhow",
  "clap",
@@ -1279,9 +1291,9 @@ dependencies = [
 
 [[package]]
 name = "forky_web"
-version = "0.2.0-rc.3"
+version = "0.2.0-rc.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8e391546f46ec719777b19e46b692c3b546b3193810becbb141b9bee738690d4"
+checksum = "c1c6d6baa4bdd4c6c10cdbfa39fe618e311a0bc2fa9424731ebffa7a6ac1a8a6"
 dependencies = [
  "anyhow",
  "console_error_panic_hook",
@@ -1300,9 +1312,9 @@ dependencies = [
 
 [[package]]
 name = "forky_web_macros"
-version = "0.2.0-rc.3"
+version = "0.2.0-rc.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3d903485e07e676c2e47c8bf41ad106bf602dfedbd31d41253c56deabb2007e3"
+checksum = "42db4fe33ca8c36d338f4da134eb97165f015677494642dd2b8dc398a0f93c3d"
 dependencies = [
  "anyhow",
  "proc-macro2",
@@ -3057,7 +3069,7 @@ checksum = "7da8b5736845d9f2fcb837ea5d9e2628564b3b043a70948a3f0b778838c5fb4f"
 
 [[package]]
 name = "sweet"
-version = "0.2.0-rc.3"
+version = "0.2.0-rc.4"
 dependencies = [
  "anyhow",
  "backtrace",
@@ -3069,9 +3081,7 @@ dependencies = [
  "extend",
  "fantoccini",
  "flume",
- "forky_core",
- "forky_fs",
- "forky_web",
+ "forky",
  "futures",
  "gag",
  "getrandom",
@@ -3093,7 +3103,7 @@ dependencies = [
 
 [[package]]
 name = "sweet-cli"
-version = "0.2.0-rc.3"
+version = "0.2.0-rc.4"
 dependencies = [
  "anyhow",
  "axum",
@@ -3102,9 +3112,7 @@ dependencies = [
  "colorize",
  "extend",
  "fantoccini",
- "forky_cli",
- "forky_core",
- "forky_fs",
+ "forky",
  "futures",
  "glob",
  "hyper",
@@ -3120,7 +3128,7 @@ dependencies = [
 
 [[package]]
 name = "sweet_macros"
-version = "0.2.0-rc.3"
+version = "0.2.0-rc.4"
 dependencies = [
  "anyhow",
  "proc-macro2",

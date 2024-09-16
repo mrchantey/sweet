@@ -1,7 +1,7 @@
 use super::*;
 // use crate::TestRunnerConfig;
 use anyhow::Result;
-use forky_web::*;
+use forky::web::*;
 use leptos::*;
 
 
@@ -19,7 +19,7 @@ pub fn sweet_wasm_entry() -> Result<()> {
 }
 
 fn entry() -> Result<()> {
-	forky_web::set_panic_hook();
+	forky::web::set_panic_hook();
 	if let Some(testid) = SearchParams::get("testid") {
 		TestRunnerWasm::run_case(testid.parse().unwrap())
 	} else if interactive_mode() {
