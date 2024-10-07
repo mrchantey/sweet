@@ -37,7 +37,7 @@ where
 		let entity = entity.sweet_into();
 		let value = self.value.sweet_borrow();
 		let received = value.get_entity(entity);
-		self.assert_option_with_received_negatable(received)
+		self.assert_option_with_received_negatable(received.ok())
 	}
 
 	fn to_have_component<T: Component>(
