@@ -1,3 +1,3 @@
-#![feature(async_closure,let_chains)]
-pub mod sweet_cli;
-pub use sweet_cli::*;
+pub fn foo() {
+    println!("this used to run wasm tests with fantoccini but is now unused");
+}

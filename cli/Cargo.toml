@@ -15,38 +15,5 @@ keywords = ["cli", "test", "e2e", "browser", "webdriver"]
 name = "sweet"
 path = "src/main.rs"
 
-# [dependencies]
-[target.'cfg(not(target_arch = "wasm32"))'.dependencies] # specify os for rust analyzer
-anyhow = { workspace = true }
-extend = { workspace = true }
-
-## async
-futures = { workspace = true }
-rayon = { workspace = true }
-tokio = { workspace = true }
-
-## forky
-forky = { workspace = true,features=["fs","cli"] }
-
-## fs
-glob = { workspace = true }
-## cli
-clap = { version = "4.2.2", features = ["derive"] }
-colorize = { workspace = true }
-
-### server ###
-axum = "0.6.19"
-hyper = { version = "0.14.27", features = ["full"] }
-axum-server = { version = "0.5.1", features = ["tls-rustls"] }
-tower = "0.4.13"
-tower-http = { version = "0.4.3", features = ["fs", "cors"] }
-tower-livereload = "0.8.0"
-
-## sweet
-fantoccini = { workspace = true }
-serde = { workspace = true }
-serde_json = { workspace = true }
-sweet = { workspace = true }
-
-# [dev-dependencies]
-# sweet = { workspace = true }
+[dependencies]
+anyhow.workspace = true

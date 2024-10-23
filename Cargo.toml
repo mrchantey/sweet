@@ -61,18 +61,6 @@ rayon = "1.7.0"
 ## math
 getrandom = { version = "0.2.9", features = ["js"] }
 
-## web
-fantoccini = "0.19.3"
-
-### wasm ###
-leptos = { version = "0.6.10", features = ["csr", "nightly"] }
-console_log = "1.0"
-js-sys = "0.3.63"
-wasm-bindgen = "0.2.86"
-wasm-bindgen-futures = "0.4.36"
-console_error_panic_hook = "0.1.7"
-
-
 ### macros ###
 proc-macro2 = "1.0.47"
 syn = { version = "2.0.*", features = ["full"] }
@@ -100,7 +88,7 @@ keywords = [ # 5 at most
 ]
 
 [features]
-default= ["bevy"]
+# default= ["bevy"]
 bevy = ["dep:bevy"]
 
 [dependencies]
@@ -133,15 +121,6 @@ futures = { workspace = true }
 ### bevy ###
 bevy = { workspace = true, optional = true }
 
-[target.'cfg(target_arch = "wasm32")'.dependencies]
-console_log = { workspace = true }
-forky = { workspace = true, features = ["web"] }
-js-sys = { workspace = true }
-wasm-bindgen = { workspace = true }
-wasm-bindgen-futures = { workspace = true }
-web-sys = { workspace = true }
-leptos = { workspace = true }
-
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 tokio = { workspace = true }
 clap = { workspace = true }
@@ -149,128 +128,8 @@ forky = { workspace = true, features = ["fs"] }
 crossterm = { workspace = true }
 gag = { workspace = true }
 
-[target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
-fantoccini = { workspace = true }
-
-
 [[test]]
 name = "test_sweet"
 path = "test/sweet.rs"
 harness = false
 required-features = ["bevy"]
-
-[[example]]
-name = "test_sweet_wasm"
-path = "test/sweet_wasm.rs"
-# cant currently cicd windows wasm bevy
-# required-features = ["bevy"]
-
-
-[workspace.dependencies.web-sys]
-version = "0.3.61"
-features = [
-	# HTML
-	'Headers',
-	'Document',
-	'Element',
-	'Window',
-	'HtmlIFrameElement',
-	'ResizeObserver',
-	'ResizeObserverBoxOptions',
-	'ResizeObserverEntry',
-	'ResizeObserverOptions',
-	'ResizeObserverSize',
-	'DomRect',
-	'DomRectReadOnly',
-	# Style
-	'MediaQueryList',
-	# Events
-	'MouseEvent',
-	'KeyboardEvent',
-	# JS
-	'Gpu',
-	'console',
-	'Navigator',
-	'Performance',
-	'WebGl2RenderingContext',
-	# Audio
-	'AudioContext',
-	'AudioDestinationNode',
-	'AudioNode',
-	'AudioParam',
-	'BiquadFilterNode',
-	'BiquadFilterOptions',
-	'BiquadFilterType',
-	'DelayNode',
-	'DelayOptions',
-	'GainNode',
-	'OscillatorNode',
-	'OscillatorType',
-	# Fetch
-	'Request',
-	'RequestInit',
-	'RequestMode',
-	'Response',
-	# Blob
-	'Blob',
-	'BlobEvent',
-	'BlobEventInit',
-	'BlobPropertyBag',
-	# Elements
-	'HtmlAnchorElement',
-	'HtmlCanvasElement',
-	'HtmlInputElement',
-	'File',
-	'FileList',
-	# Url
-	'Url',
-	'History',
-	'Location',
-	'UrlSearchParams',
-	# Sensors
-	'DeviceOrientationEvent',
-	'DeviceMotionEvent',
-	'DeviceAcceleration',
-	'DeviceRotationRate',
-	# Sockets
-	'BinaryType',
-	'FileReader',
-	'ErrorEvent',
-	'MessageEvent',
-	'ProgressEvent',
-	'WebSocket',
-	# XR
-	'XrBoundedReferenceSpace',
-	'XrEye',
-	'XrFrame',
-	'XrHandedness',
-	'XrInputSource',
-	'XrInputSourceArray',
-	'XrInputSourceEvent',
-	'XrInputSourceEventInit',
-	'XrInputSourcesChangeEvent',
-	'XrJointPose',
-	'XrJointSpace',
-	'XrPose',
-	'XrReferenceSpace',
-	'XrReferenceSpaceEvent',
-	'XrReferenceSpaceEventInit',
-	'XrReferenceSpaceType',
-	'XrRenderState',
-	'XrRenderStateInit',
-	'XrRigidTransform',
-	'XrSession',
-	'XrSessionEvent',
-	'XrSessionEventInit',
-	'XrSessionInit',
-	'XrSessionMode',
-	'XrSpace',
-	'XrTargetRayMode',
-	'XrView',
-	'XrViewerPose',
-	'XrViewport',
-	'XrVisibilityState',
-	'XrWebGlLayer',
-	'XrWebGlLayerInit',
-	'XrSystem',
-]
