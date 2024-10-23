@@ -28,8 +28,8 @@ inventory = "0.3.2"
 extend = "1.1.2"
 
 ## game
-# bevy = { version = "0.14", default-features = false }
-bevy = { git = "https://github.com/bevyengine/bevy", rev = "0c959f77007c29eead7f902bddd3342a1ecbca20", default-features = false }
+bevy = { version = "0.15.0-rc.1", default-features = false }
+# bevy = { git = "https://github.com/bevyengine/bevy", rev = "0c959f77007c29eead7f902bddd3342a1ecbca20", default-features = false }
 
 
 ### io ###
@@ -100,6 +100,7 @@ keywords = [ # 5 at most
 ]
 
 [features]
+default= ["bevy"]
 bevy = ["dep:bevy"]
 
 [dependencies]

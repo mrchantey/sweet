@@ -2,7 +2,7 @@ use super::*;
 use clap::Arg;
 use clap::ArgAction;
 use clap::Command;
-use forky::fs::Subcommand;
+use forky::fs::prelude::*;
 
 pub struct SweetCommand;
 

@@ -37,6 +37,3 @@ pub use self::matcher_str::*;
 pub mod matcher_vec;
 #[allow(unused_imports)]
 pub use self::matcher_vec::*;
-pub mod sweet_into;
-#[allow(unused_imports)]
-pub use self::sweet_into::*;

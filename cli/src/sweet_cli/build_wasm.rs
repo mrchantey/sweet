@@ -2,11 +2,11 @@ use super::*;
 use anyhow::Result;
 use anyhow::bail;
 use colorize::*;
-use forky::fs::fs::copy_recursive;
-use forky::fs::fs::hash_file_to_string;
-use forky::fs::process::spawn_command;
-use forky::fs::process::ChildExt;
-use forky::fs::process::ChildProcessStatus;
+use forky::fs::prelude::fs::copy_recursive;
+use forky::fs::prelude::fs::hash_file_to_string;
+use forky::fs::prelude::process::spawn_command;
+use forky::fs::prelude::process::ChildExt;
+use forky::fs::prelude::process::ChildProcessStatus;
 use std::path::Path;
 use std::process::Child;
 

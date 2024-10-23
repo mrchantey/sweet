@@ -5,11 +5,11 @@ use web_sys::*;
 
 pub trait MatcherHtml<T>: MatcherTrait<T>
 where
-	T: SweetBorrow<HtmlElement>,
+	T: Into<HtmlElement>,
 {
 	fn get(&self, selector: &str) -> Result<Matcher<HtmlElement>> {
 		let matcher = self.get_matcher();
-		let parent = matcher.value.sweet_borrow();
+		let parent = matcher.value.into();
 		// let expected = format!(
 		// 	"element {} to contain selector '{selector}'",
 		// 	parent.tag_name()
@@ -23,17 +23,17 @@ where
 	fn to_contain_text(&self, other: &str) -> Result<()> {
 		let receive = self
 			.get_value()
-			.sweet_borrow()
+			.into()
 			.text_content()
 			.unwrap_or_default();
 		self.contains(other, &receive, "text")
 	}
 	fn to_contain_visible_text(&self, other: &str) -> Result<()> {
-		let receive = self.get_value().sweet_borrow().inner_text();
+		let receive = self.get_value().into().inner_text();
 		self.contains(other, &receive, "visible text")
 	}
 	fn to_contain_html(&self, other: &str) -> Result<()> {
-		let receive = self.get_value().sweet_borrow().inner_html();
+		let receive = self.get_value().into().inner_html();
 		self.contains(other, &receive, "html")
 	}
 	fn contains(
@@ -55,4 +55,4 @@ where
 	}
 }
 
-impl<T> MatcherHtml<T> for Matcher<T> where T: SweetBorrow<HtmlElement> {}
+impl<T> MatcherHtml<T> for Matcher<T> where T: Into<HtmlElement> {}
