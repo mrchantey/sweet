@@ -48,9 +48,8 @@ Check out the [quickstart page](./native/index.md) or have a browse of the [test
 
 ## Overview
 
-Sweet has four main components:
+Sweet has three main components:
 
-- [`sweet!` defines a test suite](./macros.md)
 - [`#[sweet_test]` defines a test](./native/index.md)
 - [`expect()` returns a matcher](./matchers.md)
 - [`visit()` returns an iframe (e2e)](./web/end-to-end.md)

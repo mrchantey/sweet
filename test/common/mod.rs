@@ -1,15 +1,9 @@
-pub mod lifecycle;
-#[allow(unused_imports)]
-pub use self::lifecycle::*;
 pub mod macros_test;
 #[allow(unused_imports)]
 pub use self::macros_test::*;
 pub mod matcher;
 #[allow(unused_imports)]
 pub use self::matcher::*;
-pub mod panic;
-#[allow(unused_imports)]
-pub use self::panic::*;
 pub mod suite_result;
 #[allow(unused_imports)]
 pub use self::suite_result::*;

@@ -20,10 +20,9 @@ impl TestCase for Case {
     }
 }
 
-sweet! {
-    it "works" {
-        let case = Case;
-        expect(case.path().to_str().unwrap())
-            .to_be("test/common/test_case.rs")?;
-    }
+#[sweet_test]
+fn works() -> Result<()> {
+    let case = Case;
+    expect(case.path().to_str().unwrap()).to_be("test/common/test_case.rs")?;
+    Ok(())
 }

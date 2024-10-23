@@ -12,23 +12,13 @@ pub fn suite(cases: Vec<TestCaseNative>) -> TestSuiteNative {
     }
 }
 
-sweet! {
-    it "works" {
+#[sweet_test]
+fn works() -> Result<()> {
+    let _suite = suite(vec![case(TestCaseNativeFunc::Parallel(|| {
+        Box::pin(async {
+            panic!("hello");
+        })
+    }))]);
 
-        let _suite = suite(vec![
-            case(TestCaseNativeFunc::Parallel(|| {
-                Box::pin(async {
-                    panic!("hello");
-                })
-            })),
-
-        ]);
-
-        // let _config = TestRunnerConfig::default();
-
-            // suite.run(&config).await;
-
-        // expect(true).to_be_false()?;
-
-    }
+    Ok(())
 }

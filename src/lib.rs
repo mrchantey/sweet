@@ -22,7 +22,6 @@
 #![allow(async_fn_in_trait)]
 
 pub use sweet_macros::sweet_test;
-pub use sweet_macros::*;
 
 mod common;
 pub use common::*;
