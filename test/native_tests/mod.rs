@@ -1,9 +1,6 @@
 pub mod backtrace_test;
 #[allow(unused_imports)]
 pub use self::backtrace_test::*;
-pub mod fantoccini;
-#[allow(unused_imports)]
-pub use self::fantoccini::*;
 pub mod multithreaded;
 #[allow(unused_imports)]
 pub use self::multithreaded::*;
