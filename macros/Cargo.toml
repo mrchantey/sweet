@@ -5,7 +5,7 @@ edition = { workspace = true }
 authors = { workspace = true }
 documentation = { workspace = true }
 license = { workspace = true }
-readme = "README.md"
+readme = { workspace = true }
 description = "macro crate for sweet"
 repository = { workspace = true }
 

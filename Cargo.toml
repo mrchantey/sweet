@@ -3,18 +3,18 @@ resolver = "2"              # Important! wgpu/Bevy needs this!
 members = ["macros", "cli"]
 
 [workspace.package]
-version = "0.2.0-rc.5"
+version = "0.2.0"
 edition = "2021"
 license = "MIT OR Apache-2.0"
 readme = "README.md"
 authors = ["Peter Hayman <peteyhayman@gmail.com>"]
-description = "Rust Utilities"
+description = "A sweet test runner"
 documentation = "https://mrchantey.github.io/forky/docs"
 repository = "https://github.com/mrchantey/sweet"
 
 [workspace.dependencies]
-sweet = { path = ".", version = "0.2.0-rc.5" }
-sweet_macros = { path = "./macros", version = "0.2.0-rc.5" }
+sweet = { path = ".", version = "0.2.0" }
+sweet_macros = { path = "./macros", version = "0.2.0" }
 # forky = { version = "0.2.0-rc.2", path = "../forky/crates/forky" }
 forky = { version = "0.2.0-rc.7" }
 
@@ -28,9 +28,7 @@ inventory = "0.3.2"
 extend = "1.1.2"
 
 ## game
-bevy = { version = "0.15.0-rc.1", default-features = false }
-# bevy = { git = "https://github.com/bevyengine/bevy", rev = "0c959f77007c29eead7f902bddd3342a1ecbca20", default-features = false }
-
+bevy = { version = "0.15", default-features = false }
 
 ### io ###
 flume = "0.11.0"
