@@ -1,6 +1,6 @@
 // use std::thread::sleep;
 // use std::time::Duration;
-// use sweet::*;
+// use sweet::prelude::*;
 
 // const DELAY: u64 = 1;
 

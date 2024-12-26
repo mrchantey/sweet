@@ -1,7 +1,7 @@
 use anyhow::*;
 use sweet::native::*;
 // use std::pin::Pin;
-use sweet::*;
+use sweet::prelude::*;
 
 #[sweet_test]
 async fn panic_block()-> Result<()> {

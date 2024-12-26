@@ -5,5 +5,3 @@ mod common;
 mod native_tests;
 // #[cfg(target_arch = "wasm32")]
 // mod wasm;
-#[cfg(feature = "bevy")]
-mod bevy_tests;

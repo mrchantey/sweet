@@ -1,7 +1,7 @@
 // use anyhow::Error;
 // use anyhow::Result;
 // use sweet::test_case::*;
-// use sweet::*;
+// use sweet::prelude::*;
 
 
 // /*
@@ -10,7 +10,6 @@
 // 2. assertion	 	ie assert_equal
 // 3. error 				ie to_error
 // */
-
 // fn declarative_level(err: Error) -> Result<()> {
 // 	expect(err.to_string().as_str()).to_contain("backtrace_test.rs")
 // }

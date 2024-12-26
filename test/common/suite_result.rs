@@ -1,6 +1,6 @@
 use forky::prelude::*;
 use sweet::test_suite::*;
-use sweet::*;
+use sweet::prelude::*;
 
 #[sweet_test]
 fn works()-> Result<()> {

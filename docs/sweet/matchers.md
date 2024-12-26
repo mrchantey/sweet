@@ -43,7 +43,7 @@ Matchers are easy to extend, particulary using the `extend` crate.
 ```rust
 # use anyhow::Result;
 # use extend::ext;
-# use sweet::*;
+# use sweet::prelude::*;
 # 
 # #[derive(Debug)]
 struct Awesomeness(u32);

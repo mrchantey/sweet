@@ -12,7 +12,7 @@ Note the `non_send` flag, as fantoccini futures are not `Send`.
 ```rs
 use fantoccini::ClientBuilder;
 use fantoccini::Locator;
-use sweet::*;
+use sweet::prelude::*;
 
 #[sweet_test(non_send)]
 async fn connects_to_example()->Result<()>{

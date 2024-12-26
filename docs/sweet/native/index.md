@@ -12,7 +12,7 @@
 	```
 1. create file `test/sweet.rs`
 	```rs
-	pub use sweet::*;
+	pub use sweet::prelude::*;
 
 	#[sweet_test]
 	fn it_works() -> Result<()>{

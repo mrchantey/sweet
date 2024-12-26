@@ -1,5 +1,5 @@
 use sweet::sweet_test;
-use sweet::*;
+use sweet::prelude::*;
 
 #[sweet_test]
 fn test_macro_compiles() -> Result<()> {
@@ -29,7 +29,7 @@ fn e2e() -> Result<()> {
 #[cfg(test)]
 mod test {
     use sweet::sweet_test;
-    // use sweet::*;
+    // use sweet::prelude::*;
     #[sweet_test]
     fn checks_inside_mod() {
         // panic!()
