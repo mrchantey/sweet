@@ -1,15 +1,15 @@
 pub use sweet::prelude::*;
 
-#[sweet_test]
+#[sweet::test]
 fn assert_test() { assert!(true) }
-#[sweet_test]
+#[sweet::test]
 fn result_test() -> anyhow::Result<()> {
 	expect(true).to_be_true()?;
 	Ok(())
 }
-#[sweet_test]
+#[sweet::test]
 async fn async_assert_test() { assert!(true) }
-#[sweet_test]
+#[sweet::test]
 async fn async_result_test() -> anyhow::Result<()> {
 	expect(true).to_be_true()?;
 	Ok(())

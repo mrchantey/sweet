@@ -1,3 +1,13 @@
+// #![cfg_attr(all(test), feature(test, custom_test_frameworks))]
+// #![cfg_attr(test, test_runner(libtest_runner::libtest_runner))]
+#![cfg_attr(feature = "collect_libtest", feature(test, custom_test_frameworks))]
+#![cfg_attr(
+	feature = "collect_libtest",
+	test_runner(libtest_runner::libtest_runner)
+)]
+#![feature(async_closure, doc_cfg)]
+#![allow(async_fn_in_trait)]
+
 //! Declarative full-stack test framework.
 //!
 //! # Usage
@@ -5,7 +15,7 @@
 //! ```rust
 //! // examples/sweet.rs
 //! # use sweet::prelude::*;
-//! #[sweet_test]
+//! #[sweet::test]
 //! fn it_passes() -> Result<()>{
 //! 	expect(true).to_be_true()
 //! }
@@ -16,11 +26,12 @@
 //! cargo run --example sweet
 //! ```
 //!
-
-#![feature(async_closure, doc_cfg)]
-#![allow(async_fn_in_trait)]
-
-pub use sweet_macros::sweet_test;
+#[cfg(any(test, feature = "collect_libtest"))]
+pub mod libtest_runner;
+// the #[sweet::test] macro
+pub use sweet_macros::test;
+// #[cfg(test)]
+// use libtest_runner::testlib_runner as libtest_runner;
 
 pub mod common;
 // #[doc(hidden)]
@@ -59,7 +70,6 @@ pub mod prelude {
 	#[cfg(target_arch = "wasm32")]
 	pub use crate::wasm::*;
 	pub use anyhow::Result;
-	pub use sweet_macros::sweet_test;
 }
 
 /// Re-exports for macros

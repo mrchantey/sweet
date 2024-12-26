@@ -12,7 +12,7 @@ pub fn suite(cases: Vec<TestCaseNative>) -> TestSuiteNative {
 	}
 }
 
-#[sweet_test]
+#[test]
 fn works() -> Result<()> {
 	let _suite = suite(vec![case(TestCaseNativeFunc::Parallel(|| {
 		Box::pin(async {

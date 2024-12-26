@@ -1,6 +1,6 @@
 use sweet::prelude::*;
 
-#[sweet_test]
+#[test]
 async fn works() -> Result<()> {
     async fn foobar() {}
     foobar().await;

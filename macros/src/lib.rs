@@ -7,15 +7,15 @@ use proc_macro::TokenStream;
 /// # Accepted Signatures
 /// ```rust
 ///
-/// #[sweet_test]
+/// #[sweet::test]
 /// fn empty() {}
 ///
-/// #[sweet_test]
+/// #[sweet::test]
 /// fn returns_result() -> sweet::Result<()> {}
 ///
-/// #[sweet_test]
+/// #[sweet::test]
 /// async fn is_async() {}
-/// #[sweet_test(skip)]
+/// #[sweet::test(skip)]
 /// #[ignore]
 /// async fn is_async() {}
 ///
@@ -23,14 +23,14 @@ use proc_macro::TokenStream;
 ///
 ///
 /// # Attributes
-/// - `#[sweet_test(skip)]`: Skips the test
-/// - `#[sweet_test(only)]`: Skips all other tests in file
-/// - `#[sweet_test(e2e)]`: Runs in-browser wasm tests in a seperate process as an iframe
-/// - `#[sweet_test(non_send)]`: Always runs the test in the main thread which is required in crates like `bevy` and `fantoccini`.
+/// - `#[sweet::test(skip)]`: Skips the test
+/// - `#[sweet::test(only)]`: Skips all other tests in file
+/// - `#[sweet::test(e2e)]`: Runs in-browser wasm tests in a seperate process as an iframe
+/// - `#[sweet::test(non_send)]`: Always runs the test in the main thread which is required in crates like `bevy` and `fantoccini`.
 ///
 #[proc_macro_attribute]
-pub fn sweet_test(attr: TokenStream, input: TokenStream) -> TokenStream {
-    TestCaseAttr::parse(attr, input)
-        .unwrap_or_else(syn::Error::into_compile_error)
-        .into()
+pub fn test(attr: TokenStream, input: TokenStream) -> TokenStream {
+	TestCaseAttr::parse(attr, input)
+		.unwrap_or_else(syn::Error::into_compile_error)
+		.into()
 }

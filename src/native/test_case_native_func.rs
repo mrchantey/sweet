@@ -7,12 +7,14 @@ pub type BoxedFuture = Pin<Box<dyn Future<Output = Result<()>>>>;
 pub type BoxedFutureUnwindSafe =
 	Pin<Box<dyn Send + Sync + Future<Output = Result<()>> + UnwindSafe>>;
 
+pub type TestCaseNativeFuncSyncString = fn() -> Result<(), String>;
 pub type TestCaseNativeFuncSync = fn() -> Result<()>;
 pub type TestCaseNativeFuncSeries = fn() -> BoxedFuture;
 pub type TestCaseNativeFuncParallel = fn() -> BoxedFutureUnwindSafe;
 
 #[derive(Debug, Clone)]
 pub enum TestCaseNativeFunc {
+	SyncString(TestCaseNativeFuncSyncString),
 	Sync(TestCaseNativeFuncSync),
 	Series(TestCaseNativeFuncSeries),
 	Parallel(TestCaseNativeFuncParallel),

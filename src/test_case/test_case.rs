@@ -11,7 +11,10 @@ where
 	fn path(&self) -> PathBuf;
 	fn name(&self) -> &str;
 	fn config(&self) -> &TestCaseConfig;
-	fn format_error(&self, result: anyhow::Result<()>) -> anyhow::Result<()> {
+	fn format_error<E: ToString>(
+		&self,
+		result: Result<(), E>,
+	) -> anyhow::Result<()> {
 		result.map_err(|error| {
 			let msg = error.to_string();
 			let location = format!(

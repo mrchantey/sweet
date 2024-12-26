@@ -50,6 +50,6 @@ impl Subcommand for RunTestsNativeCommand {
 
 	fn run(&self, args: &ArgMatches) -> Result<()> {
 		let mut config = TestRunnerConfig::from_arg_matchers(args)?;
-		TestRunnerNative::run(&mut config)
+		TestRunnerNative::from_sweet_test().run(&mut config)
 	}
 }

@@ -5,73 +5,101 @@ use anyhow::Result;
 use forky::prelude::*;
 use futures::future::join_all;
 
-pub struct TestRunnerNative;
+pub struct TestRunnerNative {
+	pub suites: Vec<TestSuiteNative>,
+}
 
 impl TestRunnerNative {
-    #[tokio::main]
-    pub async fn run(config: &mut TestRunnerConfig) -> Result<()> {
-        // dont exit program on panic?
-        // let _ = std::panic::take_hook();
-        if config.watch {
-            terminal::clear()
-        }
-        let logger = if config.silent {
-            None
-        } else {
-            Some(RunnerLoggerNative::start(&config))
-        };
+	pub fn new(suites: Vec<TestSuiteNative>) -> Self {
+		Self { suites }
+	}
 
-        let collector = TestCollectorNative::new();
+	pub fn from_sweet_test() -> Self {
+		let suites = TestCollectorNative::new().0;
+		Self { suites }
+	}
 
-        let to_run = collector.suites_to_run(&config);
+	#[tokio::main]
+	pub async fn run(self, config: &mut TestRunnerConfig) -> Result<()> {
+		// dont exit program on panic?
+		// let _ = std::panic::take_hook();
+		if config.watch {
+			terminal::clear()
+		}
+		let logger = if config.silent {
+			None
+		} else {
+			Some(RunnerLoggerNative::start(&config))
+		};
 
-        let results = if config.parallel {
-            run_group_parallel(to_run, &config).await
-        } else {
-            TestRunner::run_group_series::<SuiteLoggerNative, TestCaseNative>(to_run, &config).await
-        };
+		let to_run = self
+			.suites
+			.into_iter()
+			.filter(|s| config.suite_passes_filter(s.file()))
+			.collect::<Vec<_>>();
 
-        if let Some(logger) = logger {
-            logger.end(&results);
-        }
+		let results = if config.parallel {
+			run_group_parallel(to_run, &config).await
+		} else {
+			run_group_series(to_run, &config).await
+		};
 
-        let no_tests = results.cases.tests == 0;
-        if config.watch || no_tests {
-            return Ok(());
-        }
-        terminal::show_cursor();
+		if let Some(logger) = logger {
+			logger.end(&results);
+		}
 
-        match results.suites.failed {
-            0 => Ok(()),
-            1 => Err(anyhow::anyhow!(
-                "{} test suite failed",
-                results.suites.failed
-            )),
-            _ => Err(anyhow::anyhow!(
-                "{} test suites failed",
-                results.suites.failed
-            )),
-        }
-    }
+		let no_tests = results.cases.tests == 0;
+		if config.watch || no_tests {
+			return Ok(());
+		}
+		terminal::show_cursor();
+
+		match results.suites.failed {
+			0 => Ok(()),
+			1 => Err(anyhow::anyhow!(
+				"{} test suite failed",
+				results.suites.failed
+			)),
+			_ => Err(anyhow::anyhow!(
+				"{} test suites failed",
+				results.suites.failed
+			)),
+		}
+	}
+}
+
+
+
+async fn run_group_series(
+	to_run: Vec<TestSuiteNative>,
+	config: &TestRunnerConfig,
+) -> TestRunnerResult {
+	let mut results = Vec::with_capacity(to_run.len());
+	for suite in to_run {
+		let result = suite.run::<SuiteLoggerNativeSimple>(config).await;
+		results.push(result);
+	}
+	results.into()
 }
 async fn run_group_parallel(
-    to_run: Vec<&TestSuiteNative>,
-    config: &TestRunnerConfig,
+	to_run: Vec<TestSuiteNative>,
+	config: &TestRunnerConfig,
 ) -> TestRunnerResult {
-    let handles_parallel = to_run.into_iter().map(|suite| {
-        let suite = (*suite).clone();
-        let config = (*config).clone();
-        tokio::spawn(async move { suite.run::<SuiteLoggerNativeSimple>(&config).await })
-    });
-    let results = join_all(handles_parallel)
-        .await
-        .into_iter()
-        .collect::<Result<Vec<_>, _>>();
+	let handles_parallel = to_run.into_iter().map(|suite| {
+		let config = (*config).clone();
+		tokio::spawn(async move {
+			suite.run::<SuiteLoggerNativeSimple>(&config).await
+		})
+	});
+	let results = join_all(handles_parallel)
+		.await
+		.into_iter()
+		.collect::<Result<Vec<_>, _>>();
 
-    match results {
-        Ok(results) => results.into(),
-        Err(e) => panic!("Error in parallel test suite\n{:?}", e),
-    }
+	match results {
+		Ok(results) => results.into(),
+		Err(e) => panic!("Error in parallel test suite\n{:?}", e),
+	}
 }
 
 /*

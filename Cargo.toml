@@ -86,7 +86,9 @@ keywords = [ # 5 at most
 ]
 
 [features]
-# default= ["bevy"]
+default = ["collect_libtest"]
+# allows collecting #[test], requires nightly
+collect_libtest = []
 bevy = ["dep:bevy"]
 
 [dependencies]
@@ -131,3 +133,14 @@ name = "test_sweet"
 path = "test/sweet.rs"
 harness = false
 required-features = ["bevy"]
+
+
+
+[[test]]
+name = "test_sweet_runner"
+path = "examples/sweet_runner.rs"
+harness = false
+
+[[test]]
+name = "test_libtest_runner"
+path = "examples/libtest_runner.rs"

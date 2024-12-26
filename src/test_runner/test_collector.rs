@@ -20,9 +20,8 @@ where
 
 	fn collect_cases() -> Vec<Case>;
 
-	fn collect_cases_to_suites() -> Vec<Suite> {
+	fn cases_to_suites(cases: Vec<Case>) -> Vec<Suite> {
 		let mut suites: HashMap<PathBuf, Suite> = HashMap::new();
-		let cases = Self::collect_cases();
 		for case in cases.iter() {
 			let path = case.path();
 			if !suites.contains_key(&path) {
@@ -37,5 +36,10 @@ where
 		// let mut suites = suites.iter().collect::<Vec<Suite>>();
 		suites2.sort_by(|a, b| a.file().cmp(&b.file()));
 		suites2
+	}
+
+	fn collect_cases_to_suites() -> Vec<Suite> {
+		let cases = Self::collect_cases();
+		Self::cases_to_suites(cases)
 	}
 }

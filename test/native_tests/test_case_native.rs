@@ -7,8 +7,8 @@ use sweet::test_case::*;
 
 pub fn case(func: TestCaseNativeFunc) -> TestCaseNative {
 	TestCaseNative {
-		file: "some/path.rs",
-		name: "works",
+		file: StringOrStaticStr::StaticStr("some/path.rs"),
+		name: StringOrStaticStr::StaticStr("works"),
 		func,
 		config: TestCaseConfig::default(),
 	}

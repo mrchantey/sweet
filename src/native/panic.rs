@@ -2,6 +2,7 @@ use crate::native::*;
 // use anyhow::Result;
 use futures::FutureExt;
 use std::any::Any;
+use std::panic::UnwindSafe;
 use tokio::task::JoinError;
 
 
@@ -24,25 +25,40 @@ pub fn anyhow_tokio_join(
 	}
 }
 
-pub fn unwrap_panic(func: &fn() -> anyhow::Result<()>) -> anyhow::Result<()> {
+pub fn unwrap_panic<F: FnOnce() -> anyhow::Result<R> + UnwindSafe, R>(
+	func: F,
+) -> Result<R, String> {
+	flatten_panic(
+		std::panic::catch_unwind(func).map(|r| r.map_err(|e| e.to_string())),
+	)
+}
+pub fn unwrap_panic_str<F: FnOnce() -> Result<R, String> + UnwindSafe, R>(
+	func: F,
+) -> Result<R, String> {
 	flatten_panic(std::panic::catch_unwind(func))
 }
-pub fn unwrap_panic_blocking(func: &fn() -> BoxedFuture) -> anyhow::Result<()> {
+pub fn unwrap_panic_blocking(func: &fn() -> BoxedFuture) -> Result<(), String> {
 	flatten_panic(std::panic::catch_unwind(move || {
-		futures::executor::block_on(func())
+		futures::executor::block_on(async {
+			func().await.map_err(|e| e.to_string())
+		})
 	}))
 }
 
 pub async fn unwrap_panic_async(
 	fut: BoxedFutureUnwindSafe,
-) -> anyhow::Result<()> {
-	flatten_panic(fut.catch_unwind().await)
+) -> Result<(), String> {
+	let val = fut.catch_unwind().await;
+	let val = val.map(|r| r.map_err(|e| e.to_string()));
+	flatten_panic(val)
 }
 
-pub fn flatten_panic(result: PanicResult) -> anyhow::Result<()> {
+pub fn flatten_panic<R>(
+	result: std::thread::Result<Result<R, String>>,
+) -> Result<R, String> {
 	match result {
 		Ok(result) => result,
-		Err(e) => Err(anyhow::anyhow!(panic_info(e))),
+		Err(e) => Err(panic_info(e)),
 	}
 }
 

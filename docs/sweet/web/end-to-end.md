@@ -22,7 +22,7 @@ visit does three things:
 
 Here's an example of an end-to-end test running on these docs:
 ```rs
-#[sweet_test(e2e)]
+#[sweet::test(e2e)]
 fn docs_origin()-> Result<()>{
 	let page = visit("http://localhost:3000").await?;
 	expect(page)

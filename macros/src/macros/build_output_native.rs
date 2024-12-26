@@ -14,9 +14,9 @@ pub fn parse_test_case_native(
 	quote!(
 		#[cfg(not(target_arch = "wasm32"))]
 		inventory::submit!(sweet::native::TestCaseNative {
-			name: #name,
+			name: sweet::native::StringOrStaticStr::StaticStr(#name),
+			file: sweet::native::StringOrStaticStr::StaticStr(file!()),
 			func: #func,
-			file: file!(),
 			config: #config
 		});
 	)

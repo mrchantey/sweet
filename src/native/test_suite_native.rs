@@ -50,6 +50,13 @@ impl TestSuiteTrait<TestCaseNative> for TestSuiteNative {
 
 async fn run_native_series(to_run: &TestCaseNativeSplit<'_>) -> Vec<Error> {
 	let mut errors = Vec::new();
+	for (t, f) in to_run.syncs_str.iter() {
+		let result = unwrap_panic_str(f);
+		let result = t.format_error(result);
+		if let Err(err) = result {
+			errors.push(err);
+		}
+	}
 	for (t, f) in to_run.syncs.iter() {
 		let result = unwrap_panic(f);
 		let result = t.format_error(result);
@@ -102,6 +109,14 @@ async fn run_native_parallel(
 		futures::future::join_all(handles_parallel).await
 	}); // TODO seems like awkward way to force handles to run
 
+	let results_sync_str = to_run
+		.syncs_str
+		.par_iter()
+		.map(|(t, f)| {
+			let result = unwrap_panic_str(&f);
+			t.format_error(result)
+		})
+		.collect::<Vec<_>>(); //blocks until syncs complete
 	let results_sync = to_run
 		.syncs
 		.par_iter()
@@ -119,6 +134,7 @@ async fn run_native_parallel(
 		.collect::<std::result::Result<Vec<_>, JoinError>>()?;
 	let errs = results_sync
 		.into_iter()
+		.chain(results_sync_str)
 		.chain(results_parallel)
 		.filter_map(|r| r.err())
 		.collect();

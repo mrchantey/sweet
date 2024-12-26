@@ -2,7 +2,7 @@ use forky::prelude::*;
 use sweet::test_suite::*;
 use sweet::prelude::*;
 
-#[sweet_test]
+#[test]
 fn works()-> Result<()> {
     let file = std::path::Path::new(file!()).to_forward_slash();
     let result = SuiteResult::new(file, 0, 0);
