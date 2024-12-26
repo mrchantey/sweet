@@ -30,3 +30,19 @@ where
 		self.assert_correct(result, &"None")
 	}
 }
+
+
+#[cfg(test)]
+mod test {
+	use crate::prelude::*;
+
+	#[test]
+	fn option() -> Result<()> {
+		expect(Some(true)).to_be_some()?;
+		expect(Some(true)).not().to_be_none()?;
+
+		expect(None::<bool>).to_be_none()?;
+		expect(None::<bool>).not().to_be_some()?;
+		Ok(())
+	}
+}

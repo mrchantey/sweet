@@ -18,3 +18,24 @@ impl Matcher<&str> {
 		self.assert_correct(result, &expected)
 	}
 }
+
+
+#[cfg(test)]
+mod test {
+	use crate::prelude::*;
+
+	#[test]
+	fn str() -> Result<()> {
+		// expect("foo".to_string()).to_be("foo")?;
+
+		expect("foobar").to_contain("bar")?;
+		expect("foobar").not().to_contain("baz")?;
+
+		expect("foobar").to_start_with("foo")?;
+		expect("foobar").not().to_start_with("bar")?;
+
+		expect("foobar").to_end_with("bar")?;
+		expect("foobar").not().to_end_with("foo")?;
+		Ok(())
+	}
+}

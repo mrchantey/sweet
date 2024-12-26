@@ -26,3 +26,18 @@ where
 		self.assert_correct(result, &expected)
 	}
 }
+
+
+#[cfg(test)]
+mod test {
+	use crate::prelude::*;
+
+
+	#[test]
+	fn order() -> Result<()> {
+		expect(0).to_be_greater_or_equal_to(0)?;
+		expect(10).to_be_greater_than(-10)?;
+		expect(10).not().to_be_greater_than(11)?;
+		Ok(())
+	}
+}

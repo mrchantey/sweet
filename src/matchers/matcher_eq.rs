@@ -24,3 +24,16 @@ where
 		}
 	}
 }
+
+
+#[cfg(test)]
+mod test {
+	use crate::prelude::*;
+
+	#[test]
+	fn equality() -> Result<()> {
+		expect(true).to_be(true)?;
+		expect(true).not().to_be(false)?;
+		Ok(())
+	}
+}

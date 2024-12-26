@@ -7,7 +7,9 @@ default:
 book:
 	mdbook serve
 
-
+expand *args:
+	just watch 'cargo expand --test test_macro'
+# just watch 'cargo expand --example scratch {{args}}'
 
 install *args:
 	cargo install --path ./cli {{args}}

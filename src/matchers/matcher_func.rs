@@ -1,5 +1,4 @@
-use super::*;
-use crate::*;
+use crate::prelude::*;
 use anyhow::Result;
 use std::fmt::Debug;
 
@@ -62,3 +61,33 @@ impl<I, O: Debug + PartialEq, F> Matcher<&MockFunc<I, O, F>> {
 }
 
 //TODO to_have_been_called_with
+
+
+
+#[cfg(test)]
+mod test {
+	use crate::prelude::*;
+	#[test]
+	fn test_mock_trigger() -> Result<()> {
+		let func = mock_trigger();
+		func.call(());
+		func.call(());
+		expect(&func).to_have_been_called()?;
+		expect(&func).to_have_been_called_times(2)?;
+		expect(&func.clone()).not().to_have_been_called_times(1)?;
+		Ok(())
+	}
+	#[test]
+	fn test_mock_func() -> Result<()> {
+		let func = mock_func(|i| i * 2);
+		func.call(0);
+		func.call(2);
+		expect(&func).to_have_been_called()?;
+		expect(&func).to_have_returned_with(&0)?;
+		expect(&func).not().to_have_returned_with(&4)?;
+		expect(&func).nth_return(1)?.to_be(4)?;
+		expect(&func).nth_return(0)?.to_be(0)?;
+		expect(&func).nth_return(1)?.to_be(4)?;
+		Ok(())
+	}
+}

@@ -23,3 +23,25 @@ impl<T: Debug, E: Debug + Display> Matcher<Result<T, E>> {
 		}
 	}
 }
+
+#[cfg(test)]
+mod test {
+	use crate::prelude::*;
+	use anyhow::anyhow;
+
+	#[test]
+	fn result() -> Result<()> {
+		let ok = || -> anyhow::Result<()> { Ok(()) };
+		expect(ok()).to_be_ok()?;
+		expect(ok()).not().to_be_err()?;
+
+		let err = || -> anyhow::Result<()> { Err(anyhow!("foo")) };
+
+		expect(err()).to_be_err()?;
+		expect(err()).not().to_be_ok()?;
+
+		expect(err()).to_be_err_str("foo")?;
+		expect(err()).not().to_be_err_str("foobar")?;
+		Ok(())
+	}
+}
