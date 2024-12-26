@@ -1,4 +1,6 @@
 use crate::matchers::*;
+use crate::prelude::BacktraceError;
+use crate::prelude::BuildableResult;
 use anyhow::Result;
 use bevy::prelude::*;
 use extend::ext;
@@ -28,38 +30,45 @@ where
 		let value = self.value.deref();
 		let received = value.get_entity(entity);
 		self.assert_option_with_received_negatable(received.ok())
+			.build_res_mapped()
 	}
 
 	fn to_have_component<T: Component>(&self, entity: Entity) -> Result<()> {
 		let received = self.value.deref().get::<T>(entity);
 		self.assert_option_with_received_negatable(received)
+			.build_res_mapped()
 	}
 
 	fn component<T: Component>(&self, entity: Entity) -> Result<Matcher<&T>> {
 		let received = self.value.deref().get::<T>(entity);
 		self.assert_option_with_received(received)
+			.map_err(BacktraceError::build_err)
 			.map(|c| Matcher::new(c))
 	}
 
 	fn to_contain_resource<T: Resource>(&self) -> Result<()> {
 		let received = self.value.deref().get_resource::<T>();
 		self.assert_option_with_received_negatable(received)
+			.build_res_mapped()
 	}
 
 	fn resource<T: Resource>(&self) -> Result<Matcher<&T>> {
 		let received = self.value.deref().get_resource::<T>();
 		self.assert_option_with_received(received)
+			.map_err(BacktraceError::build_err)
 			.map(|c| Matcher::new(c))
 	}
 
 	fn to_contain_non_send_resource<T: 'static>(&self) -> Result<()> {
 		let received = self.value.deref().get_non_send_resource::<T>();
 		self.assert_option_with_received_negatable(received)
+			.build_res_mapped()
 	}
 
 	fn non_send_resource<T: 'static>(&self) -> Result<Matcher<&T>> {
 		let received = self.value.deref().get_non_send_resource::<T>();
 		self.assert_option_with_received(received)
+			.map_err(BacktraceError::build_err)
 			.map(|c| Matcher::new(c))
 	}
 

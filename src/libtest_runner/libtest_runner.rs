@@ -10,7 +10,6 @@ const USE_DEFAULT_LIBTEST: bool = false;
 /// ```
 pub fn libtest_runner(tests: &[&test::TestDescAndFn]) {
 	if USE_DEFAULT_LIBTEST {
-		// println!("\n🤘 sweet as! 🤘\n");
 		test_main_with_filenames(tests);
 	} else {
 		let tests = tests
@@ -18,10 +17,8 @@ pub fn libtest_runner(tests: &[&test::TestDescAndFn]) {
 			.map(|t| into_test_case_native(t))
 			.collect::<Vec<_>>();
 		let suites = TestCollectorNative::cases_to_suites(tests);
-
-		if let Err(err) =
-			TestRunnerNative::new(suites).run(&mut TestRunnerConfig::default())
-		{
+		let mut config = TestRunnerConfig::from_env_args().unwrap();
+		if let Err(err) = TestRunnerNative::new(suites).run(&mut config) {
 			eprintln!("{}", err);
 		}
 	}
@@ -49,6 +46,7 @@ fn into_test_case_native(test: &TestDescAndFn) -> TestCaseNative {
 fn test_main_with_filenames(tests: &[&test::TestDescAndFn]) {
 	let tests = apply_filenames(tests);
 	let tests = tests.iter().collect::<Vec<_>>();
+	println!("\n🤘 sweet as! 🤘\n");
 	test::test_main_static(&tests);
 }
 

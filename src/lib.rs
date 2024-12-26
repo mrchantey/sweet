@@ -13,11 +13,15 @@
 //! # Usage
 //!
 //! ```rust
-//! // examples/sweet.rs
+//! #![cfg_attr(test, feature(test, custom_test_frameworks))]
+//! #![cfg_attr(test, test_runner(sweet::libtest_runner::libtest_runner))]
+//!
+//!
 //! # use sweet::prelude::*;
-//! #[sweet::test]
+//! #[test]
 //! fn it_passes() -> Result<()>{
-//! 	expect(true).to_be_true()
+//! 	assert!("this is a regular test");
+//! 	expect("sweet").not().to_contain("verbose matchers")
 //! }
 //!
 //! ```

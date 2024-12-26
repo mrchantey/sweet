@@ -1,4 +1,5 @@
 use super::*;
+use crate::prelude::BuildableResult;
 use anyhow::Result;
 use extend::ext;
 use std::fmt::Debug;
@@ -15,6 +16,7 @@ pub impl<T: CloseTo + Copy + Debug> Matcher<T>
 		let result = T::is_close(received, expected);
 		let expected = format!("close to {:?}", expected);
 		self.assert_correct_with_received(result, &expected, &received)
+			.build_res_mapped()
 	}
 	fn to_be_close_to_with_epsilon(
 		&self,
@@ -26,6 +28,7 @@ pub impl<T: CloseTo + Copy + Debug> Matcher<T>
 		let result = T::is_close_with_epsilon(received, expected, epsilon);
 		let expected = format!("close to {:?}", expected);
 		self.assert_correct_with_received(result, &expected, &received)
+			.build_res_mapped()
 	}
 }
 

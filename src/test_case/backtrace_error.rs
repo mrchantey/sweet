@@ -1,0 +1,105 @@
+use backtrace::Backtrace;
+
+
+pub type BacktraceResult = Result<(), BacktraceError>;
+
+pub trait BuildableResult {
+	/// Create the backtrace
+	fn build_res_mapped(self) -> anyhow::Result<()>;
+}
+impl BuildableResult for BacktraceResult {
+	fn build_res_mapped(self) -> anyhow::Result<()> {
+		match self {
+			Err(err) => Err(err.build_inner(0)),
+			Ok(val) => Ok(val),
+		}
+	}
+}
+// 3 = actual code
+// 2 = assertion: to_be(){}
+// 1 = build_err/build_res
+// 0 = build_inner
+const FRAME_DEPTH: usize = 3;
+
+
+/// A special error designed to be 'unwrapped' into anyhow
+/// at the last minute, so it captures the correct frame
+pub struct BacktraceError(pub String);
+
+impl BacktraceError {
+	pub fn new(message: String) -> Self { Self(message) }
+
+	pub(crate) fn build_inner(self, additional_frames: usize) -> anyhow::Error {
+		let bt = Backtrace::new();
+		let backtrace_str = if let Some(frame) =
+			&bt.frames().get(FRAME_DEPTH - additional_frames)
+		{
+			let symbol = &frame.symbols()[0];
+			let file = crate::test_case::BacktraceFile::new(symbol);
+			file.file_context()
+				.unwrap_or("Failed to get backtrace".to_string())
+		} else {
+			"Failed to get backtrace".to_string()
+		};
+		anyhow::anyhow!("{}\n\n{}", self.0, backtrace_str)
+	}
+	pub fn build_err(self) -> anyhow::Error { self.build_inner(0) }
+	pub fn build_res(self) -> anyhow::Result<()> { Err(self.build_inner(0)) }
+}
+
+impl From<&str> for BacktraceError {
+	fn from(err: &str) -> Self { Self::new(err.to_string()) }
+}
+impl From<String> for BacktraceError {
+	fn from(err: String) -> Self { BacktraceError::new(err.to_string()) }
+}
+
+
+
+
+#[cfg(test)]
+mod test {
+	use crate::prelude::*;
+
+	fn mock_to_be_error() -> anyhow::Result<()> {
+		some_low_level_error_assertion().build_res()
+	}
+
+	fn some_low_level_error_assertion() -> BacktraceError {
+		BacktraceError("Some error".to_string())
+	}
+
+	#[test]
+	fn error_builder() -> Result<()> {
+		let err = mock_to_be_error().err().unwrap().to_string();
+		// empty space ensures we got the correct frame
+
+
+
+		expect(&err).to_contain("backtrace_error.rs")?;
+		expect(&err).to_contain("let err = mock_to_be")?;
+
+
+		Ok(())
+	}
+	fn mock_to_be_result() -> anyhow::Result<()> {
+		some_low_level_result_assertion().build_res_mapped()
+	}
+
+	fn some_low_level_result_assertion() -> BacktraceResult {
+		Err(BacktraceError("Some error".to_string()))
+	}
+	#[test]
+	fn result_builder() -> Result<()> {
+		let err = mock_to_be_result().err().unwrap().to_string();
+		// empty space ensures we got the correct frame
+
+
+
+		expect(&err).to_contain("backtrace_error.rs")?;
+		// expect(&err).to_contain("let err = mock_to_be")?;
+
+
+		Ok(())
+	}
+}

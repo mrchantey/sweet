@@ -1,6 +1,8 @@
 #[cfg(target_arch = "wasm32")]
 pub use crate::wasm::MatcherHtml;
-use anyhow::Result; //TODO should probably be in matcher module
+use anyhow::Result;
+
+//TODO should probably be in matcher module
 
 /// The base struct for all matchers.
 pub struct Matcher<T> {
@@ -8,15 +10,10 @@ pub struct Matcher<T> {
 	pub negated: bool,
 }
 
+
 impl<T> Matcher<T> {
 	/// Create a new Matcher, usually this is done via [`expect`](crate::expect).
-	/// ```rust
-	/// # use sweet::matchers::Matcher;
-	/// Matcher::new(true).to_be_true()?;
-	/// # Ok::<(), anyhow::Error>(())
-	/// ```
-	///
-	pub fn new(value: T) -> Matcher<T> {
+	pub(crate) fn new(value: T) -> Matcher<T> {
 		Matcher {
 			value,
 			negated: false,
@@ -30,11 +27,9 @@ impl<T> Matcher<T> {
 	/// Some assertions do not support negation, in that case call this function within the matcher.
 	///
 	/// This will return an error if the matcher is already negated.
-	pub fn disallow_negated(&self) -> Result<()> {
+	pub fn disallow_negated(&self) -> Result<(), String> {
 		if self.negated {
-			Err(Self::to_custom_error(
-                "Unsupported: Negation not supported for this matcher, please remove `.not()`",
-            ))
+			Err("Unsupported: Negation not supported for this matcher, please remove `.not()`".to_string())
 		} else {
 			Ok(())
 		}

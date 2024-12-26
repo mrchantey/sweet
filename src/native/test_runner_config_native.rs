@@ -4,23 +4,56 @@ use clap::ArgMatches;
 use glob::Pattern;
 
 impl TestRunnerConfig {
-    ///Errors on malformed glob pattern.
-    pub fn from_arg_matchers(value: &ArgMatches) -> Result<Self> {
-        let watch = value.get_flag("watch");
-        let parallel = value.get_flag("parallel");
-        let silent = value.get_flag("silent");
-        let matches = value
-            .get_many::<String>("match")
-            .unwrap_or_default()
-            .map(|s| Pattern::new(&format!("*{s}*")))
-            .collect::<Result<Vec<_>, _>>()?;
-        Ok(Self {
-            watch,
-            parallel,
-            matches,
-            silent,
-        })
-    }
+	///Errors on malformed glob pattern.
+	pub fn from_arg_matchers(value: &ArgMatches) -> Result<Self> {
+		let watch = value.get_flag("watch");
+		let parallel = value.get_flag("parallel");
+		let silent = value.get_flag("silent");
+		let matches = value
+			.get_many::<String>("match")
+			.unwrap_or_default()
+			.map(|s| Pattern::new(&format!("*{s}*")))
+			.collect::<Result<Vec<_>, _>>()?;
+		Ok(Self {
+			watch,
+			parallel,
+			matches,
+			silent,
+		})
+	}
+	pub fn from_env_args() -> Result<Self> {
+		let args = std::env::args().collect();
+		Self::from_raw_args(args)
+	}
+
+	pub fn from_raw_args(args: Vec<String>) -> Result<Self> {
+		let mut watch = false;
+		let mut parallel = false;
+		let mut silent = false;
+		let mut matches = Vec::new();
+
+		// first arg is executable
+		for arg in args.iter().skip(1) {
+			match arg.as_str() {
+				"--watch" => watch = true,
+				"--parallel" => parallel = true,
+				"--silent" => silent = true,
+				other => {
+					if other.starts_with("--") {
+						return Err(anyhow::anyhow!("Unknown flag: {}", other));
+					}
+					matches.push(Pattern::new(&format!("*{}*", other))?);
+				}
+			}
+		}
+
+		Ok(Self {
+			watch,
+			parallel,
+			matches,
+			silent,
+		})
+	}
 }
 
 // pub fn from_cli_args() -> Self {

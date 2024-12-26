@@ -11,6 +11,7 @@ impl<T> Matcher<&MockValue<T>> {
 			&"to have been called",
 			&false,
 		)
+		.build_res_mapped()
 	}
 }
 impl<T: Debug + PartialEq> Matcher<&MockValue<T>> {
@@ -22,8 +23,10 @@ impl<T: Debug + PartialEq> Matcher<&MockValue<T>> {
 				&expected,
 				received,
 			)
+			.build_res_mapped()
 		} else {
-			Err(self.to_error_with_received(&"to have been called", &false))
+			self.to_error_with_received(&"to have been called", &false)
+				.build_res()
 		}
 	}
 }

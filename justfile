@@ -15,10 +15,7 @@ install *args:
 	cargo install --path ./cli {{args}}
 
 test *args:
-	cargo test --test test_sweet --features sweet/bevy -- --parallel {{args}}
-
-test-w *args:
-	just watch just test -w {{args}}
+	just watch 'cargo test --lib -- {{args}}'
 
 
 publish-all:

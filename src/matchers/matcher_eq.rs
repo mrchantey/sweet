@@ -1,4 +1,5 @@
 use super::*;
+use crate::prelude::*;
 use anyhow::Result;
 use std::fmt::Debug;
 
@@ -6,9 +7,11 @@ impl<T> Matcher<T>
 where
 	T: PartialEq + Debug + Clone,
 {
-	pub fn to_be(&self, other: T) -> Result<()> { self.assert_equal(other) }
+	pub fn to_be(&self, other: T) -> Result<()> {
+		self.assert_equal(other).build_res_mapped()
+	}
 
-	pub fn assert_equal(&self, expected: T) -> Result<()> {
+	pub(crate) fn assert_equal(&self, expected: T) -> BacktraceResult {
 		if self.equality(&expected) {
 			Ok(())
 		} else {

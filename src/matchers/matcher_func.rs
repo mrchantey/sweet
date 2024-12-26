@@ -10,6 +10,7 @@ impl<I, O, F> Matcher<&MockFunc<I, O, F>> {
 			&"to have been called",
 			&false,
 		)
+		.build_res_mapped()
 	}
 	pub fn to_have_been_called_times(&self, times: usize) -> Result<()> {
 		let received = self.value.called.lock().unwrap().len();
@@ -18,6 +19,7 @@ impl<I, O, F> Matcher<&MockFunc<I, O, F>> {
 			&format!("to have been called {times} times"),
 			&format!("called {received} times"),
 		)
+		.build_res_mapped()
 	}
 }
 impl<I, O: Clone, F> Matcher<&MockFunc<I, O, F>> {
@@ -26,7 +28,9 @@ impl<I, O: Clone, F> Matcher<&MockFunc<I, O, F>> {
 		if let Some(received) = vec.get(time) {
 			Ok(Matcher::new(received.clone()))
 		} else {
-			Err(self.to_error_with_received(&"to have been called", &false))
+			Err(self
+				.to_error_with_received(&"to have been called", &false)
+				.build_err())
 		}
 	}
 }
@@ -39,8 +43,11 @@ impl<I, O: Debug + PartialEq, F> Matcher<&MockFunc<I, O, F>> {
 				expected,
 				received,
 			)
+			.build_res_mapped()
 		} else {
-			Err(self.to_error_with_received(&"to have been called", &false))
+			Err(self
+				.to_error_with_received(&"to have been called", &false)
+				.build_err())
 		}
 	}
 	pub fn to_have_returned_nth_with(
@@ -54,8 +61,10 @@ impl<I, O: Debug + PartialEq, F> Matcher<&MockFunc<I, O, F>> {
 				expected,
 				received,
 			)
+			.build_res_mapped()
 		} else {
-			Err(self.to_error_with_received(&"to have been called", &false))
+			self.to_error_with_received(&"to have been called", &false)
+				.build_res()
 		}
 	}
 }
