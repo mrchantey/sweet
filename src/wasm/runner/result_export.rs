@@ -1,4 +1,4 @@
-use crate::test_runner::*;
+use crate::test_runner_utils::*;
 use crate::test_suite::*;
 use js_sys::Reflect;
 use wasm_bindgen::JsValue;

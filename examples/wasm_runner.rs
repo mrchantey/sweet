@@ -1,5 +1,5 @@
 #![cfg_attr(test, feature(test, custom_test_frameworks))]
-#![cfg_attr(test, test_runner(sweet::libtest_runner::libtest_runner))]
+#![cfg_attr(test, test_runner(sweet::test_runner))]
 
 fn main() {}
 

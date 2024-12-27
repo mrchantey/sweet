@@ -1,10 +1,10 @@
-// #![cfg_attr(all(test), feature(test, custom_test_frameworks))]
-// #![cfg_attr(test, test_runner(libtest_runner::libtest_runner))]
-#![cfg_attr(feature = "collect_libtest", feature(test, custom_test_frameworks))]
-#![cfg_attr(
-	feature = "collect_libtest",
-	test_runner(libtest_runner::libtest_runner)
-)]
+#![cfg_attr(any(test, feature = "collect_libtest"), feature(test))]
+#![cfg_attr(test, feature(custom_test_frameworks))]
+#![cfg_attr(test, test_runner(crate::test_runner))]
+// #![cfg_attr(
+// 	feature = "collect_libtest",
+// 	test_runner(libtest_runner::libtest_runner)
+// )]
 #![feature(async_closure, doc_cfg, panic_payload_as_str)]
 #![allow(async_fn_in_trait)]
 
@@ -14,7 +14,7 @@
 //!
 //! ```rust
 //! #![cfg_attr(test, feature(test, custom_test_frameworks))]
-//! #![cfg_attr(test, test_runner(sweet::libtest_runner::libtest_runner))]
+//! #![cfg_attr(test, test_runner(sweet::test_runner))]
 //!
 //!
 //! # use sweet::prelude::*;
@@ -32,6 +32,7 @@
 //!
 #[cfg(any(test, feature = "collect_libtest"))]
 pub mod libtest_runner;
+pub use libtest_runner::libtest_runner as test_runner;
 // the #[sweet::test] macro
 pub use sweet_macros::test;
 // #[cfg(test)]
@@ -46,7 +47,7 @@ pub use matchers::MatcherExtClose;
 /// Test case module
 pub mod test_case;
 /// Test runner module
-pub mod test_runner;
+pub mod test_runner_utils;
 /// Test suite module
 pub mod test_suite;
 
@@ -70,7 +71,7 @@ pub mod prelude {
 	#[cfg(not(target_arch = "wasm32"))]
 	pub use crate::native::*;
 	pub use crate::test_case::*;
-	pub use crate::test_runner::*;
+	pub use crate::test_runner_utils::*;
 	pub use crate::test_suite::*;
 	#[cfg(target_arch = "wasm32")]
 	pub use crate::wasm::*;

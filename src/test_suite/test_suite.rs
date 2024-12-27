@@ -1,6 +1,6 @@
 use super::*;
 use crate::test_case::*;
-use crate::test_runner::*;
+use crate::test_runner_utils::*;
 use anyhow::Error;
 use futures::Future;
 use std::path::PathBuf;

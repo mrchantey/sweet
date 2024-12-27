@@ -19,7 +19,10 @@ pub fn libtest_runner(tests: &[&test::TestDescAndFn]) {
 		set_panic_hook(testid);
 		match test.testfn {
 			StaticTestFn(f) => {
-				log_web("running test");
+				log_web(&format!(
+					"running test: {}",
+					test.desc.name.to_string()
+				));
 				let closure = Closure::from_func_no_args(f);
 				let func: &js_sys::Function = closure.as_ref().unchecked_ref();
 

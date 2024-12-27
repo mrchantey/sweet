@@ -1,4 +1,4 @@
-use crate::test_runner::*;
+use crate::test_runner_utils::*;
 use std::time::Instant;
 
 pub struct RunnerLoggerNative {

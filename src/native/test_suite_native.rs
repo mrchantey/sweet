@@ -1,6 +1,6 @@
 use crate::native::*;
 use crate::test_case::*;
-use crate::test_runner::*;
+use crate::test_runner_utils::*;
 use crate::test_suite::*;
 use anyhow::Error;
 use rayon::prelude::*;

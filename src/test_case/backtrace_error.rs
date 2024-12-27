@@ -58,6 +58,8 @@ impl From<String> for BacktraceError {
 
 
 #[cfg(test)]
+// wasm cant backtrace
+#[cfg(not(target_arch = "wasm32"))]
 mod test {
 	use crate::prelude::*;
 
