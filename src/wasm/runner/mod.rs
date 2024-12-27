@@ -22,6 +22,3 @@ pub use self::test_runner_wasm::*;
 pub mod test_suite_wasm;
 #[allow(unused_imports)]
 pub use self::test_suite_wasm::*;
-pub mod wasm_panic;
-#[allow(unused_imports)]
-pub use self::wasm_panic::*;

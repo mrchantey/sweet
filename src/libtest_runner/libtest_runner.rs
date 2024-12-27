@@ -5,31 +5,38 @@ use test::*;
 
 #[cfg(target_arch = "wasm32")]
 pub fn libtest_runner(tests: &[&test::TestDescAndFn]) {
+	use forky::prelude::*;
+	use runner::get_test_output;
 	use runner::log_web;
-	use runner::wasm_panic;
-	log_web("howdy");
-	wasm_panic();
-	// std::panic::set_hook(Box::new(|panic_info| {
-	// 	log_web(&format!(
-	// 		"🚀🚀🚀 panic: {}",
-	// 		panic_info.payload_as_str().unwrap_or_default()
-	// 	));
-	// 	// console_error_panic_hook::hook(panic_info);
-	// }));
+	use runner::set_panic_hook;
+	use wasm_bindgen::prelude::Closure;
+	use wasm_bindgen::JsCast;
+	use wasm_bindgen::JsValue;
 
-	fn this_may_panic(tests: &[&test::TestDescAndFn]) {
-		for test in tests {
-			match test.testfn {
-				StaticTestFn(f) => {
-					log_web("running test");
-					match f() {
-						Ok(_) => log_web("test passed"),
-						Err(e) => log_web(&format!("test failed: {}", e)),
+	let mut testid = 0;
+
+	for test in tests {
+		set_panic_hook(testid);
+		match test.testfn {
+			StaticTestFn(f) => {
+				log_web("running test");
+				let closure = Closure::from_func_no_args(f);
+				let func: &js_sys::Function = closure.as_ref().unchecked_ref();
+
+				let result = func.call0(&JsValue::NULL);
+
+				match result {
+					Ok(_) => log_web("test passed"),
+					// the error returned from a panic is just an Unreachable with backtrace
+					Err(_) => {
+						let out = get_test_output(testid);
+						log_web(&format!("Failed: {:?}", out));
 					}
 				}
-				_ => panic!("currently only static tests are supported"),
 			}
+			_ => panic!("currently only static tests are supported"),
 		}
+		testid += 1;
 	}
 
 	// println!("here are the tests: {:?}", tests);

@@ -1,5 +1,5 @@
 
 import init from './target/wasm/bindgen.js'
-console.log('initializing')
-await init()
-console.log('initialized')
+init()
+	.catch(err => console.error('Deno: Error:\n', err))
+	.then(() => console.log('Deno: Ok'))
