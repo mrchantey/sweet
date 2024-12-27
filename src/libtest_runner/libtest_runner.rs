@@ -6,18 +6,29 @@ use test::*;
 #[cfg(target_arch = "wasm32")]
 pub fn libtest_runner(tests: &[&test::TestDescAndFn]) {
 	use runner::log_web;
+	use runner::wasm_panic;
 	log_web("howdy");
-	log_web(&format!("here are the tests: {:?}", tests));
-	for test in tests {
-		match test.testfn {
-			StaticTestFn(f) => {
-				log_web("running test");
-				match f() {
-					Ok(_) => log_web("test passed"),
-					Err(e) => log_web(&format!("test failed: {}", e)),
+	wasm_panic();
+	// std::panic::set_hook(Box::new(|panic_info| {
+	// 	log_web(&format!(
+	// 		"🚀🚀🚀 panic: {}",
+	// 		panic_info.payload_as_str().unwrap_or_default()
+	// 	));
+	// 	// console_error_panic_hook::hook(panic_info);
+	// }));
+
+	fn this_may_panic(tests: &[&test::TestDescAndFn]) {
+		for test in tests {
+			match test.testfn {
+				StaticTestFn(f) => {
+					log_web("running test");
+					match f() {
+						Ok(_) => log_web("test passed"),
+						Err(e) => log_web(&format!("test failed: {}", e)),
+					}
 				}
+				_ => panic!("currently only static tests are supported"),
 			}
-			_ => panic!("currently only static tests are supported"),
 		}
 	}
 
@@ -32,6 +43,7 @@ pub fn libtest_runner(tests: &[&test::TestDescAndFn]) {
 	// 	eprintln!("{}", err);
 	// }
 }
+
 
 const USE_DEFAULT_LIBTEST: bool = false;
 

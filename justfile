@@ -19,6 +19,8 @@ install *args:
 test *args:
 	just watch 'cargo test --lib -- {{args}}'
 
+test-wasm:
+	cargo test --target wasm32-unknown-unknown --test test_wasm_runner	
 
 publish-all:
 	just publish sweet_macros			| true
@@ -29,11 +31,11 @@ publish crate *args:
 	cargo publish -p {{crate}} --allow-dirty --no-verify {{args}}
 	sleep 2
 
-test-all-wasm *args:
-	just test-wasm sweet --cargo=--features=bevy {{args}}
+# test-all-wasm *args:
+# 	just test-wasm sweet --cargo=--features=bevy {{args}}
 
-test-wasm crate *args:
-	cargo run -p sweet-cli -- -p {{crate}} --example test_{{crate}}_wasm {{args}}
+# test-wasm crate *args:
+# 	cargo run -p sweet-cli -- -p {{crate}} --example test_{{crate}}_wasm {{args}}
 
 build-wasm example *args:
 	cargo build --example {{example}} --target wasm32-unknown-unknown {{args}}

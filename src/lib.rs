@@ -5,7 +5,7 @@
 	feature = "collect_libtest",
 	test_runner(libtest_runner::libtest_runner)
 )]
-#![feature(async_closure, doc_cfg)]
+#![feature(async_closure, doc_cfg, panic_payload_as_str)]
 #![allow(async_fn_in_trait)]
 
 //! Declarative full-stack test framework.

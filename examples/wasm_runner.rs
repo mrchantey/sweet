@@ -23,8 +23,8 @@ pub fn main() {
 fn pass() -> anyhow::Result<()> {
 	log_web("ita runninga");
 
-	// panic!("ita faila");
-	anyhow::bail!("ita faila");
+	panic!("ita faila");
+	// anyhow::bail!("ita faila");
 	// Err("ita faila".to_string())
 }
 // #[wasm_bindgen_test::wasm_bindgen_test]
