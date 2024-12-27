@@ -13,8 +13,9 @@ mod test {
 
 	#[test]
 	fn works() -> Result<()> {
-		expect(true).to_be_true()?;
+		// expect(true).to_be_true().unwrap();
 
-		Ok(())
+		anyhow::bail!("ita faila");
+		// Ok(())
 	}
 }

@@ -1,0 +1,7 @@
+# [target.wasm32-unknown-unknown]
+# runner = "wasmtime"
+[target.wasm32-unknown-unknown]
+runner = 'just test-runner'
+
+[target.wasm32-wasi]
+runner = "wasmtime"

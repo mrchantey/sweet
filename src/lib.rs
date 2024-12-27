@@ -55,10 +55,10 @@ pub mod test_suite;
 pub mod native;
 #[cfg(target_arch = "wasm32")]
 pub mod wasm;
-#[cfg(target_arch = "wasm32")]
-pub use wasm::visit;
-#[cfg(target_arch = "wasm32")]
-pub use wasm::MatcherHtml;
+// #[cfg(target_arch = "wasm32")]
+// pub use wasm::visit;
+// #[cfg(target_arch = "wasm32")]
+// pub use wasm::MatcherHtml;
 #[cfg(feature = "bevy")]
 pub mod bevy_matchers;
 
@@ -67,6 +67,7 @@ pub mod prelude {
 	pub use crate::bevy_matchers::*;
 	pub use crate::common::*;
 	pub use crate::matchers::*;
+	#[cfg(not(target_arch = "wasm32"))]
 	pub use crate::native::*;
 	pub use crate::test_case::*;
 	pub use crate::test_runner::*;
@@ -100,8 +101,8 @@ pub mod exports {
 	pub use wasm_bindgen_futures::future_to_promise;
 }
 
-#[cfg(target_arch = "wasm32")]
-pub fn main() -> anyhow::Result<()> { wasm::sweet_wasm_entry() }
+// #[cfg(target_arch = "wasm32")]
+// pub fn main() -> anyhow::Result<()> { wasm::sweet_wasm_entry() }
 
 /// Entry point for Sweet to run all automatically collected tests.
 #[cfg(not(target_arch = "wasm32"))]

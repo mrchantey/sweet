@@ -31,7 +31,7 @@ where
 			// Temporary fix to avoid assertion failed: psize <= size + max_overhead
 			#[cfg(target_arch = "wasm32")]
 			{
-				crate::wasm::log_web(&val);
+				crate::wasm::runner::log_web(&val);
 				anyhow::anyhow!("")
 			}
 			#[cfg(not(target_arch = "wasm32"))]

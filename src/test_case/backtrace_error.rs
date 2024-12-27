@@ -3,12 +3,12 @@ use backtrace::Backtrace;
 
 pub type BacktraceResult = Result<(), BacktraceError>;
 
-pub trait BuildableResult {
+pub trait BuildableResult<T> {
 	/// Create the backtrace
-	fn build_res_mapped(self) -> anyhow::Result<()>;
+	fn build_res_mapped(self) -> anyhow::Result<T>;
 }
-impl BuildableResult for BacktraceResult {
-	fn build_res_mapped(self) -> anyhow::Result<()> {
+impl<T> BuildableResult<T> for Result<T, BacktraceError> {
+	fn build_res_mapped(self) -> anyhow::Result<T> {
 		match self {
 			Err(err) => Err(err.build_inner(0)),
 			Ok(val) => Ok(val),

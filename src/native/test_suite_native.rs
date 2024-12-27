@@ -47,7 +47,7 @@ impl TestSuiteTrait<TestCaseNative> for TestSuiteNative {
 		}
 	}
 }
-
+// TODO move to testcasenativesplit
 async fn run_native_series(to_run: &TestCaseNativeSplit<'_>) -> Vec<Error> {
 	let mut errors = Vec::new();
 	for (t, f) in to_run.syncs_str.iter() {
@@ -82,6 +82,7 @@ async fn run_native_series(to_run: &TestCaseNativeSplit<'_>) -> Vec<Error> {
 	}
 	errors
 }
+// TODO move to testcasenativesplit
 async fn run_native_parallel(
 	to_run: &TestCaseNativeSplit<'_>,
 ) -> anyhow::Result<Vec<Error>> {

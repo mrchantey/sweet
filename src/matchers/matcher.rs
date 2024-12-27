@@ -1,5 +1,3 @@
-#[cfg(target_arch = "wasm32")]
-pub use crate::wasm::MatcherHtml;
 use anyhow::Result;
 
 //TODO should probably be in matcher module

@@ -7,8 +7,10 @@ default:
 book:
 	mdbook serve
 
+expand-wasm *args:
+	just watch 'cargo expand --test test_macro {{args}}'
 expand *args:
-	just watch 'cargo expand --test test_macro'
+	just watch 'cargo expand --test test_macro {{args}}'
 # just watch 'cargo expand --example scratch {{args}}'
 
 install *args:
@@ -33,6 +35,28 @@ test-all-wasm *args:
 test-wasm crate *args:
 	cargo run -p sweet-cli -- -p {{crate}} --example test_{{crate}}_wasm {{args}}
 
+build-wasm example *args:
+	cargo build --example {{example}} --target wasm32-unknown-unknown {{args}}
+	wasm-bindgen \
+	--out-dir ./target/wasm \
+	--out-name bindgen \
+	--target web \
+	--no-typescript \
+	~/.cargo_target/wasm32-unknown-unknown/debug/examples/{{example}}.wasm
+
+run-wasm example *args:
+	just build-wasm {{example}} {{args}}
+	deno --allow-read run.ts
+# wasmtime ./target/wasm/bindgen_bg.wasm
+
+test-runner test-binary:
+	wasm-bindgen \
+	--out-dir ./target/wasm \
+	--out-name bindgen \
+	--target web \
+	--no-typescript \
+	{{test-binary}}
+	deno --allow-read run.ts
 
 watch *command:
 	forky watch \
