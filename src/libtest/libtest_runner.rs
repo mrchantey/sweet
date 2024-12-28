@@ -1,31 +1,11 @@
 use crate::prelude::*;
-use test::TestDescAndFn;
 
 
 
-pub fn libtest_runner(
-	tests: &[&test::TestDescAndFn],
-	config: &TestRunnerConfig,
-	logger: impl RunnerLogger,
-	run_test: impl Clone + Fn(&TestDescAndFn) -> Result<(), String>,
-) {
-	if USE_DEFAULT_LIBTEST {
-		return test_main_with_filenames(tests);
-	}
-
-	let suite_results =
-		LibtestSuite::collect_and_run(config, tests, run_test, false);
-
-	let runner_result = TestRunnerResult::from_suite_results(suite_results);
-	logger.end(&config, &runner_result);
-
-	// in watch mode we dont emit errors, it just dirties the stdout
-	if !config.watch && runner_result.did_fail() {
-		std::process::exit(1);
-	}
+#[deprecated = "use custom runner"]
+pub fn pretty_libtest_runner(tests: &[&test::TestDescAndFn]) {
+	return test_main_with_filenames(tests);
 }
-const USE_DEFAULT_LIBTEST: bool = false;
-
 
 /// Pretty much run libtest as-is but with pretty filenames for unit tests.
 fn test_main_with_filenames(tests: &[&test::TestDescAndFn]) {

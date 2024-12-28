@@ -74,4 +74,12 @@ impl TestRunnerResult {
 			format!("{}{:.2} s\n\n", prefix, millis as f32 * 0.001)
 		}
 	}
+
+
+	pub fn end(&self, config: &TestRunnerConfig, logger: impl RunnerLogger) {
+		logger.end(&config, self);
+		if !config.watch && self.did_fail() {
+			std::process::exit(1);
+		}
+	}
 }

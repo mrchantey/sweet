@@ -12,8 +12,6 @@ const wasm = await init()
 		Deno.exit(1);
 	})
 	
-
-	console.log('all good me lad?')
 // await globalThis['__sweet_pending_test_promises'][0]
 // 	.catch(_err => { 
 // 			// console.error('Uncaught panic:\n', _err);
@@ -27,13 +25,13 @@ const wasm = await init()
 
 
 await wasm.run_with_pending().catch((_err:any) => {
-	console.error('Uncaught panic:\n', _err);
+	// console.error('Uncaught panic:\n', _err);
 	Deno.exit(1);
 })
-console.dir(globalThis['__sweet_panic_output'])
-console.dir(globalThis['__sweet_pending_test_results'])
-console.dir(globalThis['__sweet_pending_test_descriptions'])
 // console.dir(globalThis['__sweet_panic_output'])
-// let err = 
+// console.dir(globalThis['__sweet_pending_test_results'])
+// console.dir(globalThis['__sweet_pending_test_descriptions'])
+// // console.dir(globalThis['__sweet_panic_output'])
+// // let err = 
 
-console.log('yes me lad')
+// console.log('yes me lad')

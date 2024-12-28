@@ -1,6 +1,4 @@
-use super::GlobalStore;
-use super::RunnerLoggerWasm;
-use crate::prelude::SuiteResult;
+use crate::prelude::*;
 use anyhow::Result;
 use serde::Deserialize;
 use serde::Serialize;
@@ -8,15 +6,13 @@ use serde::Serialize;
 /// globally until the async ones are done
 #[derive(Debug, Serialize, Deserialize)]
 pub struct PartialResultStore {
+	pub config: TestRunnerConfig,
 	pub logger: RunnerLoggerWasm,
 	pub results: Vec<SuiteResult>,
 }
 
 
 impl PartialResultStore {
-	pub fn new(logger: RunnerLoggerWasm, results: Vec<SuiteResult>) -> Self {
-		Self { logger, results }
-	}
 	pub fn set(&self) -> Result<()> { Self::set_serde("results", self) }
 	pub fn get() -> Result<Self> { Self::get_serde("results") }
 }

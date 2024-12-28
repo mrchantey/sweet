@@ -12,7 +12,9 @@ pub fn run_libtest(tests: &[&test::TestDescAndFn]) {
 		// ⚠️ THIS DISABLES INTERNAL PANICS ⚠️
 	}));
 
-	libtest_runner(tests, &config, logger, run_test);
+	let results = LibtestSuite::collect_and_run(config, tests, run_test, false);
+
+	TestRunnerResult::from_suite_results(results).end(&config, logger);
 }
 
 // async fn run_native_parallel(

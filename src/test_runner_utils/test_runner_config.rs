@@ -1,13 +1,18 @@
 use anyhow::Result;
 use clap::ArgMatches;
 use glob::Pattern;
+use serde::Deserialize;
+use serde::Serialize;
 use std::path::PathBuf;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TestRunnerConfig {
 	pub watch: bool,
 	pub parallel: bool,
 	pub silent: bool,
+	#[serde(skip)]
+	// these are only used for starting tests running
+	// so we dont need to serialize for wasm async
 	pub matches: Vec<Pattern>,
 }
 

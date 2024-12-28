@@ -1925,7 +1925,7 @@ checksum = "7da8b5736845d9f2fcb837ea5d9e2628564b3b043a70948a3f0b778838c5fb4f"
 
 [[package]]
 name = "sweet"
-version = "0.2.0"
+version = "0.3.0-rc.1"
 dependencies = [
  "anyhow",
  "backtrace",
@@ -1958,14 +1958,14 @@ dependencies = [
 
 [[package]]
 name = "sweet-cli"
-version = "0.2.0"
+version = "0.3.0-rc.1"
 dependencies = [
  "anyhow",
 ]
 
 [[package]]
 name = "sweet_macros"
-version = "0.2.0"
+version = "0.3.0-rc.1"
 dependencies = [
  "anyhow",
  "proc-macro2",

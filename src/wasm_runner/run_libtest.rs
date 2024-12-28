@@ -1,4 +1,5 @@
 use crate::prelude::*;
+use forky::prelude::StringExt;
 use wasm_bindgen::prelude::wasm_bindgen;
 use wasm_bindgen::JsValue;
 // use web_sys::window;
@@ -17,29 +18,40 @@ pub fn run_libtest(tests: &[&test::TestDescAndFn]) {
 
 	std::panic::set_hook(Box::new(PanicStore::panic_hook));
 
-	let suite_results =
-		LibtestSuite::collect_and_run(&config, tests, run_test, true);
+	let results = LibtestSuite::collect_and_run(&config, tests, run_test, true);
 	// let _ = std::panic::take_hook();
 
-	PartialResultStore::new(logger, suite_results)
-		.set()
-		.unwrap();
+	PartialResultStore {
+		config,
+		logger,
+		results,
+	}
+	.set()
+	.unwrap();
 }
 
 
 /// Pending async functions cannot be collected in the first initial run
 #[wasm_bindgen]
 pub async fn run_with_pending() -> Result<(), JsValue> {
-	// let PartialResultStore { logger, results } =
-	// 	PartialResultStore::get().map_err(anyhow_to_jsvalue)?;
-
-	// window().unwrap();
-
+	let PartialResultStore {
+		config,
+		logger,
+		results,
+	} = PartialResultStore::get().map_err(anyhow_to_jsvalue)?;
 
 	AsyncTestPromises::await_and_collect().await?;
+	// crate::log!("🚀🚀🚀 \n{:?}", results);
+	if !config.silent {
+		let suites_output =
+			results.iter().fold(String::new(), |mut acc, result| {
+				acc.push_string(&result.end_str());
+				acc
+			});
+		crate::log!("{}", suites_output);
+	}
 
-	crate::log!("🚀🚀\n");
-	// crate::log!("🚀🚀🚀 \n{:?}", panics);
+	TestRunnerResult::from_suite_results(results).end(&config, logger);
 
 	Ok(())
 }
