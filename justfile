@@ -27,6 +27,8 @@ test-native *args:
 	just watch 'cargo test --test libtest_runner -- --watch {{args}}'
 test-wasm *args:
 	just watch 'cargo test --test libtest_runner --target wasm32-unknown-unknown -- --watch {{args}}'
+test-async *args:
+	just watch 'cargo test --test async --target wasm32-unknown-unknown -- --watch {{args}}'
 
 publish-all:
 	just publish sweet_macros			| true

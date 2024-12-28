@@ -19,8 +19,10 @@ pub fn libtesttest_error_location(test: &TestDescAndFn) -> String {
 
 
 /// The `#[test]` macro replaces results with [useless error messages](https://github.com/rust-lang/rust/blob/a25032cf444eeba7652ce5165a2be450430890ba/library/test/src/lib.rs#L234)
-/// so we instead panic and instruct user to use `unwrap`
-pub fn libtest_result_to_panic(result: Result<(), String>) {
+/// so we instead panic and instruct user to use `unwrap`.
+/// Also used by async wasm tests, we dont care what the result is, if ya
+/// want messages, panic! at the disco
+pub fn libtest_result_to_panic<T>(result: Result<(), T>) {
 	match result {
 		Ok(_) => {}
 		Err(_) => {

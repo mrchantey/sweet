@@ -25,6 +25,12 @@ pub fn run_test(test: &TestDescAndFn) -> Result<(), String> {
 					_, // the error returned from a panic is just an Unreachable with backtrace
 				) => {
 					let err = get_stored_panic(testid);
+					if AsyncTestDescriptions::try_store(test, &err)
+						.expect("TODO HOW TO HANDLE AN ACTUAL ERROR, NESTED?")
+					{
+						return Ok(());
+					}
+
 					let loc = libtesttest_error_location(test);
 
 					// we dont get backtrace in wasm so just point to test start
@@ -45,7 +51,7 @@ pub fn run_test(test: &TestDescAndFn) -> Result<(), String> {
 }
 
 
-const VAR_NAME: &str = "sweet_panic_output";
+const VAR_NAME: &str = "__sweet_panic_output";
 
 /// Panics are stored in the global window object
 /// and can be accessed by the test runner
