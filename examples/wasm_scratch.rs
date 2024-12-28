@@ -1,6 +1,5 @@
 #![feature(panic_payload_as_str)]
 use forky::prelude::*;
-use sweet::wasm_runner::log_web;
 use wasm_bindgen::prelude::*;
 
 
@@ -20,17 +19,17 @@ fn main() {
 
 	let result = func.call0(&JsValue::NULL);
 	match result {
-		Ok(_) => log_web("Ok"),
+		Ok(_) => sweet::log!("Ok"),
 		// the error returned from a panic is just an Unreachable with backtrace
 		Err(_) => {
 			let out = get_test_output(testid);
-			log_web(&format!("Failed: {}", out));
+			sweet::log!("Failed: {}", out);
 		}
 	}
 }
 
 fn will_panic() {
-	log_web("im gonna panic");
+	sweet::log!("im gonna panic");
 	// assert
 	sweet::prelude::expect(true).to_be(false).unwrap();
 	// panic!("🚀🚀🚀");

@@ -12,10 +12,5 @@ pub fn run_libtest(tests: &[&test::TestDescAndFn]) {
 		// ⚠️ THIS DISABLES INTERNAL PANICS ⚠️
 	}));
 
-	libtest_runner(tests, &config, log_native, logger, run_test);
-}
-
-
-fn log_native(msg: &str) {
-	println!("{}", msg);
+	libtest_runner(tests, &config, logger, run_test);
 }

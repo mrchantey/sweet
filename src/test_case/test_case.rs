@@ -7,7 +7,7 @@ use std::path::PathBuf;
 // #[deprecated = "use run_test"]
 pub trait TestCase
 where
-Self: RefUnwindSafe,
+	Self: RefUnwindSafe,
 {
 	fn path(&self) -> PathBuf;
 	fn name(&self) -> &str;
@@ -30,7 +30,7 @@ Self: RefUnwindSafe,
 			// Temporary fix to avoid assertion failed: psize <= size + max_overhead
 			#[cfg(target_arch = "wasm32")]
 			{
-				crate::wasm_runner::log_web(&val);
+				crate::prelude::log_val(&val);
 				anyhow::anyhow!("")
 			}
 			#[cfg(not(target_arch = "wasm32"))]

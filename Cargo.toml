@@ -160,20 +160,6 @@ harness = false
 required-features = ["bevy"]
 
 
-[[test]]
-name = "sweet_runner"
-path = "example_tests/sweet_runner.rs"
-harness = false
-
-[[test]]
-name = "libtest_runner"
-path = "example_tests/libtest_runner.rs"
-
-[[test]]
-name = "wasm_runner"
-path = "example_tests/wasm_runner.rs"
-
-
 #https://rustwasm.github.io/wasm-bindgen/api/web_sys/
 #https://github.com/rustwasm/wasm-bindgen/blob/main/crates/web-sys/Cargo.toml
 [workspace.dependencies.web-sys]
@@ -222,3 +208,24 @@ features = [
 	'ProgressEvent',
 	'WebSocket',
 ]
+
+
+[[test]]
+name = "sweet_runner"
+path = "example_tests/sweet_runner.rs"
+harness = false
+
+[[test]]
+name = "libtest_runner"
+path = "example_tests/libtest_runner.rs"
+
+[[test]]
+name = "wasm_runner"
+path = "example_tests/wasm_runner.rs"
+
+[[test]]
+name = "async"
+path = "example_tests/async.rs"
+[[test]]
+name = "deleteme"
+path = "example_tests/deleteme.rs"

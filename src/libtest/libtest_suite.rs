@@ -1,6 +1,7 @@
 use super::libtest_passes_filter;
 use crate::prelude::SuiteResult;
 use crate::prelude::TestRunnerConfig;
+use crate::utils::log_val;
 use std::collections::HashMap;
 use test::ShouldPanic;
 use test::TestDescAndFn;
@@ -44,11 +45,10 @@ impl LibtestSuite {
 		config: &TestRunnerConfig,
 		tests: &[&TestDescAndFn],
 		func: impl Clone + Fn(&TestDescAndFn) -> Result<(), String>,
-		log: impl Clone + Fn(&str),
 	) -> Vec<SuiteResult> {
 		Self::collect(tests)
 			.iter()
-			.map(|suite| suite.run(config, func.clone(), log.clone()))
+			.map(|suite| suite.run(config, func.clone()))
 			.collect()
 	}
 
@@ -81,7 +81,6 @@ impl LibtestSuite {
 		&self,
 		config: &TestRunnerConfig,
 		func: impl Fn(&TestDescAndFn) -> Result<(), String>,
-		log: impl Fn(&str),
 	) -> SuiteResult {
 		let mut num_ignored = 0;
 		let mut num_ran = 0;
@@ -112,7 +111,7 @@ impl LibtestSuite {
 		let result =
 			SuiteResult::new(self.source_file.into(), num_ran, num_ignored)
 				.with_failed(failures);
-		log(&result.end_str());
+		log_val(&result.end_str());
 		result
 	}
 }

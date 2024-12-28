@@ -37,6 +37,7 @@ pub use sweet_macros::test;
 // use libtest_runner::testlib_runner as libtest_runner;
 
 pub mod common;
+pub mod utils;
 // #[doc(hidden)]
 /// Matchers used for assertions: `expect(true).to_be_true()`
 pub mod matchers;
@@ -76,6 +77,7 @@ pub mod prelude {
 	pub use crate::test_case::*;
 	pub use crate::test_runner_utils::*;
 	pub use crate::test_suite::*;
+	pub use crate::utils::*;
 	#[cfg(target_arch = "wasm32")]
 	pub use crate::wasm_matchers::*;
 	#[cfg(target_arch = "wasm32")]

@@ -1,7 +1,4 @@
-use super::*;
-use crate::test_case::*;
-use crate::test_runner_utils::*;
-use crate::test_suite::*;
+use crate::prelude::*;
 use anyhow::Result;
 use wasm_bindgen::JsValue;
 use web_sys::window;
@@ -24,7 +21,7 @@ impl TestRunnerWasm {
 					if is_iframe {
 						parent.post_message(&JsValue::TRUE, &origin).unwrap();
 					} else {
-						log_web("test passed");
+						crate::log!("test passed");
 					}
 				}
 				Err(err) => {
@@ -32,7 +29,7 @@ impl TestRunnerWasm {
 					if is_iframe {
 						parent.post_message(&err.into(), &origin).unwrap();
 					} else {
-						log_web("{err}");
+						log_val(&err);
 					}
 				}
 			}

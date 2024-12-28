@@ -6,7 +6,6 @@ use test::TestDescAndFn;
 pub fn libtest_runner(
 	tests: &[&test::TestDescAndFn],
 	config: &TestRunnerConfig,
-	log: impl Clone + Fn(&str),
 	logger: impl RunnerLogger,
 	run_test: impl Clone + Fn(&TestDescAndFn) -> Result<(), String>,
 ) {
@@ -15,7 +14,7 @@ pub fn libtest_runner(
 	}
 
 	let suite_results =
-		LibtestSuite::collect_and_run(config, tests, run_test, log);
+		LibtestSuite::collect_and_run(config, tests, run_test);
 
 	let runner_result = TestRunnerResult::from_suite_results(suite_results);
 	logger.end(&config, &runner_result);
