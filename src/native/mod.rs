@@ -1,6 +1,9 @@
 pub mod command;
 #[allow(unused_imports)]
 pub use self::command::*;
+pub mod libtest_runner_native;
+#[allow(unused_imports)]
+pub use self::libtest_runner_native::*;
 pub mod panic;
 #[allow(unused_imports)]
 pub use self::panic::*;

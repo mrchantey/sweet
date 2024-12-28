@@ -21,7 +21,7 @@ impl Into<TestRunnerResult> for Vec<SuiteResult> {
 impl TestRunnerResult {
 	pub fn did_fail(&self) -> bool { self.cases.failed > 0 }
 
-	fn from_suite_results(suite_results: Vec<SuiteResult>) -> Self {
+	pub fn from_suite_results(suite_results: Vec<SuiteResult>) -> Self {
 		let mut suites = ResultCount::new();
 		let cases = suite_results.iter().fold(
 			ResultCount::default(),

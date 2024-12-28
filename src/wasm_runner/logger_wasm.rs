@@ -2,7 +2,6 @@ use crate::test_runner_utils::*;
 use crate::test_suite::SuiteLogger;
 use forky::web::*;
 use std::time::Duration;
-use wasm_bindgen::JsValue;
 use web_sys::console;
 
 pub struct RunnerLoggerWasm {
@@ -37,31 +36,3 @@ impl SuiteLogger for SuiteLoggerWasm {
 	fn on_end(self, end_str: String) { log_web(&end_str); }
 }
 
-/// Prepare the panic hook to collect the panic message
-pub fn set_panic_hook(id: usize) {
-	std::panic::set_hook(Box::new(move |panic_info| {
-		let payload = panic_info.payload_as_str().unwrap_or("no panic message");
-		set_test_output(id, payload);
-	}));
-}
-
-fn set_test_output(id: usize, value: &str) {
-	let window = web_sys::window().expect("no global window exists");
-	js_sys::Reflect::set(
-		&window,
-		&JsValue::from_str(format!("test_output_{}", id).as_str()),
-		&JsValue::from_str(value),
-	)
-	.unwrap();
-}
-
-/// Collect the message from the panic hook
-pub fn get_test_output(id: usize) -> String {
-	let window = web_sys::window().expect("no global window exists");
-	let output = js_sys::Reflect::get(
-		&window,
-		&JsValue::from_str(format!("test_output_{}", id).as_str()),
-	)
-	.unwrap();
-	output.as_string().unwrap()
-}

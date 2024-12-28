@@ -30,9 +30,7 @@
 //! cargo run --example sweet
 //! ```
 //!
-#[cfg(any(test, feature = "collect_libtest"))]
-pub mod libtest_runner;
-pub use libtest_runner::libtest_runner as test_runner;
+extern crate test;
 // the #[sweet::test] macro
 pub use sweet_macros::test;
 // #[cfg(test)]
@@ -44,6 +42,8 @@ pub mod common;
 pub mod matchers;
 #[doc(inline)]
 pub use matchers::MatcherExtClose;
+/// Utilities for [libtest](https://github.com/rust-lang/rust/tree/master/library/test)
+pub mod libtest;
 /// Test case module
 pub mod test_case;
 /// Test runner module
@@ -55,7 +55,9 @@ pub mod test_suite;
 #[doc(hidden)]
 pub mod native;
 #[cfg(target_arch = "wasm32")]
-pub mod wasm;
+pub mod wasm_matchers;
+#[cfg(target_arch = "wasm32")]
+pub mod wasm_runner;
 // #[cfg(target_arch = "wasm32")]
 // pub use wasm::visit;
 // #[cfg(target_arch = "wasm32")]
@@ -67,6 +69,7 @@ pub mod prelude {
 	#[cfg(feature = "bevy")]
 	pub use crate::bevy_matchers::*;
 	pub use crate::common::*;
+	pub use crate::libtest::*;
 	pub use crate::matchers::*;
 	#[cfg(not(target_arch = "wasm32"))]
 	pub use crate::native::*;
@@ -74,7 +77,9 @@ pub mod prelude {
 	pub use crate::test_runner_utils::*;
 	pub use crate::test_suite::*;
 	#[cfg(target_arch = "wasm32")]
-	pub use crate::wasm::*;
+	pub use crate::wasm_matchers::*;
+	#[cfg(target_arch = "wasm32")]
+	pub use crate::wasm_runner::*;
 	pub use anyhow::Result;
 }
 
@@ -102,10 +107,15 @@ pub mod exports {
 	pub use wasm_bindgen_futures::future_to_promise;
 }
 
-// #[cfg(target_arch = "wasm32")]
-// pub fn main() -> anyhow::Result<()> { wasm::sweet_wasm_entry() }
+#[cfg(any(test, feature = "collect_libtest"))]
+pub fn test_runner(tests: &[&test::TestDescAndFn]) {
+	#[cfg(target_arch = "wasm32")]
+	crate::wasm_runner::run_libtest(tests);
+	#[cfg(not(target_arch = "wasm32"))]
+	crate::native::libtest_runner_native(tests);
+}
 
-/// Entry point for Sweet to run all automatically collected tests.
+/// Entry point for Sweet to run inventory::collect tests.
 #[cfg(not(target_arch = "wasm32"))]
 // #[tokio::main]
 pub fn main() -> anyhow::Result<()> {

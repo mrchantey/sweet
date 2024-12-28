@@ -20,7 +20,7 @@ test *args:
 	just watch 'cargo test --lib -- {{args}}'
 
 test-wasm:
-	cargo test --target wasm32-unknown-unknown --test test_wasm_runner	
+	cargo test --target wasm32-unknown-unknown --test wasm_runner	
 
 publish-all:
 	just publish sweet_macros			| true

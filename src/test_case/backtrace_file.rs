@@ -1,3 +1,4 @@
+use super::test_err_link;
 use backtrace::BacktraceSymbol;
 use colorize::*;
 use forky::prelude::*;
@@ -8,10 +9,10 @@ use std::path::PathBuf;
 const LINE_CONTEXT_SIZE: usize = 2;
 
 pub struct BacktraceFile {
-	file: PathBuf,
-	file_rel: PathBuf,
-	line: u32,
-	col: u32,
+	pub file: PathBuf,
+	pub file_rel: PathBuf,
+	pub line: u32,
+	pub col: u32,
 }
 
 impl BacktraceFile {
@@ -38,13 +39,17 @@ impl BacktraceFile {
 		}
 	}
 
+
+	/// # Errors
+	/// This function will return an error if the file cannot be read
 	pub fn file_context(&self) -> io::Result<String> {
 		//line number is one-indexed
 		let line_no = self.line as usize;
 		let col_no = self.col as usize;
 		let lines = fs::read_to_string(&self.file)?;
 		let lines: Vec<&str> = lines.split("\n").collect();
-		let start = usize::max(0, line_no - LINE_CONTEXT_SIZE - 1);
+		let start =
+			usize::max(0, line_no.saturating_sub(LINE_CONTEXT_SIZE - 1));
 		let end = usize::min(lines.len() - 1, line_no + LINE_CONTEXT_SIZE);
 
 		let mut output = String::new();
@@ -72,14 +77,12 @@ impl BacktraceFile {
 				output.push_str_line(String::from("^").red().as_str());
 			}
 		}
-		let prefix = String::from("at").faint();
-		let file_loc =
-			String::from(self.file_rel.to_str().unwrap_or("unkown file"))
-				.cyan();
-		let line_loc =
-			String::from(format!(":{}:{}", self.line, self.col)).faint();
 
-		output.push_string(&format!("\n{} {}{}\n", prefix, file_loc, line_loc));
+		output.push_string(&test_err_link(
+			self.file_rel.to_str().unwrap_or("unkown file"),
+			self.line as usize,
+			self.col as usize,
+		));
 		Ok(output)
 	}
 }

@@ -23,6 +23,10 @@ impl SuiteResult {
 			failed: Vec::new(),
 		}
 	}
+	pub fn with_failed(mut self, failed: Vec<String>) -> Self {
+		self.failed = failed;
+		self
+	}
 
 	pub fn in_progress_str(&self) -> String {
 		let mut value = " RUNS ".black().bold().yellowb();
@@ -49,7 +53,7 @@ impl SuiteResult {
 		val
 	}
 
-	pub fn pretty_path(file: &PathBuf) -> String {
+	fn pretty_path(file: &PathBuf) -> String {
 		let name = file
 			.file_name()
 			.unwrap_or_default()

@@ -1,12 +1,16 @@
 #![feature(panic_payload_as_str)]
 use forky::prelude::*;
-use sweet::wasm::runner::log_web;
+use sweet::wasm_runner::log_web;
 use wasm_bindgen::prelude::*;
 
 
 fn main() {
+	sweet::prelude::expect(true).to_be(false).unwrap();
+
 	let testid = 69;
 	std::panic::set_hook(Box::new(move |panic_info| {
+		// panic_info.
+
 		let payload = panic_info.payload_as_str().unwrap_or("no panic message");
 		set_test_output(testid, payload);
 	}));
@@ -20,14 +24,16 @@ fn main() {
 		// the error returned from a panic is just an Unreachable with backtrace
 		Err(_) => {
 			let out = get_test_output(testid);
-			log_web(&format!("Failed: {:?}", out));
+			log_web(&format!("Failed: {}", out));
 		}
 	}
 }
 
 fn will_panic() {
 	log_web("im gonna panic");
-	panic!("🚀🚀🚀");
+	// assert
+	sweet::prelude::expect(true).to_be(false).unwrap();
+	// panic!("🚀🚀🚀");
 }
 
 fn set_test_output(id: usize, value: &str) {

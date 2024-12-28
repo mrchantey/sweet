@@ -161,17 +161,17 @@ required-features = ["bevy"]
 
 
 [[test]]
-name = "test_sweet_runner"
-path = "examples/sweet_runner.rs"
+name = "sweet_runner"
+path = "example_tests/sweet_runner.rs"
 harness = false
 
 [[test]]
-name = "test_libtest_runner"
-path = "examples/libtest_runner.rs"
+name = "libtest_runner"
+path = "example_tests/libtest_runner.rs"
 
 [[test]]
-name = "test_wasm_runner"
-path = "examples/wasm_runner.rs"
+name = "wasm_runner"
+path = "example_tests/wasm_runner.rs"
 
 
 #https://rustwasm.github.io/wasm-bindgen/api/web_sys/
