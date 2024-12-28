@@ -6,16 +6,20 @@ pub struct RunnerLoggerNative {
 }
 impl RunnerLogger for RunnerLoggerNative {
 	fn start(config: &TestRunnerConfig) -> Self {
-		pretty_env_logger::try_init().ok();
+		if !config.silent {
+			pretty_env_logger::try_init().ok();
+			let intro = Self::pretty_print_intro(&config);
+			println!("{intro}");
+		}
 
 		let start_time = Instant::now();
-		let intro = Self::pretty_print_intro(&config);
-		println!("{intro}");
 		Self { start_time }
 	}
-	fn end(self, results: &TestRunnerResult) {
-		let duration = self.start_time.elapsed();
-		let summary = results.end_str(duration);
-		println!("{summary}");
+	fn end(self, config: &TestRunnerConfig, results: &TestRunnerResult) {
+		if !config.silent {
+			let duration = self.start_time.elapsed();
+			let summary = results.end_str(duration);
+			println!("{summary}");
+		}
 	}
 }

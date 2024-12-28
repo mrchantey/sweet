@@ -10,9 +10,7 @@ pub struct TestRunnerNative {
 }
 
 impl TestRunnerNative {
-	pub fn new(suites: Vec<TestSuiteNative>) -> Self {
-		Self { suites }
-	}
+	pub fn new(suites: Vec<TestSuiteNative>) -> Self { Self { suites } }
 
 	pub fn from_sweet_test() -> Self {
 		let suites = TestCollectorNative::new().0;
@@ -45,7 +43,7 @@ impl TestRunnerNative {
 		};
 
 		if let Some(logger) = logger {
-			logger.end(&results);
+			logger.end(&config, &results);
 		}
 
 		let no_tests = results.cases.tests == 0;

@@ -13,7 +13,7 @@ pub type ResultResult = anyhow::Result<anyhow::Result<()>>;
 pub fn anyhow_panic(result: PanicResult) -> ResultResult {
 	match result {
 		Ok(result) => Ok(result),
-		Err(e) => Err(anyhow::anyhow!(panic_info(e))),
+		Err(e) => Err(anyhow::anyhow!(panic_err_to_string(e))),
 	}
 }
 pub fn anyhow_tokio_join(
@@ -21,7 +21,7 @@ pub fn anyhow_tokio_join(
 ) -> ResultResult {
 	match result {
 		Ok(result) => Ok(result),
-		Err(e) => Err(anyhow::anyhow!(panic_info(Box::new(e)))),
+		Err(e) => Err(anyhow::anyhow!(panic_err_to_string(Box::new(e)))),
 	}
 }
 
@@ -58,16 +58,16 @@ pub fn flatten_panic<R>(
 ) -> Result<R, String> {
 	match result {
 		Ok(result) => result,
-		Err(e) => Err(panic_info(e)),
+		Err(e) => Err(panic_err_to_string(e)),
 	}
 }
 
-fn panic_info(e: Box<dyn Any + Send>) -> String {
+pub fn panic_err_to_string(e: Box<dyn Any + Send>) -> String {
 	match e.downcast::<String>() {
 		Ok(v) => *v,
 		Err(e) => match e.downcast::<&str>() {
 			Ok(v) => v.to_string(),
-			_ => "Unknown Source of Error".to_owned(),
+			_ => "Failed to convert panic to string".to_owned(),
 		},
 	}
 }

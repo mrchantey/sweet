@@ -35,10 +35,15 @@ impl BacktraceError {
 		// 0 = build_inner
 		const FRAME_DEPTH: usize = 3;
 
-		let bt = Backtrace::new();
+		// without unresolved this is VERY slow >500ms
+		let bt = Backtrace::new_unresolved();
+
 		let backtrace_str = if let Some(frame) =
 			&bt.frames().get(FRAME_DEPTH - additional_frames)
 		{
+			let mut frame = frame.to_owned().clone();
+			frame.resolve();
+
 			let symbol = &frame.symbols()[0];
 			let file = crate::test_case::BacktraceFile::new(symbol);
 			file.file_context().unwrap_or(format!(
@@ -65,12 +70,11 @@ impl From<String> for BacktraceError {
 
 
 #[cfg(test)]
+#[cfg(not(target_arch = "wasm32"))]
 // wasm cant backtrace
 mod test {
 	use crate::prelude::*;
 	// use backtrace::Backtrace;
-	use crate::wasm_runner::log_web;
-	use std::backtrace::Backtrace;
 
 	fn mock_to_be_error() -> anyhow::Result<()> {
 		some_low_level_error_assertion().build_res()
@@ -80,17 +84,17 @@ mod test {
 		BacktraceError("Some error".to_string())
 	}
 
-	// #[test]
-	// fn error_builder() -> Result<()> {
-	// 	let err = mock_to_be_error().err().unwrap().to_string();
-	// 	// empty space ensures we got the correct frame
+	#[test]
+	fn error_builder() -> Result<()> {
+		let err = mock_to_be_error().err().unwrap().to_string();
+		// empty space ensures we got the correct frame
 
-	// 	expect(&err).to_contain("backtrace_error.rs")?;
-	// 	expect(&err).to_contain("let err = mock_to_be")?;
+		expect(&err).to_contain("backtrace_error.rs")?;
+		expect(&err).to_contain("let err = mock_to_be")?;
 
 
-	// 	Ok(())
-	// }
+		Ok(())
+	}
 	fn mock_to_be_result() -> anyhow::Result<()> {
 		some_low_level_result_assertion().build_res_mapped()
 	}
@@ -103,32 +107,9 @@ mod test {
 		let err = mock_to_be_result().err().unwrap().to_string();
 		// empty space ensures we got the correct frame
 
-		log_web(&format!("{}", err));
-
-		// expect(&err).to_contain("backtrace_error.rs").unwrap();
-		// expect(&err).to_contain("let err = mock_to_be")?;
-
+		expect(&err).to_contain("backtrace_error.rs").unwrap();
+		expect(&err).to_contain("let err = mock_to_be")?;
 
 		Ok(())
-	}
-	#[test]
-	fn builds() -> Result<()> {
-		BacktraceError::new("howdy").build_err();
-		// let err = mock_to_be_result().err().unwrap().to_string();
-		// empty space ensures we got the correct frame
-
-
-
-		// expect(&err).to_contain("backtrace_error.rs")?;
-		// expect(&err).to_contain("let err = mock_to_be")?;
-
-
-		Ok(())
-	}
-	#[test]
-	fn frames() {
-		let bt = std::backtrace::Backtrace::force_capture();
-		// let frames = bt
-		log_web(&format!("{:?}", bt));
 	}
 }

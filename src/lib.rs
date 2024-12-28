@@ -112,7 +112,7 @@ pub fn test_runner(tests: &[&test::TestDescAndFn]) {
 	#[cfg(target_arch = "wasm32")]
 	crate::wasm_runner::run_libtest(tests);
 	#[cfg(not(target_arch = "wasm32"))]
-	crate::native::libtest_runner_native(tests);
+	crate::native::run_libtest(tests);
 }
 
 /// Entry point for Sweet to run inventory::collect tests.

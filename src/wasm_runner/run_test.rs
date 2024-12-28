@@ -12,9 +12,7 @@ pub fn run_test(test: &TestDescAndFn) -> Result<(), String> {
 	match test.testfn {
 		test::StaticTestFn(f) => {
 			let closure = Closure::from_func_no_args(move || {
-				if let Err(_) = f() {
-					panic!("test returned an Err(). Use unwrap to see the contents of the error");
-				}
+				libtest_result_to_panic(f());
 			});
 
 			let func: &js_sys::Function = closure.as_ref().unchecked_ref();

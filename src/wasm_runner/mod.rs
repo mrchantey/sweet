@@ -1,18 +1,15 @@
 pub mod build_test;
 #[allow(unused_imports)]
 pub use self::build_test::*;
-pub mod run_libtest;
-#[allow(unused_imports)]
-pub use self::run_libtest::*;
 pub mod logger_wasm;
 #[allow(unused_imports)]
 pub use self::logger_wasm::*;
 pub mod result_export;
 #[allow(unused_imports)]
 pub use self::result_export::*;
-pub mod run_suite;
+pub mod run_libtest;
 #[allow(unused_imports)]
-pub use self::run_suite::*;
+pub use self::run_libtest::*;
 pub mod run_test;
 #[allow(unused_imports)]
 pub use self::run_test::*;
