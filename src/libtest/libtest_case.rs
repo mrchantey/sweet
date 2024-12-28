@@ -1,5 +1,9 @@
 use crate::prelude::*;
+use std::hash::DefaultHasher;
+use std::hash::Hash;
+use std::hash::Hasher;
 use std::path::PathBuf;
+use test::TestDesc;
 use test::TestDescAndFn;
 
 
@@ -58,4 +62,36 @@ pub fn libtest_passes_filter(
 	config.matches.len() == 0
 		|| config.matches.iter().any(|a| a.matches(&path))
 		|| config.matches.iter().any(|a| a.matches(&name))
+}
+
+
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct LibtestHash(pub u64);
+
+impl LibtestHash {
+	pub fn new(source_file: &str, start_line: usize) -> Self {
+		let mut hasher = DefaultHasher::new();
+		source_file.hash(&mut hasher);
+		start_line.hash(&mut hasher);
+		Self(hasher.finish())
+	}
+}
+
+#[extend::ext(name=TestDescExt)]
+pub impl TestDesc {
+	fn hash(&self) -> LibtestHash {
+		LibtestHash::new(&self.source_file, self.start_line)
+	}
+}
+#[extend::ext(name=TestDescAndFnExt)]
+pub impl TestDescAndFn {
+	fn hash(&self) -> LibtestHash { self.desc.hash() }
+}
+
+
+impl std::fmt::Display for LibtestHash {
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		write!(f, "{:x}", self.0)
+	}
 }

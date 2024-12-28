@@ -11,18 +11,8 @@ const wasm = await init()
 		// console.error('Uncaught panic:\n', _err);
 		Deno.exit(1);
 	})
-	
-// await globalThis['__sweet_pending_test_promises'][0]
-// 	.catch(_err => { 
-// 			// console.error('Uncaught panic:\n', _err);
-// 		// Deno.exit(1)
-// 	})
-// await globalThis['__sweet_pending_test_promises'][1]
-// 	.catch(_err => { 
-// 			// console.error('Uncaught panic:\n', _err);
-// 		// Deno.exit(1)
-// 	})
-
+		
+// Deno.exit(1);
 
 await wasm.run_with_pending().catch((_err:any) => {
 	// console.error('Uncaught panic:\n', _err);

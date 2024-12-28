@@ -1,32 +1,45 @@
 use super::AsyncTestDescriptions;
-use super::GlobalStore;
-use super::SerdeTestDesc;
+use crate::libtest::LibtestHash;
 use anyhow::Result;
+use std::cell::RefCell;
+use std::collections::HashMap;
+use std::rc::Rc;
+use test::TestDesc;
 
+
+
+thread_local! {
+	static STORE: Rc<RefCell<HashMap<LibtestHash,Result<(),String>>>> = Default::default();
+}
 
 
 
 #[derive(Debug, Default, Clone)]
-pub struct AsyncTestPanics;
+pub struct AsyncTestResults;
 
-impl GlobalStore for AsyncTestPanics {
-	fn var_name() -> &'static str { "__sweet_pending_test_results" }
-}
-
-
-impl AsyncTestPanics {
-	pub fn set(id: usize, error: String) -> Result<()> {
-		Self::set_serde(id, &error)
+impl AsyncTestResults {
+	pub fn set(id: LibtestHash, result: Result<(), String>) {
+		STORE.with(|store| {
+			store.borrow_mut().insert(id, result);
+		});
 	}
 
-	pub fn get(id: usize) -> Result<String> { Self::get_serde(id) }
+	pub fn get(id: LibtestHash) -> Result<Result<(), String>> {
+		STORE.with(|store| {
+			store
+				.borrow()
+				.get(&id)
+				.cloned()
+				.ok_or_else(|| anyhow::anyhow!("async test not found: {}", id))
+		})
+	}
 
 
-	pub fn collect() -> Result<Vec<(SerdeTestDesc, String)>> {
-		Self::collect_serde::<String>()?
+	pub fn collect() -> Result<Vec<(TestDesc, Result<(), String>)>> {
+		STORE
+			.with(|store| store.borrow_mut().drain().collect::<Vec<_>>())
 			.into_iter()
 			.map(|(id, error)| {
-				let id: usize = id.parse().unwrap();
 				AsyncTestDescriptions::get(id).map(|desc| (desc, error))
 			})
 			.collect()

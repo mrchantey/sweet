@@ -5,7 +5,7 @@ use std::path::Path;
 use std::path::PathBuf;
 // use std::default;
 
-#[derive(Debug, Default, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct SuiteResult {
 	pub file: PathBuf,
 	pub tests: usize,

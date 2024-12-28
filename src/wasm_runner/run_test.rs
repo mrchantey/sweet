@@ -6,18 +6,18 @@ use wasm_bindgen::JsCast;
 use wasm_bindgen::JsValue;
 
 pub fn run_test(test: &TestDescAndFn) -> Result<(), String> {
+	AsyncTestDescriptions::store(test);
+
 	let result = run_no_abort(test);
 	match result {
 		Ok(_) => Ok(()),
 		Err(
 			_, // the error returned from a panic is just an Unreachable with backtrace
 		) => {
-			let err = PanicStore::get();
-			if AsyncTestDescriptions::try_store(test, &err)
-				.expect("TODO HOW TO HANDLE AN ACTUAL ERROR, NESTED?")
-			{
-				return Ok(());
-			}
+			// return Ok(());
+			// WRONG
+			let err = "unreachable panic";
+			// let err = PanicStore::get();
 
 			let loc = libtesttest_error_location(test);
 

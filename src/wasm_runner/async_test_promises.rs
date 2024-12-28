@@ -1,30 +1,35 @@
 use super::anyhow_to_jsvalue;
-use super::AsyncTestPanics;
-use super::GlobalStore;
-use super::SerdeTestDesc;
+use super::AsyncTestResults;
 use super::TestFuture;
 use crate::libtest::libtest_result_to_panic;
-use forky::web::ClosureFnMutT2Ext;
+use crate::libtest::LibtestHash;
 use futures::future::try_join_all;
 use js_sys::Promise;
+use std::cell::RefCell;
+use std::collections::HashMap;
 use std::future::Future;
-use wasm_bindgen::prelude::Closure;
+use std::rc::Rc;
+use test::TestDesc;
 use wasm_bindgen::JsCast;
 use wasm_bindgen::JsValue;
 use wasm_bindgen_futures::JsFuture;
 
+thread_local! {
+	static STORE: Rc<RefCell<HashMap<LibtestHash,Promise>>> = Default::default();
+}
 
 
 #[derive(Debug, Default, Clone)]
 pub struct AsyncTestPromises;
 
-impl GlobalStore for AsyncTestPromises {
-	fn var_name() -> &'static str { "__sweet_pending_test_promises" }
-}
-
 impl AsyncTestPromises {
+	pub fn has(id: LibtestHash) -> bool {
+		STORE.with(|store| store.borrow().contains_key(&id))
+	}
+
+
 	pub fn store<O: UnitOrResult, T: Future<Output = O> + 'static>(
-		id: usize,
+		id: LibtestHash,
 		fut: T,
 	) {
 		let prom = wasm_bindgen_futures::future_to_promise({
@@ -37,14 +42,16 @@ impl AsyncTestPromises {
 			// }
 		});
 
-		Self::set_field(id, prom);
+		STORE.with(|store| {
+			store.borrow_mut().insert(id, prom);
+		});
 	}
 
 
 	pub async fn await_and_collect(
-	) -> Result<Vec<(SerdeTestDesc, String)>, JsValue> {
-		let promises = Self::collect()
-			.unwrap()
+	) -> Result<Vec<(TestDesc, Result<(), String>)>, JsValue> {
+		let promises = STORE
+			.with(|store| store.borrow_mut().drain().collect::<Vec<_>>())
 			.into_iter()
 			.map(|(_, prom)| {
 				let prom: Promise = prom.unchecked_into();
@@ -55,8 +62,8 @@ impl AsyncTestPromises {
 		// failed promises panicked so these results are invalid memory
 		let _poison_results = try_join_all(promises).await;
 
-		Ok(Default::default())
-		// AsyncTestPanics::collect().map_err(anyhow_to_jsvalue)
+		// Ok(Default::default())
+		AsyncTestResults::collect().map_err(anyhow_to_jsvalue)
 	}
 }
 

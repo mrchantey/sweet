@@ -26,8 +26,7 @@ pub fn run_libtest(tests: &[&test::TestDescAndFn]) {
 		logger,
 		results,
 	}
-	.set()
-	.unwrap();
+	.set();
 }
 
 
@@ -43,19 +42,29 @@ pub async fn run_with_pending() -> Result<(), JsValue> {
 	let async_results = AsyncTestPromises::await_and_collect().await?;
 
 	// TODO we need the successes as well for should_panic
-	for (async_desc, async_err) in async_results {
+	for (desc, result) in async_results {
 		let suite = results
 			.iter_mut()
-			.find(|suite| {
-				suite.file.to_string_lossy() == async_desc.source_file
-			})
+			.find(|suite| suite.file.to_string_lossy() == desc.source_file)
 			.expect("async suite not found");
 		// INCORRECT but we'll sort it out later
 		// should be identical to run_test
-		suite.failed.push(async_err);
+		match (desc.should_panic, result) {
+			(test::ShouldPanic::No, Err(err)) => suite.failed.push(err),
+			(test::ShouldPanic::YesWithMessage(msg), Ok(_)) => {
+				suite.failed.push(msg.to_string())
+			}
+			(test::ShouldPanic::Yes, Ok(_)) => {
+				suite.failed.push("test did not panic".to_string())
+			}
+			(test::ShouldPanic::YesWithMessage(_), Err(_)) => {}
+			(test::ShouldPanic::Yes, Err(_)) => {}
+			(test::ShouldPanic::No, Ok(_)) => {}
+		}
+
+		// suite.failed.push(async_err);
 	}
 
-	// crate::log!("🚀🚀🚀 \n{:?}", results);
 	if !config.silent {
 		let suites_output =
 			results.iter().fold(String::new(), |mut acc, result| {

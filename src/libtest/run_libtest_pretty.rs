@@ -3,7 +3,7 @@ use crate::prelude::*;
 
 
 #[deprecated = "use custom runner"]
-pub fn pretty_libtest_runner(tests: &[&test::TestDescAndFn]) {
+pub fn run_libtest_pretty(tests: &[&test::TestDescAndFn]) {
 	return test_main_with_filenames(tests);
 }
 
