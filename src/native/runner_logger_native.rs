@@ -1,4 +1,5 @@
 use crate::test_runner_utils::*;
+use forky::prelude::terminal;
 use std::time::Instant;
 
 pub struct RunnerLoggerNative {
@@ -7,6 +8,9 @@ pub struct RunnerLoggerNative {
 impl RunnerLogger for RunnerLoggerNative {
 	fn start(config: &TestRunnerConfig) -> Self {
 		if !config.silent {
+			if config.watch {
+				terminal::clear();
+			}
 			pretty_env_logger::try_init().ok();
 			let intro = Self::pretty_print_intro(&config);
 			println!("{intro}");

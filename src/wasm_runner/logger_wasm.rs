@@ -11,7 +11,9 @@ pub struct RunnerLoggerWasm {
 impl RunnerLogger for RunnerLoggerWasm {
 	fn start(config: &TestRunnerConfig) -> Self {
 		if !config.silent {
-			console::clear();
+			if config.watch {
+				console::clear();
+			}
 			log_web(&Self::pretty_print_intro(&config));
 		}
 		let start_time = performance_now();
@@ -19,8 +21,9 @@ impl RunnerLogger for RunnerLoggerWasm {
 	}
 	fn end(self, config: &TestRunnerConfig, results: &TestRunnerResult) {
 		if !config.silent {
-			let duration =
-				Duration::from_millis((performance_now() - self.start_time) as u64);
+			let duration = Duration::from_millis(
+				(performance_now() - self.start_time) as u64,
+			);
 			let summary = results.end_str(duration);
 			log_web(&summary);
 		}
@@ -37,4 +40,3 @@ impl SuiteLogger for SuiteLoggerWasm {
 	fn on_start(_: String) -> Self { Self }
 	fn on_end(self, end_str: String) { log_web(&end_str); }
 }
-

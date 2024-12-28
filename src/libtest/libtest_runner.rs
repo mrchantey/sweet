@@ -20,7 +20,8 @@ pub fn libtest_runner(
 	let runner_result = TestRunnerResult::from_suite_results(suite_results);
 	logger.end(&config, &runner_result);
 
-	if runner_result.did_fail() {
+	// in watch mode we dont emit errors, it just dirties the stdout
+	if !config.watch && runner_result.did_fail() {
 		std::process::exit(1);
 	}
 }

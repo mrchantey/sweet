@@ -28,9 +28,6 @@ pub use self::test_case_native_func::*;
 pub mod test_collector_native;
 #[allow(unused_imports)]
 pub use self::test_collector_native::*;
-pub mod test_runner_config_native;
-#[allow(unused_imports)]
-pub use self::test_runner_config_native::*;
 pub mod test_runner_native;
 #[allow(unused_imports)]
 pub use self::test_runner_native::*;

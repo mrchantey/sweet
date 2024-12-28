@@ -19,6 +19,12 @@ install *args:
 test *args:
 	just watch 'cargo test --lib -- {{args}}'
 
+test-all *args:
+	cargo test --test libtest_runner -- {{args}}
+	cargo test --test libtest_runner --target wasm32-unknown-unknown -- {{args}}
+
+test-native *args:
+	just watch 'cargo test --test libtest_runner -- --watch {{args}}'
 test-wasm *args:
 	just watch 'cargo test --test libtest_runner --target wasm32-unknown-unknown -- --watch {{args}}'
 
