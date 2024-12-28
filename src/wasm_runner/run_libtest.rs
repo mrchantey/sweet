@@ -37,10 +37,24 @@ pub async fn run_with_pending() -> Result<(), JsValue> {
 	let PartialResultStore {
 		config,
 		logger,
-		results,
+		mut results,
 	} = PartialResultStore::get().map_err(anyhow_to_jsvalue)?;
 
-	AsyncTestPromises::await_and_collect().await?;
+	let async_results = AsyncTestPromises::await_and_collect().await?;
+
+	// TODO we need the successes as well for should_panic
+	for (async_desc, async_err) in async_results {
+		let suite = results
+			.iter_mut()
+			.find(|suite| {
+				suite.file.to_string_lossy() == async_desc.source_file
+			})
+			.expect("async suite not found");
+		// INCORRECT but we'll sort it out later
+		// should be identical to run_test
+		suite.failed.push(async_err);
+	}
+
 	// crate::log!("🚀🚀🚀 \n{:?}", results);
 	if !config.silent {
 		let suites_output =

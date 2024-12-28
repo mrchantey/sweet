@@ -5,23 +5,22 @@ use test::TestDesc;
 use test::TestType;
 
 
-/// Serializable and deserializable version of `TestDesc`.
+/// serde version of [`TestDesc`].
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SerdeTestDesc {
-	// test: TestDescAndFn,
-	name: String,
+	pub name: String,
 	pub ignore: bool,
-	ignore_message: Option<String>,
-	source_file: String,
+	pub ignore_message: Option<String>,
+	pub source_file: String,
 	pub start_line: usize,
 	pub start_col: usize,
 	pub end_line: usize,
 	pub end_col: usize,
-	should_panic: bool,
-	should_panic_message: Option<String>,
+	pub should_panic: bool,
+	pub should_panic_message: Option<String>,
 	pub compile_fail: bool,
 	pub no_run: bool,
-	test_type: SerdeTestType,
+	pub test_type: SerdeTestType,
 }
 
 impl SerdeTestDesc {
