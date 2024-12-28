@@ -3,22 +3,30 @@
 // use sweet::prelude::*;
 #[test]
 fn async_test() {
-	sweet::prelude::AsyncTestPromises::store(23, my_test());
-	sweet::prelude::panic_with_id(23);
+	let id = 0;
+	sweet::prelude::AsyncTestPromises::store(id, my_test(id));
+	sweet::prelude::panic_with_id(id);
 }
 
-async fn my_test() {
+#[test]
+fn async_test2() {
+	let id = 1;
+	sweet::prelude::AsyncTestPromises::store(id, my_test(id));
+	sweet::prelude::panic_with_id(id);
+}
+
+async fn my_test(id:usize) {
 	wasm_bindgen_futures::JsFuture::from(js_sys::Promise::new(
 		&mut |resolve, _| {
 			web_sys::window()
 				.unwrap()
 				.set_timeout_with_callback_and_timeout_and_arguments_0(
-					&resolve, 1000,
+					&resolve, 100,
 				)
 				.unwrap();
 		},
 	))
 	.await
 	.unwrap();
-	panic!("pizza football");
+	panic!("pizza football {}",id);
 }

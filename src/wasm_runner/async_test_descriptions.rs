@@ -11,10 +11,12 @@ pub fn panic_with_id(id: usize) {
 	panic!("{}{}", PENDING_ASYNC_PREFIX, id);
 }
 
-
 #[derive(Debug, Default, Clone)]
 pub struct AsyncTestDescriptions;
 
+impl GlobalStore for AsyncTestDescriptions {
+	fn var_name() -> &'static str { "__sweet_pending_test_descriptions" }
+}
 
 impl AsyncTestDescriptions {
 	/// If a test panics with a message starting with `pending_async`
@@ -39,9 +41,4 @@ impl AsyncTestDescriptions {
 		Self::set_serde(id, &SerdeTestDesc::new(desc))
 	}
 	pub fn get(id: usize) -> Result<SerdeTestDesc> { Self::get_serde(id) }
-}
-
-
-impl GlobalStore for AsyncTestDescriptions {
-	fn var_name() -> &'static str { "__sweet_pending_test_descriptions" }
 }

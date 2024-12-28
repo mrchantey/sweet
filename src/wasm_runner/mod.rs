@@ -4,6 +4,9 @@ pub use self::async_test_descriptions::*;
 pub mod async_test_promises;
 #[allow(unused_imports)]
 pub use self::async_test_promises::*;
+pub mod async_test_results;
+#[allow(unused_imports)]
+pub use self::async_test_results::*;
 pub mod global_store;
 #[allow(unused_imports)]
 pub use self::global_store::*;
@@ -28,9 +31,15 @@ pub use self::run_test::*;
 pub mod serde_test_desc;
 #[allow(unused_imports)]
 pub use self::serde_test_desc::*;
+pub mod test_future;
+#[allow(unused_imports)]
+pub use self::test_future::*;
 pub mod test_id;
 #[allow(unused_imports)]
 pub use self::test_id::*;
 pub mod test_runner_config_wasm;
 #[allow(unused_imports)]
 pub use self::test_runner_config_wasm::*;
+pub mod utils;
+#[allow(unused_imports)]
+pub use self::utils::*;

@@ -36,6 +36,13 @@ pub trait GlobalStore: Sized {
 		}
 	}
 
+	fn exists() -> bool {
+		let var_name = Self::var_name();
+		let window = web_sys::window().expect("no global window exists");
+		let obj = js_sys::Reflect::get(&window, &var_name.into()).unwrap();
+		!obj.is_undefined()
+	}
+
 
 	fn set_field(key: impl Into<JsValue>, val: impl Into<JsValue>) {
 		let obj = Self::get_store_object();
@@ -55,20 +62,47 @@ pub trait GlobalStore: Sized {
 		Ok(())
 	}
 	fn get_serde<T: DeserializeOwned>(
-		key: impl Display + Clone + Into<JsValue>,
+		key: impl std::fmt::Debug + Clone + Into<JsValue>,
 	) -> Result<T> {
 		let serde = Self::get_field(key.clone()).map_err(|_| {
 			anyhow::anyhow!(
-				"global store value not found {}: {}",
+				"global store value not found {}: {:?}",
 				Self::var_name(),
 				key
 			)
 		})?;
 		let serde: String = serde.as_string().ok_or_else(|| {
-			anyhow::anyhow!("global store value is not a serde string: {}", key)
+			anyhow::anyhow!(
+				"global store value is not a serde string: {:?}",
+				key
+			)
 		})?;
 		let value = serde_json::from_str(&serde)?;
 		Ok(value)
+	}
+
+
+	fn collect() -> Result<HashMap<String, JsValue>> {
+		let obj = Self::get_store_object();
+		let keys = js_sys::Reflect::own_keys(&obj).unwrap();
+		keys.iter()
+			.map(|key| {
+				let value = Self::get_field(&key).unwrap();
+				let key = key.as_string().unwrap();
+				Ok((key, value))
+			})
+			.collect()
+	}
+	fn collect_serde<T: DeserializeOwned>() -> Result<HashMap<String, T>> {
+		let obj = Self::get_store_object();
+		let keys = js_sys::Reflect::own_keys(&obj).unwrap();
+		keys.iter()
+			.map(|key| {
+				let value = Self::get_serde(&key)?;
+				let key = key.as_string().unwrap();
+				Ok((key, value))
+			})
+			.collect()
 	}
 
 	fn print() {

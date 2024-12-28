@@ -1,6 +1,7 @@
+use super::AsyncTestPanics;
 use super::GlobalStore;
+use anyhow::Result;
 use std::panic::PanicHookInfo;
-
 
 
 /// when a test panics, store it globally
@@ -20,6 +21,11 @@ impl PanicStore {
 		Self::get_field("payload")
 			.map(|val| val.as_string().unwrap())
 			.unwrap_or_default()
+	}
+
+	pub fn save_current_as_test_failure(id: usize) -> Result<()> {
+		let message = Self::get();
+		AsyncTestPanics::set(id, message)
 	}
 }
 

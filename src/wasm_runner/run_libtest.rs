@@ -1,6 +1,7 @@
 use crate::prelude::*;
 use wasm_bindgen::prelude::wasm_bindgen;
 use wasm_bindgen::JsValue;
+// use web_sys::window;
 // use test::*;
 
 pub fn run_libtest(tests: &[&test::TestDescAndFn]) {
@@ -32,13 +33,26 @@ pub async fn run_with_pending() -> Result<(), JsValue> {
 	// let PartialResultStore { logger, results } =
 	// 	PartialResultStore::get().map_err(anyhow_to_jsvalue)?;
 
-	let promises = AsyncTestPromises::collect().await?;
+	// window().unwrap();
 
-	crate::log!("🚀🚀🚀");
+
+	AsyncTestPromises::await_and_collect().await?;
+
+	crate::log!("🚀🚀\n");
+	// crate::log!("🚀🚀🚀 \n{:?}", panics);
 
 	Ok(())
 }
 
-fn anyhow_to_jsvalue(e: anyhow::Error) -> JsValue {
-	JsValue::from_str(&format!("{:?}", e))
-}
+
+
+// SET_HOOK.call_once(|| {
+// 	std::panic::set_hook(Box::new(|panic_info| {
+// 			panic_handling(panic_info.to_string());
+// 	}));
+// });
+// #[cfg(all(
+// 	not(feature = "std"),
+// 	target_arch = "wasm32",
+// 	any(target_os = "unknown", target_os = "none")
+// ))]
