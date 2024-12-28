@@ -2,6 +2,7 @@ use anyhow::Result;
 use clap::ArgMatches;
 use glob::Pattern;
 use std::path::PathBuf;
+
 #[derive(Debug, Clone)]
 pub struct TestRunnerConfig {
 	pub watch: bool,

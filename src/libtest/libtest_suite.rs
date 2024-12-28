@@ -45,10 +45,11 @@ impl LibtestSuite {
 		config: &TestRunnerConfig,
 		tests: &[&TestDescAndFn],
 		func: impl Clone + Fn(&TestDescAndFn) -> Result<(), String>,
+		gag_output: bool,
 	) -> Vec<SuiteResult> {
 		Self::collect(tests)
 			.iter()
-			.map(|suite| suite.run(config, func.clone()))
+			.map(|suite| suite.run(config, func.clone(), gag_output))
 			.collect()
 	}
 
@@ -80,7 +81,9 @@ impl LibtestSuite {
 	pub fn run(
 		&self,
 		config: &TestRunnerConfig,
-		func: impl Fn(&TestDescAndFn) -> Result<(), String>,
+		run_test: impl Fn(&TestDescAndFn) -> Result<(), String>,
+		// wasm tests should hold their tongue until async tests have also run
+		gag_output: bool,
 	) -> SuiteResult {
 		let mut num_ignored = 0;
 		let mut num_ran = 0;
@@ -88,12 +91,13 @@ impl LibtestSuite {
 			.tests
 			.iter()
 			.filter_map(|test| {
+				// TODO break this logic out so native can parallel
 				if test.desc.ignore || !libtest_passes_filter(config, test) {
 					num_ignored += 1;
 					return None;
 				}
 				num_ran += 1;
-				match (func(test), test.desc.should_panic) {
+				match (run_test(test), test.desc.should_panic) {
 					(Ok(_), ShouldPanic::No) => None,
 					(Ok(_), ShouldPanic::Yes) => {
 						Some(format!("Expected panic"))
@@ -111,7 +115,9 @@ impl LibtestSuite {
 		let result =
 			SuiteResult::new(self.source_file.into(), num_ran, num_ignored)
 				.with_failed(failures);
-		log_val(&result.end_str());
+		if !config.silent && !gag_output {
+			log_val(&result.end_str());
+		}
 		result
 	}
 }

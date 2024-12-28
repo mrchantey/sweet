@@ -24,6 +24,10 @@ pub struct SerdeTestDesc {
 	test_type: SerdeTestType,
 }
 
+impl SerdeTestDesc {
+	pub fn new(desc: &TestDesc) -> Self { desc.clone().into() }
+}
+
 impl Into<SerdeTestDesc> for TestDesc {
 	fn into(self) -> SerdeTestDesc {
 		SerdeTestDesc {

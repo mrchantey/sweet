@@ -30,28 +30,15 @@ impl AsyncTestDescriptions {
 			.unwrap_or_else(|_| {
 				panic!("failed to parse pending async id: {}", err)
 			});
-		Self::store(id, &test.desc)?;
+		Self::set(id, &test.desc)?;
 
 		Ok(true)
 	}
 
-
-	pub fn store(id: usize, desc: &TestDesc) -> Result<()> {
-		let serde_desc: SerdeTestDesc = desc.clone().into();
-		let serde = serde_json::to_string(&serde_desc)?;
-		Self::set_field(id, serde);
-		Ok(())
+	fn set(id: usize, desc: &TestDesc) -> Result<()> {
+		Self::set_serde(id, &SerdeTestDesc::new(desc))
 	}
-	pub fn get(id: usize) -> Result<SerdeTestDesc> {
-		let serde = Self::get_field(id).map_err(|_| {
-			anyhow::anyhow!("no pending test desc for id: {}", id)
-		})?;
-		let serde: String = serde.as_string().ok_or_else(|| {
-			anyhow::anyhow!("pending test desc is not a string")
-		})?;
-		let desc: SerdeTestDesc = serde_json::from_str(&serde)?;
-		Ok(desc)
-	}
+	pub fn get(id: usize) -> Result<SerdeTestDesc> { Self::get_serde(id) }
 }
 
 

@@ -8,8 +8,11 @@ use std::panic::PanicHookInfo;
 pub struct PanicStore;
 
 impl PanicStore {
+	// it seems in wasm we can only set_hook once, otherwise
+	// the setting of a hook itsself will panic
 	pub fn panic_hook(info: &PanicHookInfo) {
 		let payload = info.payload_as_str().unwrap_or("no panic message");
+		// crate::log!("it panicked: {}", payload);
 		Self::set_field("payload", payload);
 	}
 

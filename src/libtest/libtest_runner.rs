@@ -14,7 +14,7 @@ pub fn libtest_runner(
 	}
 
 	let suite_results =
-		LibtestSuite::collect_and_run(config, tests, run_test);
+		LibtestSuite::collect_and_run(config, tests, run_test, false);
 
 	let runner_result = TestRunnerResult::from_suite_results(suite_results);
 	logger.end(&config, &runner_result);

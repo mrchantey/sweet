@@ -1,8 +1,11 @@
 use crate::prelude::*;
 use forky::web::*;
+use serde::Deserialize;
+use serde::Serialize;
 use std::time::Duration;
 use web_sys::console;
 
+#[derive(Default, Debug, Clone, Serialize, Deserialize)]
 pub struct RunnerLoggerWasm {
 	start_time: f64,
 }

@@ -1,11 +1,13 @@
 use super::SerdeTestDesc;
+use anyhow::Result;
 use js_sys::Object;
+use serde::de::DeserializeOwned;
 use serde::Deserialize;
 use serde::Serialize;
 use std::collections::HashMap;
+use std::fmt::Display;
 use wasm_bindgen::JsCast;
 use wasm_bindgen::JsValue;
-
 
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
 pub struct TestDescriptions(HashMap<usize, SerdeTestDesc>);
@@ -17,9 +19,11 @@ impl GlobalStore for TestDescriptions {
 
 
 pub trait GlobalStore: Sized {
+	// type Value:
+
 	fn var_name() -> &'static str;
 
-	fn get() -> Object {
+	fn get_store_object() -> Object {
 		let var_name = Self::var_name();
 		let window = web_sys::window().expect("no global window exists");
 		let obj = js_sys::Reflect::get(&window, &var_name.into()).unwrap();
@@ -34,16 +38,41 @@ pub trait GlobalStore: Sized {
 
 
 	fn set_field(key: impl Into<JsValue>, val: impl Into<JsValue>) {
-		let obj = Self::get();
+		let obj = Self::get_store_object();
 		set_field(&obj, key, val);
 	}
 	fn get_field(key: impl Into<JsValue>) -> Result<JsValue, JsValue> {
-		let obj = Self::get();
+		let obj = Self::get_store_object();
 		js_sys::Reflect::get(&obj, &key.into())
 	}
 
+	fn set_serde(
+		key: impl Into<JsValue>,
+		value: &impl Serialize,
+	) -> Result<()> {
+		let serde = serde_json::to_string(&value)?;
+		Self::set_field(key, serde);
+		Ok(())
+	}
+	fn get_serde<T: DeserializeOwned>(
+		key: impl Display + Clone + Into<JsValue>,
+	) -> Result<T> {
+		let serde = Self::get_field(key.clone()).map_err(|_| {
+			anyhow::anyhow!(
+				"global store value not found {}: {}",
+				Self::var_name(),
+				key
+			)
+		})?;
+		let serde: String = serde.as_string().ok_or_else(|| {
+			anyhow::anyhow!("global store value is not a serde string: {}", key)
+		})?;
+		let value = serde_json::from_str(&serde)?;
+		Ok(value)
+	}
+
 	fn print() {
-		let obj = Self::get();
+		let obj = Self::get_store_object();
 		crate::log!("{}: {:?}", Self::var_name(), obj);
 	}
 }

@@ -71,6 +71,7 @@ test-runner test-binary *args:
 watch *command:
 	forky watch \
 	-w '**/*.rs' \
+	-w '**/*.ts' \
 	-i '{.git,target,html}/**' \
 	-i '**/mod.rs' \
 	-i '**/*_g.rs' \

@@ -20,4 +20,5 @@ async fn my_test() {
 	))
 	.await
 	.unwrap();
+	panic!("pizza football");
 }

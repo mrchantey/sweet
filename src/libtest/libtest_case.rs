@@ -2,6 +2,7 @@ use crate::prelude::*;
 use std::path::PathBuf;
 use test::TestDescAndFn;
 
+
 /// wrapper for [`test_error_location`]
 /// that works with [`TestDescAndFn`]
 pub fn libtesttest_error_location(test: &TestDescAndFn) -> String {
@@ -22,7 +23,7 @@ pub fn libtesttest_error_location(test: &TestDescAndFn) -> String {
 /// so we instead panic and instruct user to use `unwrap`.
 /// Also used by async wasm tests, we dont care what the result is, if ya
 /// want messages, panic! at the disco
-pub fn libtest_result_to_panic<T>(result: Result<(), T>) {
+pub fn libtest_result_to_panic<T, E>(result: Result<T, E>) {
 	match result {
 		Ok(_) => {}
 		Err(_) => {
