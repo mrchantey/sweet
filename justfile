@@ -19,8 +19,8 @@ install *args:
 test *args:
 	just watch 'cargo test --lib -- {{args}}'
 
-test-wasm:
-	cargo test --target wasm32-unknown-unknown --test wasm_runner	
+test-wasm *args:
+	just watch 'cargo test --test libtest_runner --target wasm32-unknown-unknown -- --watch {{args}}'
 
 publish-all:
 	just publish sweet_macros			| true
@@ -51,14 +51,14 @@ run-wasm example *args:
 	deno --allow-read run.ts
 # wasmtime ./target/wasm/bindgen_bg.wasm
 
-test-runner test-binary:
+test-runner test-binary *args:
 	wasm-bindgen \
 	--out-dir ./target/wasm \
 	--out-name bindgen \
 	--target web \
 	--no-typescript \
 	{{test-binary}}
-	deno --allow-read run.ts
+	deno --allow-read run.ts {{args}}
 
 watch *command:
 	forky watch \

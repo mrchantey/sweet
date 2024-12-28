@@ -81,7 +81,7 @@ impl TestRunnerWasm {
 			ResultExport::set_total(&results);
 
 			if let Some(logger) = logger {
-				logger.end(&results);
+				logger.end(&config, &results);
 			}
 		});
 	}

@@ -2,4 +2,7 @@
 #![cfg_attr(test, test_runner(sweet::test_runner))]
 
 #[test]
-fn fails() { sweet::prelude::expect(true).to_be_false().unwrap(); }
+#[rustfmt::skip]
+fn fails() { 
+	sweet::prelude::expect(true).to_be_false().unwrap();
+}

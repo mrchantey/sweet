@@ -122,6 +122,7 @@ backtrace.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 glob.workspace = true
+clap.workspace = true
 
 #💡 async 
 rayon.workspace = true
@@ -134,7 +135,6 @@ bevy = { workspace = true, optional = true }
 #💡 native
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 tokio.workspace = true
-clap.workspace = true
 forky = { workspace = true, features = ["fs"] }
 crossterm.workspace = true
 gag.workspace = true

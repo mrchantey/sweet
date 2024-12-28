@@ -39,3 +39,20 @@ pub fn libtest_short_name(test: &TestDescAndFn) -> String {
 		.map(|p| p.to_string())
 		.unwrap_or(path)
 }
+
+
+/// Checks both the file path and the full test name
+///
+/// for matcher `foo` the following will pass:
+/// - path: `/src/foo/bar.rs`
+/// - name: `crate::foo::test::it_works`
+pub fn libtest_passes_filter(
+	config: &TestRunnerConfig,
+	test: &TestDescAndFn,
+) -> bool {
+	let path = test.desc.source_file;
+	let name = test.desc.name.to_string();
+	config.matches.len() == 0
+		|| config.matches.iter().any(|a| a.matches(&path))
+		|| config.matches.iter().any(|a| a.matches(&name))
+}

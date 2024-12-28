@@ -8,10 +8,9 @@ pub struct RunnerLoggerWasm {
 	start_time: f64,
 }
 
-
 impl RunnerLogger for RunnerLoggerWasm {
 	fn start(config: &TestRunnerConfig) -> Self {
-		if !config.quiet{
+		if !config.silent {
 			console::clear();
 			log_web(&Self::pretty_print_intro(&config));
 		}
