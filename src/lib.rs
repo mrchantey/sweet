@@ -116,11 +116,3 @@ pub fn test_runner(tests: &[&test::TestDescAndFn]) {
 	#[cfg(not(target_arch = "wasm32"))]
 	crate::native::run_libtest(tests);
 }
-
-/// Entry point for Sweet to run inventory::collect tests.
-#[cfg(not(target_arch = "wasm32"))]
-// #[tokio::main]
-pub fn main() -> anyhow::Result<()> {
-	use forky::prelude::*;
-	native::RunTestsNativeCommand.run_with_cli_args()
-}

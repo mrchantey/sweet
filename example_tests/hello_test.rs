@@ -3,7 +3,7 @@
 
 #[test]
 #[rustfmt::skip]
-//` #[should_panic]
+#[should_panic]
 fn fails() { 
 	sweet::prelude::expect(true).to_be_false().unwrap();
 }

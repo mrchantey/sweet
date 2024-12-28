@@ -25,5 +25,6 @@ impl RunnerLogger for RunnerLoggerNative {
 			let summary = results.end_str(duration);
 			println!("{summary}");
 		}
+		// terminal::show_cursor();
 	}
 }

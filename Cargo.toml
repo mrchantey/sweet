@@ -68,7 +68,6 @@ rstml = "0.11.2"
 typed-builder = "0.18.0"
 
 #💡wasm
-wasm-bindgen-test = "0.3.0"
 console_log = "1.0"
 js-sys = "0.3.63"
 wasm-bindgen = "0.2.86"
@@ -152,7 +151,6 @@ forky = { workspace = true, features = ["web"] }
 
 #💡 wasm - dev
 [target.'cfg(target_arch = "wasm32")'.dev-dependencies]
-wasm-bindgen-test.workspace = true
 [[test]]
 name = "test_sweet"
 path = "test/sweet.rs"
@@ -211,21 +209,9 @@ features = [
 
 
 [[test]]
-name = "sweet_runner"
-path = "example_tests/sweet_runner.rs"
-harness = false
-
-[[test]]
-name = "libtest_runner"
-path = "example_tests/libtest_runner.rs"
-
-[[test]]
-name = "wasm_runner"
-path = "example_tests/wasm_runner.rs"
+name = "hello_test"
+path = "example_tests/hello_test.rs"
 
 [[test]]
 name = "async"
 path = "example_tests/async.rs"
-[[test]]
-name = "deleteme"
-path = "example_tests/deleteme.rs"
