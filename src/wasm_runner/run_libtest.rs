@@ -14,6 +14,6 @@ pub fn run_libtest(tests: &[&test::TestDescAndFn]) {
 	let logger = RunnerLoggerWasm::start(&config);
 
 	// // it seems in wasm we can only set_hook once, otherwise
-	std::panic::set_hook(Box::new(global_store_panic_hook));
+	std::panic::set_hook(Box::new(PanicStore::panic_hook));
 	libtest_runner(tests, &config, logger, run_test);
 }

@@ -13,6 +13,9 @@ pub use self::global_store::*;
 pub mod logger_wasm;
 #[allow(unused_imports)]
 pub use self::logger_wasm::*;
+pub mod panic_store;
+#[allow(unused_imports)]
+pub use self::panic_store::*;
 pub mod result_export;
 #[allow(unused_imports)]
 pub use self::result_export::*;
