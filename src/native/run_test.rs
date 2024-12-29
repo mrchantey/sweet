@@ -7,15 +7,11 @@ pub fn run_test(test: &TestDescAndFn) -> Result<(), String> {
 		_ => panic!("non-static tests are not supported"),
 	};
 
-	let mut result = None;
-
-	SweetTestCollector::with_scope(&test.desc, || {
-		result = Some(std::panic::catch_unwind(|| {
-			TestDescExt::result_to_panic(func())
-		}));
+	let result = SweetTestCollector::with_scope(&test.desc, || {
+		std::panic::catch_unwind(|| TestDescExt::result_to_panic(func()))
 	});
 
-	match result.expect("result must be some") {
+	match result {
 		Ok(()) => Ok(()),
 		Err(err) => Err(TestDescExt::format_panic(&test.desc, err)),
 	}

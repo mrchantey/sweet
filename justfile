@@ -18,19 +18,13 @@ install *args:
 
 test test_name *args:
 	just watch 'cargo test --test {{test_name}} -- --watch {{args}}'
+test-wasm test_name *args:
+	just watch 'cargo test --test {{test_name}} --target wasm32-unknown-unknown -- --watch {{args}}'
 
 test-all *args:
 	cargo test --test hello_test -- {{args}}
 	cargo test --test hello_test --target wasm32-unknown-unknown -- {{args}}
 
-test-native *args:
-	just watch 'cargo test --test hello_test -- --watch {{args}}'
-test-wasm *args:
-	just watch 'cargo test --test hello_test --target wasm32-unknown-unknown -- --watch {{args}}'
-test-async *args:
-	just watch 'cargo test --test async --target wasm32-unknown-unknown -- --watch {{args}}'
-test-macro *args:
-	just watch 'cargo test --test sweet_macro --target wasm32-unknown-unknown -- --watch {{args}}'
 
 publish-all:
 	just publish sweet_macros			| true

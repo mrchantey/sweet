@@ -20,7 +20,7 @@ impl PanicStore {
 		let payload = info.payload_as_str().unwrap_or("no panic message");
 		if !CURRENT_LISTENER.is_set() {
 			// nobody is listening, must be a real one
-			crate::log!("Panic: {}", payload);
+			crate::log!("Uncaught Sweet Panic:\n{}", payload);
 			return;
 		} else {
 			CURRENT_LISTENER.with(|last_panic| {
@@ -34,11 +34,20 @@ impl PanicStore {
 	// }
 
 
-	pub fn set<F, R>(val: &Rc<RefCell<Option<String>>>, f: F) -> R
+	/// All sync and async wasm tests must be ran inside this scope.
+	/// It will catch any panics and store them globally.
+	/// Source of truth is the last panic that occured,
+	/// # Returns
+	/// an error if a panic occured
+	pub fn with_scope<F, R>(func: F) -> Option<String>
 	where
 		F: FnOnce() -> R,
 	{
-		CURRENT_LISTENER.set(val, f)
+		let output = Default::default();
+		CURRENT_LISTENER.set(&output, || {
+			let _useless_panic_err = func();
+			output.borrow_mut().take()
+		})
 	}
 
 	// pub fn save_current_result(id: LibtestHash, failed: bool) {

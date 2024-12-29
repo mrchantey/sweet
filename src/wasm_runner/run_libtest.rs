@@ -1,30 +1,21 @@
 use crate::prelude::*;
-use forky::prelude::StringExt;
 use wasm_bindgen::prelude::wasm_bindgen;
 use wasm_bindgen::JsValue;
 // use web_sys::window;
 // use test::*;
 
 pub fn run_libtest(tests: &[&test::TestDescAndFn]) {
-	// TODO pass args from node/deno
-	let config = match TestRunnerConfig::from_deno_args() {
-		Ok(c) => c,
-		Err(e) => {
-			crate::log!("{:?}", e);
-			std::process::exit(1);
-		}
-	};
+	let config = TestRunnerConfig::from_deno_args().unwrap();
 	let logger = RunnerLoggerWasm::start(&config);
 
 	std::panic::set_hook(Box::new(PanicStore::panic_hook));
 
-	let results = LibtestSuite::collect_and_run(&config, tests, run_test, true);
-	// let _ = std::panic::take_hook();
+	let suite_results = LibtestSuite::collect_and_run(&config, tests, run_test);
 
 	PartialResultStore {
 		config,
 		logger,
-		results,
+		suite_results,
 	}
 	.set();
 }
@@ -36,45 +27,32 @@ pub async fn run_with_pending() -> Result<(), JsValue> {
 	let PartialResultStore {
 		config,
 		logger,
-		mut results,
+		mut suite_results,
 	} = PartialResultStore::get().map_err(anyhow_to_jsvalue)?;
 
-	let async_results = AsyncTestPromises::await_and_collect().await?;
 
-	// TODO we need the successes as well for should_panic
-	for (desc, result) in async_results {
-		let suite = results
-			.iter_mut()
-			.find(|suite| suite.file.to_string_lossy() == desc.source_file)
-			.expect("async suite not found");
-		// INCORRECT but we'll sort it out later
-		// should be identical to run_test
-		match (desc.should_panic, result) {
-			(test::ShouldPanic::No, Err(err)) => suite.failed.push(err),
-			(test::ShouldPanic::YesWithMessage(msg), Ok(_)) => {
-				suite.failed.push(msg.to_string())
-			}
-			(test::ShouldPanic::Yes, Ok(_)) => {
-				suite.failed.push("test did not panic".to_string())
-			}
-			(test::ShouldPanic::YesWithMessage(_), Err(_)) => {}
-			(test::ShouldPanic::Yes, Err(_)) => {}
-			(test::ShouldPanic::No, Ok(_)) => {}
-		}
 
-		// suite.failed.push(async_err);
-	}
+	let futs =
+		SweetTestCollector::drain()
+			.into_iter()
+			.map(|(desc, fut)| async {
+				let raw_result = TestFuture::new(async move {
+					fut.await.unwrap_libtest_err();
+					Ok(JsValue::NULL)
+				})
+				.await;
 
-	if !config.silent {
-		let suites_output =
-			results.iter().fold(String::new(), |mut acc, result| {
-				acc.push_string(&result.end_str());
-				acc
+				let failure = TestDescExt::parse_result(&desc, raw_result)
+					.err()
+					.map(|err| TestDescExt::best_effort_full_err(&desc, &err));
+
+				(desc, failure)
 			});
-		crate::log!("{}", suites_output);
-	}
+	let sweet_test_results = futures::future::join_all(futs).await;
 
-	TestRunnerResult::from_suite_results(results).end(&config, logger);
+	SuiteResult::append_sweet_tests(&mut suite_results, sweet_test_results);
+
+	TestRunnerResult::from_suite_results(suite_results).end(&config, logger);
 
 	Ok(())
 }

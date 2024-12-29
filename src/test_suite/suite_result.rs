@@ -1,8 +1,10 @@
 use colorize::*;
 use serde::Deserialize;
 use serde::Serialize;
+use std::collections::HashSet;
 use std::path::Path;
 use std::path::PathBuf;
+use test::TestDesc;
 // use std::default;
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
@@ -70,5 +72,33 @@ impl SuiteResult {
 			.faint();
 		let slash = "/".faint();
 		format!("{dir}{slash}{name}")
+	}
+
+	pub fn append_sweet_tests(
+		suite_results: &mut Vec<Self>,
+		results: Vec<(TestDesc, Option<String>)>,
+	) {
+		let failures = results.into_iter().filter_map(|tuple| match tuple.1 {
+			Some(failure) => Some((tuple.0, failure)),
+			None => None,
+		});
+
+		let mut async_suites = HashSet::new();
+
+		for (desc, failure) in failures {
+			let suite_result = suite_results
+				.iter_mut()
+				.find(|suite| suite.file == desc.source_file)
+				.unwrap();
+			suite_result.failed.push(failure);
+			async_suites.insert(suite_result.file.clone());
+		}
+
+		// these never got a chance to print their error
+		for suite in suite_results.iter_mut() {
+			if async_suites.contains(&suite.file) {
+				crate::log!("{}", suite.end_str());
+			}
+		}
 	}
 }

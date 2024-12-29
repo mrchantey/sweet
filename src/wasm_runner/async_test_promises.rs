@@ -1,8 +1,7 @@
 use super::anyhow_to_jsvalue;
 use super::AsyncTestResults;
-use super::TestFuture;
-use crate::libtest::libtest_result_to_panic;
 use crate::libtest::LibtestHash;
+use crate::libtest::TestDescExt;
 use futures::future::try_join_all;
 use js_sys::Promise;
 use std::cell::RefCell;
@@ -32,19 +31,19 @@ impl AsyncTestPromises {
 		id: LibtestHash,
 		fut: T,
 	) {
-		let prom = wasm_bindgen_futures::future_to_promise({
-			// async move {
-			TestFuture::new(id, async move {
-				fut.await.unwrap_libtest_err();
-				Ok(JsValue::NULL)
-			})
-			// fut.await.unwrap();
-			// }
-		});
+		// let prom = wasm_bindgen_futures::future_to_promise({
+		// 	// async move {
+		// 	TestFuture::new(id, async move {
+		// 		fut.await.unwrap_libtest_err();
+		// 		Ok(JsValue::NULL)
+		// 	})
+		// 	// fut.await.unwrap();
+		// 	// }
+		// });
 
-		STORE.with(|store| {
-			store.borrow_mut().insert(id, prom);
-		});
+		// STORE.with(|store| {
+		// 	store.borrow_mut().insert(id, prom);
+		// });
 	}
 
 
@@ -75,5 +74,5 @@ impl UnitOrResult for () {
 	fn unwrap_libtest_err(self) -> () { self }
 }
 impl<T> UnitOrResult for Result<(), T> {
-	fn unwrap_libtest_err(self) -> () { libtest_result_to_panic(self); }
+	fn unwrap_libtest_err(self) -> () { TestDescExt::result_to_panic(self); }
 }

@@ -17,49 +17,25 @@ pub fn run_libtest(tests: &[&test::TestDescAndFn]) {
 	}));
 
 	let mut suite_results =
-		LibtestSuite::collect_and_run(&config, tests, run_test, false);
+		LibtestSuite::collect_and_run(&config, tests, run_test);
 
-	let sweet_tests = SweetTestCollector::drain();
-
-	let runtime = tokio::runtime::Runtime::new().unwrap();
-	let failures = runtime
-		.block_on(async {
-			let futs = sweet_tests.into_iter().map(|(desc, fut)| async {
-				let raw_result = fut
-					.catch_unwind()
-					.await
-					.map_err(|panic| TestDescExt::format_panic(&desc, panic));
-				// futures::future::catch
-				let failure =
-					TestDescExt::parse_result(&desc, raw_result).err();
-				(desc, failure)
-			});
+	let sweet_test_results =
+		tokio::runtime::Runtime::new().unwrap().block_on(async {
+			let futs = SweetTestCollector::drain().into_iter().map(
+				|(desc, fut)| async {
+					let raw_result =
+						fut.catch_unwind().await.map_err(|panic| {
+							TestDescExt::format_panic(&desc, panic)
+						});
+					let failure =
+						TestDescExt::parse_result(&desc, raw_result).err();
+					(desc, failure)
+				},
+			);
 			futures::future::join_all(futs).await
-		})
-		.into_iter()
-		.filter_map(|tuple| match tuple.1 {
-			Some(failure) => Some((tuple.0, failure)),
-			None => None,
 		});
 
-	let mut async_suites = HashSet::new();
-
-	for (desc, failure) in failures {
-		let suite_result = suite_results
-			.iter_mut()
-			.find(|suite| suite.file == desc.source_file)
-			.unwrap();
-		suite_result.failed.push(failure);
-		async_suites.insert(suite_result.file.clone());
-	}
-
-	crate::log!("{:?}", async_suites);
-
-	for suite in suite_results.iter_mut() {
-		if async_suites.contains(&suite.file) {
-			crate::log!("{}", suite.end_str());
-		}
-	}
+	SuiteResult::append_sweet_tests(&mut suite_results, sweet_test_results);
 
 	TestRunnerResult::from_suite_results(suite_results).end(&config, logger);
 }

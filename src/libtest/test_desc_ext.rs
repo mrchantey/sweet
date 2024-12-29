@@ -41,7 +41,7 @@ pub struct TestDescExt;
 
 
 impl TestDescExt {
-	fn hash(desc: &TestDesc) -> LibtestHash {
+	pub fn hash(desc: &TestDesc) -> LibtestHash {
 		LibtestHash::new(&desc.source_file, desc.start_line)
 	}
 
@@ -120,5 +120,27 @@ impl TestDescExt {
 		config.matches.len() == 0
 			|| config.matches.iter().any(|a| a.matches(&path))
 			|| config.matches.iter().any(|a| a.matches(&name))
+	}
+
+	/// wasm doesnt have access to the fs so instead we just link
+	/// to the `path_to_test.rs:line:col` in the console
+	pub fn best_effort_full_err(desc: &TestDesc, err: &str) -> String {
+		let loc = TestDescExt::error_location(&desc);
+
+		// we dont get backtrace in wasm so just point to test start
+		let backtrace =
+			test_err_link(desc.source_file, desc.start_line, desc.start_col);
+
+		test_err_full_format(&loc, err, &backtrace)
+	}
+}
+
+fn panic_err_to_string(e: Box<dyn Any + Send>) -> String {
+	match e.downcast::<String>() {
+		Ok(v) => *v,
+		Err(e) => match e.downcast::<&str>() {
+			Ok(v) => v.to_string(),
+			_ => "Failed to convert panic to string".to_owned(),
+		},
 	}
 }

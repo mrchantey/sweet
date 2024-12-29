@@ -1,6 +1,3 @@
-pub mod panic;
-#[allow(unused_imports)]
-pub use self::panic::*;
 pub mod run_libtest;
 #[allow(unused_imports)]
 pub use self::run_libtest::*;

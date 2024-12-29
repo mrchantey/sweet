@@ -19,7 +19,7 @@ thread_local! {
 pub struct PartialResultStore {
 	pub config: TestRunnerConfig,
 	pub logger: RunnerLoggerWasm,
-	pub results: Vec<SuiteResult>,
+	pub suite_results: Vec<SuiteResult>,
 }
 
 

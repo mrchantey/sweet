@@ -7,7 +7,6 @@ use std::collections::HashMap;
 use test::TestDescAndFn;
 use test::TestFn;
 
-
 #[derive(Debug)]
 pub struct LibtestSuite {
 	pub source_file: &'static str,
@@ -45,11 +44,10 @@ impl LibtestSuite {
 		config: &TestRunnerConfig,
 		tests: &[&TestDescAndFn],
 		func: impl Clone + Fn(&TestDescAndFn) -> Result<(), String>,
-		gag_output: bool,
 	) -> Vec<SuiteResult> {
 		Self::collect(tests)
 			.iter()
-			.map(|suite| suite.run(config, func.clone(), gag_output))
+			.map(|suite| suite.run(config, func.clone()))
 			.collect()
 	}
 
@@ -82,8 +80,6 @@ impl LibtestSuite {
 		&self,
 		config: &TestRunnerConfig,
 		run_test: impl Fn(&TestDescAndFn) -> Result<(), String>,
-		// wasm tests should hold their tongue until async tests have also run
-		gag_output: bool,
 	) -> SuiteResult {
 		let mut num_ignored = 0;
 		let mut num_ran = 0;
@@ -111,7 +107,6 @@ impl LibtestSuite {
 		)
 		.with_failed(failures);
 		if !config.silent
-			&& !gag_output
 			&& !SweetTestCollector::contains_async_test(self.source_file)
 		{
 			log_val(&result.end_str());

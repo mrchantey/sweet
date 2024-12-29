@@ -18,7 +18,9 @@ impl AsyncTestDescriptions {
 	/// If a test panics with a message starting with `pending_async`
 	/// this means it is async and we will need to catch its output
 	/// after initial run.
-	pub fn store(test: &TestDescAndFn) { Self::set(test.hash(), &test.desc); }
+	pub fn store(test: &TestDescAndFn) {
+		Self::set(TestDescExt::hash(&test.desc), &test.desc);
+	}
 
 	fn set(id: LibtestHash, desc: &TestDesc) {
 		STORE.with(|store| {
