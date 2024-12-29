@@ -33,38 +33,33 @@
 extern crate test;
 // the #[sweet::test] macro
 pub use sweet_macros::test;
+pub use sweet_macros::test_old;
 // #[cfg(test)]
 // use libtest_runner::testlib_runner as libtest_runner;
 
 pub mod common;
-pub mod utils;
-// #[doc(hidden)]
-/// Matchers used for assertions: `expect(true).to_be_true()`
-pub mod matchers;
-#[doc(inline)]
-pub use matchers::MatcherExtClose;
 /// Utilities for [libtest](https://github.com/rust-lang/rust/tree/master/library/test)
 pub mod libtest;
+/// Matchers used for assertions: `expect(true).to_be_true()`
+pub mod matchers;
 /// Test case module
 pub mod test_case;
 /// Test runner module
 pub mod test_runner_utils;
 /// Test suite module
 pub mod test_suite;
+pub mod utils;
 
+#[cfg(feature = "bevy")]
+pub mod bevy_matchers;
 #[cfg(not(target_arch = "wasm32"))]
 #[doc(hidden)]
 pub mod native;
+pub mod sweet_test;
 #[cfg(target_arch = "wasm32")]
 pub mod wasm_matchers;
 #[cfg(target_arch = "wasm32")]
 pub mod wasm_runner;
-// #[cfg(target_arch = "wasm32")]
-// pub use wasm::visit;
-// #[cfg(target_arch = "wasm32")]
-// pub use wasm::MatcherHtml;
-#[cfg(feature = "bevy")]
-pub mod bevy_matchers;
 
 pub mod prelude {
 	#[cfg(feature = "bevy")]
@@ -74,6 +69,7 @@ pub mod prelude {
 	pub use crate::matchers::*;
 	#[cfg(not(target_arch = "wasm32"))]
 	pub use crate::native::*;
+	pub use crate::sweet_test::*;
 	pub use crate::test_case::*;
 	pub use crate::test_runner_utils::*;
 	pub use crate::test_suite::*;
@@ -85,31 +81,6 @@ pub mod prelude {
 	pub use anyhow::Result;
 }
 
-/// Re-exports for macros
-pub mod exports {
-	// pub use crate::test_case::TestCaseConfig;
-
-	pub use anyhow::Result;
-	#[cfg(not(target_arch = "wasm32"))]
-	pub use futures::future::CatchUnwind;
-	#[cfg(not(target_arch = "wasm32"))]
-	pub use futures::FutureExt;
-	pub use inventory;
-	// #[cfg(target_arch = "wasm32")]
-	// pub use js_sys;
-	//is full exports like this bad form?
-	#[cfg(target_arch = "wasm32")]
-	pub use js_sys::*;
-	pub use serde_json;
-	#[cfg(target_arch = "wasm32")]
-	pub use wasm_bindgen;
-	#[cfg(target_arch = "wasm32")]
-	pub use wasm_bindgen::prelude::*;
-	#[cfg(target_arch = "wasm32")]
-	pub use wasm_bindgen_futures::future_to_promise;
-}
-
-#[cfg(any(test, feature = "collect_libtest"))]
 pub fn test_runner(tests: &[&test::TestDescAndFn]) {
 	#[cfg(target_arch = "wasm32")]
 	crate::wasm_runner::run_libtest(tests);

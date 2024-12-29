@@ -1,9 +1,9 @@
-use super::libtest_passes_filter;
+use super::TestDescExt;
 use crate::prelude::SuiteResult;
+use crate::prelude::SweetTestCollector;
 use crate::prelude::TestRunnerConfig;
 use crate::utils::log_val;
 use std::collections::HashMap;
-use test::ShouldPanic;
 use test::TestDescAndFn;
 use test::TestFn;
 
@@ -92,30 +92,28 @@ impl LibtestSuite {
 			.iter()
 			.filter_map(|test| {
 				// TODO break this logic out so native can parallel
-				if test.desc.ignore || !libtest_passes_filter(config, test) {
+				if test.desc.ignore
+					|| !TestDescExt::passes_filter(&test.desc, config)
+				{
 					num_ignored += 1;
 					return None;
 				}
 				num_ran += 1;
-				match (run_test(test), test.desc.should_panic) {
-					(Ok(_), ShouldPanic::No) => None,
-					(Ok(_), ShouldPanic::Yes) => {
-						Some(format!("Expected panic"))
-					}
-					(Ok(_), ShouldPanic::YesWithMessage(msg)) => {
-						Some(format!("Expected panic: {}", msg))
-					}
-					(Err(err), ShouldPanic::No) => Some(err),
-					(Err(_), ShouldPanic::Yes) => None,
-					(Err(_), ShouldPanic::YesWithMessage(_)) => None,
-				}
+				let raw_result = run_test(test);
+				TestDescExt::parse_result(&test.desc, raw_result).err()
 			})
 			.collect::<Vec<_>>();
 
-		let result =
-			SuiteResult::new(self.source_file.into(), num_ran, num_ignored)
-				.with_failed(failures);
-		if !config.silent && !gag_output {
+		let result = SuiteResult::new(
+			self.source_file.to_string(),
+			num_ran,
+			num_ignored,
+		)
+		.with_failed(failures);
+		if !config.silent
+			&& !gag_output
+			&& !SweetTestCollector::contains_async_test(self.source_file)
+		{
 			log_val(&result.end_str());
 		}
 		result

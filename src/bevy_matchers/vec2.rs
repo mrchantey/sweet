@@ -1,4 +1,4 @@
-use crate::matchers::*;
+use crate::prelude::*;
 use ::bevy::prelude::*;
 
 impl CloseTo for Vec2 {

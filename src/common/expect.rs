@@ -1,4 +1,4 @@
-use crate::matchers::Matcher;
+use crate::prelude::*;
 /// Alias for `Matcher::new()`
 ///
 /// # Example
@@ -9,6 +9,4 @@ use crate::matchers::Matcher;
 /// expect("foobar").not().to_start_with("bar")?;
 /// # Ok::<(), anyhow::Error>(())
 /// ```
-pub fn expect<T>(value: T) -> Matcher<T> {
-    Matcher::new(value)
-}
+pub fn expect<T>(value: T) -> Matcher<T> { Matcher::new(value) }

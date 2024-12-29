@@ -1,9 +1,6 @@
-use super::*;
 use crate::test_case::*;
-use crate::test_runner_utils::*;
 use anyhow::Error;
 use futures::Future;
-use std::path::PathBuf;
 
 
 pub async fn run_cases_series(to_run: Vec<&impl TestCase>) -> Vec<Error> {
@@ -32,66 +29,6 @@ where
 		}
 	}
 	results
-}
-
-pub trait TestSuiteTrait<Case>
-where
-	Case: TestCase,
-{
-	fn new(file: PathBuf) -> Self;
-	fn file(&self) -> &PathBuf;
-	fn config(&self) -> &TestSuiteConfig;
-	fn tests(&self) -> &Vec<Case>;
-	fn tests_mut(&mut self) -> &mut Vec<Case>;
-	fn push_test(&mut self, test: Case) { self.tests_mut().push(test) }
-
-	fn should_skip(&self, test: &Case, contains_only: bool) -> bool {
-		test.config().skip
-			|| self.config().cases.skip
-			|| (contains_only && !test.config().only)
-	}
-
-	async fn run_cases(
-		&self,
-		to_run: Vec<&Case>,
-		_config: &TestRunnerConfig,
-	) -> Vec<Error> {
-		run_cases_series(to_run).await
-	}
-
-	async fn run<Logger>(&self, config: &TestRunnerConfig) -> SuiteResult
-	where
-		Logger: SuiteLogger,
-	{
-		let tests = self.tests();
-		let file = self.file();
-
-		let contains_only = tests.iter().any(|t| t.config().only);
-
-		let (to_run, skipped): (Vec<_>, Vec<_>) = tests
-			.iter()
-			.partition(|t| !self.should_skip(t, contains_only));
-
-		let mut result =
-			SuiteResult::new(file.clone(), tests.len(), skipped.len());
-
-		let logger = if config.silent {
-			None
-		} else {
-			Some(Logger::on_start(result.in_progress_str()))
-		};
-		result.failed = self
-			.run_cases(to_run, config)
-			.await
-			.iter()
-			.map(|e| e.to_string())
-			.collect();
-
-		if let Some(logger) = logger {
-			logger.on_end(result.end_str());
-		}
-		result
-	}
 }
 
 // #[derive(Default, Debug, Clone)]

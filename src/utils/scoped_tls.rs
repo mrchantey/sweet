@@ -3,14 +3,14 @@
 #[macro_export]
 macro_rules! scoped_thread_local {
 	(static $name:ident: $ty:ty) => {
-		static $name: crate::wasm_runner::scoped_tls::ScopedKey<$ty> = unsafe {
-			static FOO: crate::wasm_runner::scoped_tls::Wrapper<
+		static $name: crate::utils::scoped_tls::ScopedKey<$ty> = unsafe {
+			static FOO: crate::utils::scoped_tls::Wrapper<
 				::core::cell::Cell<*const ()>,
-			> = crate::wasm_runner::scoped_tls::Wrapper::new(
-				::core::cell::Cell::new(::core::ptr::null()),
-			);
+			> = crate::utils::scoped_tls::Wrapper::new(::core::cell::Cell::new(
+				::core::ptr::null(),
+			));
 			// Safety: nothing else can access FOO since it's hidden in its own scope
-			crate::wasm_runner::scoped_tls::ScopedKey::new(&FOO)
+			crate::utils::scoped_tls::ScopedKey::new(&FOO)
 		};
 	};
 }
@@ -18,10 +18,10 @@ macro_rules! scoped_thread_local {
 use core::cell::Cell;
 use core::marker::PhantomData;
 
-pub(super) struct Wrapper<T>(T);
+pub(crate) struct Wrapper<T>(T);
 
 impl<T> Wrapper<T> {
-	pub(super) const fn new(value: T) -> Self { Self(value) }
+	pub(crate) const fn new(value: T) -> Self { Self(value) }
 }
 
 unsafe impl<T> Sync for Wrapper<T> {}
@@ -37,7 +37,7 @@ impl<T> ScopedKey<T> {
 	#[doc(hidden)]
 	/// # Safety
 	/// `inner` must only be accessed through `ScopedKey`'s API
-	pub(super) const unsafe fn new(
+	pub(crate) const unsafe fn new(
 		inner: &'static Wrapper<Cell<*const ()>>,
 	) -> Self {
 		Self {

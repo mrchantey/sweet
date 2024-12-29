@@ -23,7 +23,7 @@ fn apply_filenames(tests: &[&test::TestDescAndFn]) -> Vec<test::TestDescAndFn> {
 			test.desc.name = test::DynTestName(format!(
 				"{} - {}",
 				test.desc.source_file,
-				libtest_short_name(&test)
+				TestDescExt::short_name(&test.desc)
 			));
 			// test::StaticTestName(test.desc.source_file);
 			test

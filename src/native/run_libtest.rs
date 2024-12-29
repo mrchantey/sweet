@@ -1,5 +1,7 @@
 use super::run_test::run_test;
 use crate::prelude::*;
+use futures::FutureExt;
+use std::collections::HashSet;
 extern crate test;
 
 /// maybe we can allow test_main_with_filenames() as a feature
@@ -10,11 +12,56 @@ pub fn run_libtest(tests: &[&test::TestDescAndFn]) {
 
 	std::panic::set_hook(Box::new(|_| {
 		// ⚠️ THIS DISABLES INTERNAL PANICS ⚠️
+		// we do this for a cleaner terminal output
+		// as panics are catch_unwind
 	}));
 
-	let results = LibtestSuite::collect_and_run(config, tests, run_test, false);
+	let mut suite_results =
+		LibtestSuite::collect_and_run(&config, tests, run_test, false);
 
-	TestRunnerResult::from_suite_results(results).end(&config, logger);
+	let sweet_tests = SweetTestCollector::drain();
+
+	let runtime = tokio::runtime::Runtime::new().unwrap();
+	let failures = runtime
+		.block_on(async {
+			let futs = sweet_tests.into_iter().map(|(desc, fut)| async {
+				let raw_result = fut
+					.catch_unwind()
+					.await
+					.map_err(|panic| TestDescExt::format_panic(&desc, panic));
+				// futures::future::catch
+				let failure =
+					TestDescExt::parse_result(&desc, raw_result).err();
+				(desc, failure)
+			});
+			futures::future::join_all(futs).await
+		})
+		.into_iter()
+		.filter_map(|tuple| match tuple.1 {
+			Some(failure) => Some((tuple.0, failure)),
+			None => None,
+		});
+
+	let mut async_suites = HashSet::new();
+
+	for (desc, failure) in failures {
+		let suite_result = suite_results
+			.iter_mut()
+			.find(|suite| suite.file == desc.source_file)
+			.unwrap();
+		suite_result.failed.push(failure);
+		async_suites.insert(suite_result.file.clone());
+	}
+
+	crate::log!("{:?}", async_suites);
+
+	for suite in suite_results.iter_mut() {
+		if async_suites.contains(&suite.file) {
+			crate::log!("{}", suite.end_str());
+		}
+	}
+
+	TestRunnerResult::from_suite_results(suite_results).end(&config, logger);
 }
 
 // async fn run_native_parallel(

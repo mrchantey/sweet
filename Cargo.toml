@@ -215,3 +215,6 @@ path = "example_tests/hello_test.rs"
 [[test]]
 name = "async"
 path = "example_tests/async.rs"
+[[test]]
+name = "sweet_macro"
+path = "example_tests/sweet_macro.rs"

@@ -7,7 +7,7 @@ use std::path::PathBuf;
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct SuiteResult {
-	pub file: PathBuf,
+	pub file: String,
 	pub tests: usize,
 	pub skipped: usize,
 	pub failed: Vec<String>,
@@ -15,7 +15,7 @@ pub struct SuiteResult {
 
 
 impl SuiteResult {
-	pub fn new(file: PathBuf, tests: usize, skipped: usize) -> Self {
+	pub fn new(file: String, tests: usize, skipped: usize) -> Self {
 		SuiteResult {
 			file,
 			tests,
@@ -31,7 +31,7 @@ impl SuiteResult {
 	pub fn in_progress_str(&self) -> String {
 		let mut value = " RUNS ".black().bold().yellowb();
 		value += " ";
-		value += Self::pretty_path(&self.file).as_str();
+		value += self.pretty_path().as_str();
 		value
 	}
 
@@ -43,7 +43,7 @@ impl SuiteResult {
 			" FAIL ".black().bold().redb()
 		};
 		val += " ";
-		val += Self::pretty_path(&self.file).as_str();
+		val += self.pretty_path().as_str();
 
 		val += &self
 			.failed
@@ -53,7 +53,9 @@ impl SuiteResult {
 		val
 	}
 
-	fn pretty_path(file: &PathBuf) -> String {
+	fn pretty_path(&self) -> String {
+		let file = PathBuf::from(&self.file);
+
 		let name = file
 			.file_name()
 			.unwrap_or_default()

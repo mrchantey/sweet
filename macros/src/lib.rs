@@ -30,6 +30,13 @@ use proc_macro::TokenStream;
 ///
 #[proc_macro_attribute]
 pub fn test(attr: TokenStream, input: TokenStream) -> TokenStream {
+	TestCaseAttr2::parse(attr, input)
+		.unwrap_or_else(syn::Error::into_compile_error)
+		.into()
+}
+
+#[proc_macro_attribute]
+pub fn test_old(attr: TokenStream, input: TokenStream) -> TokenStream {
 	TestCaseAttr::parse(attr, input)
 		.unwrap_or_else(syn::Error::into_compile_error)
 		.into()

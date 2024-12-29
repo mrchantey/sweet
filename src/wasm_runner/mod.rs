@@ -1,3 +1,6 @@
+pub mod async_test_desc_with_fn;
+#[allow(unused_imports)]
+pub use self::async_test_desc_with_fn::*;
 pub mod async_test_descriptions;
 #[allow(unused_imports)]
 pub use self::async_test_descriptions::*;
@@ -25,9 +28,6 @@ pub use self::run_suite::*;
 pub mod run_test;
 #[allow(unused_imports)]
 pub use self::run_test::*;
-pub mod scoped_tls;
-#[allow(unused_imports)]
-pub use self::scoped_tls::*;
 pub mod test_future;
 #[allow(unused_imports)]
 pub use self::test_future::*;
