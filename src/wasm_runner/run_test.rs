@@ -7,13 +7,8 @@ use wasm_bindgen::JsValue;
 
 pub fn run_test(test: &TestDescAndFn) -> Result<(), String> {
 	AsyncTestDescriptions::store(test);
-
-	let func = match test.testfn {
-		test::StaticTestFn(func) => func,
-		_ => panic!("currently only static tests are supported"),
-	};
-
 	let result = PanicStore::with_scope(|| {
+		let func = TestDescAndFnExt::func(test);
 		// dont worry if it returned error, we will catch the panic
 		SweetTestCollector::with_scope(&test.desc, || run_no_abort(func)).ok();
 	});

@@ -1,6 +1,5 @@
-use crate::prelude::test_err_location;
-use crate::prelude::TestRunnerConfig;
 use crate::prelude::*;
+use colorize::AnsiColor;
 use std::any::Any;
 use std::hash::DefaultHasher;
 use std::hash::Hash;
@@ -63,6 +62,11 @@ impl TestDescExt {
 	}
 
 
+	pub fn is_equal_location(a: &TestDesc, b: &TestDesc) -> bool {
+		a.source_file == b.source_file && a.start_line == b.start_line
+	}
+
+
 	/// wrapper for [`test_error_location`]
 	/// that works with [`TestDesc`]
 	pub fn error_location(desc: &TestDesc) -> String {
@@ -103,7 +107,10 @@ impl TestDescExt {
 			.unwrap_or(path)
 	}
 
-	pub fn format_panic(desc: &TestDesc, panic: Box<dyn Any + Send>) -> String {
+	pub fn panic_full_format(
+		desc: &TestDesc,
+		panic: Box<dyn Any + Send>,
+	) -> String {
 		let err = panic_err_to_string(panic);
 		let loc = Self::error_location(&desc);
 		test_err_full_format(&loc, &err, "")
@@ -143,4 +150,42 @@ fn panic_err_to_string(e: Box<dyn Any + Send>) -> String {
 			_ => "Failed to convert panic to string".to_owned(),
 		},
 	}
+}
+
+
+pub fn test_err_full_format(
+	location: &str,
+	err: &str,
+	backtrace: &str,
+) -> String {
+	format!("{}\n\n{}\n\n{}", location, err, backtrace)
+}
+
+
+/// for a given error `it failed!` format like so:
+///
+/// ```
+/// ● file_name.rs > test_name
+///
+///
+/// it failed!
+/// ```
+///
+pub fn test_err_location(file_stem: &str, test_name: &str) -> String {
+	format!("\n● {} > {}", file_stem, test_name).red().bold()
+}
+
+/// for a given error `it failed!` format like so:
+///
+/// ```
+/// it failed!
+///
+/// at path/to/file_name.rs:1:2
+/// ```
+pub fn test_err_link(file: &str, line: usize, col: usize) -> String {
+	let prefix = String::from("at").faint();
+	let file_loc = String::from(file).cyan();
+	let line_loc = String::from(format!(":{}:{}", line, col)).faint();
+
+	format!("\n{} {}{}\n", prefix, file_loc, line_loc)
 }

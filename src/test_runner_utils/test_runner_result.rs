@@ -26,9 +26,9 @@ impl TestRunnerResult {
 		let cases = suite_results.iter().fold(
 			ResultCount::default(),
 			|mut acc, item| {
-				acc.tests += item.tests;
+				acc.tests += item.num_tests;
 				acc.failed += item.failed.len();
-				acc.skipped += item.skipped;
+				acc.skipped += item.num_ignored;
 
 				suites.tests += 1;
 				if item.failed.len() > 0 {

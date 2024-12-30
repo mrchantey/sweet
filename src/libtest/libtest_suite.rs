@@ -1,11 +1,6 @@
-use super::TestDescExt;
-use crate::prelude::SuiteResult;
-use crate::prelude::SweetTestCollector;
-use crate::prelude::TestRunnerConfig;
-use crate::utils::log_val;
+use crate::prelude::*;
 use std::collections::HashMap;
 use test::TestDescAndFn;
-use test::TestFn;
 
 #[derive(Debug)]
 pub struct LibtestSuite {
@@ -43,10 +38,10 @@ impl LibtestSuite {
 	pub fn collect_and_run(
 		config: &TestRunnerConfig,
 		tests: &[&TestDescAndFn],
-		func: impl Clone + Fn(&TestDescAndFn) -> Result<(), String>,
-	) -> Vec<SuiteResult> {
+		func: impl Clone + Fn(&TestDescAndFn) -> TestOutput,
+	) -> Vec<SuiteOutput> {
 		Self::collect(tests)
-			.iter()
+			.into_iter()
 			.map(|suite| suite.run(config, func.clone()))
 			.collect()
 	}
@@ -58,7 +53,7 @@ impl LibtestSuite {
 			let suite = suites
 				.entry(test.desc.source_file)
 				.or_insert_with(|| LibtestSuite::new(test.desc.source_file));
-			suite.tests.push(clone_libtest(test));
+			suite.tests.push(TestDescAndFnExt::clone(test));
 		}
 		let mut suites: Vec<Self> =
 			suites.into_iter().map(|(_, suite)| suite).collect();
@@ -77,55 +72,33 @@ impl LibtestSuite {
 
 
 	pub fn run(
-		&self,
+		self,
 		config: &TestRunnerConfig,
-		run_test: impl Fn(&TestDescAndFn) -> Result<(), String>,
-	) -> SuiteResult {
+		run_test: impl Fn(&TestDescAndFn) -> TestOutput,
+	) -> SuiteOutput {
 		let mut num_ignored = 0;
 		let mut num_ran = 0;
-		let failures = self
+		let test_outputs = self
 			.tests
-			.iter()
-			.filter_map(|test| {
+			.into_iter()
+			.map(|test| {
 				// TODO break this logic out so native can parallel
 				if test.desc.ignore
 					|| !TestDescExt::passes_filter(&test.desc, config)
 				{
 					num_ignored += 1;
-					return None;
+					return (test.desc, TestOutput::Ignore);
 				}
 				num_ran += 1;
-				let raw_result = run_test(test);
-				TestDescExt::parse_result(&test.desc, raw_result).err()
+				let raw_result = run_test(&test);
+				(test.desc, raw_result)
 			})
 			.collect::<Vec<_>>();
 
-		let result = SuiteResult::new(
-			self.source_file.to_string(),
-			num_ran,
-			num_ignored,
-		)
-		.with_failed(failures);
-		if !config.silent
-			&& !SweetTestCollector::contains_async_test(self.source_file)
-		{
-			log_val(&result.end_str());
-		}
-		result
-	}
-}
-
-/// copied from https://github.com/rust-lang/rust/blob/a25032cf444eeba7652ce5165a2be450430890ba/library/test/src/lib.rs#L223
-pub fn clone_libtest(test: &&TestDescAndFn) -> TestDescAndFn {
-	match test.testfn {
-		TestFn::StaticTestFn(f) => TestDescAndFn {
-			testfn: TestFn::StaticTestFn(f),
-			desc: test.desc.clone(),
-		},
-		TestFn::StaticBenchFn(f) => TestDescAndFn {
-			testfn: TestFn::StaticBenchFn(f),
-			desc: test.desc.clone(),
-		},
-		_ => panic!("non-static tests are not supported"),
+		let suite_output = SuiteOutput {
+			file: self.source_file.to_string(),
+			test_outputs,
+		};
+		suite_output
 	}
 }

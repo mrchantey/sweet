@@ -1,18 +1,16 @@
 use crate::prelude::*;
 use test::TestDescAndFn;
 
-pub fn run_test(test: &TestDescAndFn) -> Result<(), String> {
-	let func = match test.testfn {
-		test::TestFn::StaticTestFn(func) => func,
-		_ => panic!("non-static tests are not supported"),
-	};
-
-	let result = SweetTestCollector::with_scope(&test.desc, || {
-		std::panic::catch_unwind(|| TestDescExt::result_to_panic(func()))
-	});
-
-	match result {
-		Ok(()) => Ok(()),
-		Err(err) => Err(TestDescExt::format_panic(&test.desc, err)),
-	}
+pub fn run_test(test: &TestDescAndFn) -> TestOutput {
+	SweetTestCollector::with_scope(&test.desc, || {
+		let func = TestDescAndFnExt::func(test);
+		let panic_result =
+			std::panic::catch_unwind(|| TestDescExt::result_to_panic(func()));
+		match panic_result {
+			Ok(()) => Ok(()),
+			Err(panic) => {
+				Err(TestDescExt::panic_full_format(&test.desc, panic))
+			}
+		}
+	})
 }

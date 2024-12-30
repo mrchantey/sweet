@@ -22,3 +22,7 @@ fn async_test() {
 async fn panics() -> Result<(), String> { panic!("foo") }
 async fn returns_ok() -> Result<(), String> { Ok(()) }
 async fn returns_err() -> Result<(), String> { Err("foo".to_string()) }
+
+
+#[test]
+fn succeeds() { sweet::prelude::expect(false).to_be_true().unwrap(); }

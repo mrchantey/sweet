@@ -1,5 +1,5 @@
+use crate::prelude::TestOutput;
 use std::cell::RefCell;
-use std::collections::HashSet;
 use std::future::Future;
 use std::panic::UnwindSafe;
 use std::pin::Pin;
@@ -14,8 +14,6 @@ crate::scoped_thread_local! {
 }
 
 thread_local! {
-	/// Files that contain async tests should not emit PASS before all async tests have completed
-	static ASYNC_TEST_FILES: Rc<RefCell<HashSet<&'static str>>> = Default::default();
 	static ASYNC_TESTS: Rc<RefCell<Vec<(TestDesc,Fut)>>> = Default::default();
 }
 
@@ -32,29 +30,22 @@ impl SweetTestCollector {
 		});
 	}
 
-
-	pub fn contains_async_test(source_file: &str) -> bool {
-		ASYNC_TEST_FILES.with(|files| files.borrow().contains(source_file))
-	}
-
 	/// All tests must be executed within the provided closure.
 	/// This ensures sweet::tests can be registered.
-	pub fn with_scope<F, R>(desc: &TestDesc, f: F) -> R
+	pub fn with_scope<F>(desc: &TestDesc, f: F) -> TestOutput
 	where
-		F: FnOnce() -> R,
+		F: FnOnce() -> Result<(), String>,
 	{
 		let val = Rc::new(RefCell::new(None));
 		CURRENT_FUT.set(&val, || {
 			let out = f();
 			if let Some(fut) = val.borrow_mut().take() {
-				ASYNC_TEST_FILES.with(|files| {
-					files.borrow_mut().insert(desc.source_file);
-				});
 				ASYNC_TESTS.with(|async_tests| {
 					async_tests.borrow_mut().push((desc.clone(), fut));
 				});
+				return TestOutput::Async;
 			}
-			out
+			out.into()
 		})
 	}
 

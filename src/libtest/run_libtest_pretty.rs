@@ -19,7 +19,7 @@ fn apply_filenames(tests: &[&test::TestDescAndFn]) -> Vec<test::TestDescAndFn> {
 	tests
 		.into_iter()
 		.map(|test| {
-			let mut test = clone_libtest(test);
+			let mut test = TestDescAndFnExt::clone(test);
 			test.desc.name = test::DynTestName(format!(
 				"{} - {}",
 				test.desc.source_file,

@@ -1,7 +1,6 @@
 use super::run_test::run_test;
 use crate::prelude::*;
 use futures::FutureExt;
-use std::collections::HashSet;
 extern crate test;
 
 /// maybe we can allow test_main_with_filenames() as a feature
@@ -16,26 +15,32 @@ pub fn run_libtest(tests: &[&test::TestDescAndFn]) {
 		// as panics are catch_unwind
 	}));
 
-	let mut suite_results =
-		LibtestSuite::collect_and_run(&config, tests, run_test);
+	let suite_outputs = LibtestSuite::collect_and_run(&config, tests, run_test);
 
-	let sweet_test_results =
+
+	let (mut async_suite_outputs, mut suite_results) =
+		SuiteOutput::finalize_sync(&config, suite_outputs);
+
+	let async_test_outputs =
 		tokio::runtime::Runtime::new().unwrap().block_on(async {
 			let futs = SweetTestCollector::drain().into_iter().map(
 				|(desc, fut)| async {
-					let raw_result =
+					let raw_output =
 						fut.catch_unwind().await.map_err(|panic| {
-							TestDescExt::format_panic(&desc, panic)
+							TestDescExt::panic_full_format(&desc, panic)
 						});
-					let failure =
-						TestDescExt::parse_result(&desc, raw_result).err();
-					(desc, failure)
+					(desc, TestOutput::from_result(raw_output))
 				},
 			);
 			futures::future::join_all(futs).await
 		});
 
-	SuiteResult::append_sweet_tests(&mut suite_results, sweet_test_results);
+	SuiteOutput::extend_test_outputs(
+		&mut async_suite_outputs,
+		async_test_outputs,
+	);
+	let async_results = SuiteOutput::finalize_all(&config, async_suite_outputs);
+	suite_results.extend(async_results);
 
 	TestRunnerResult::from_suite_results(suite_results).end(&config, logger);
 }

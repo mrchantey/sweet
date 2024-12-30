@@ -1,4 +1,4 @@
-use super::test_err_link;
+use crate::libtest::test_err_link;
 use backtrace::BacktraceSymbol;
 use colorize::*;
 use forky::prelude::*;
