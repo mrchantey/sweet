@@ -10,7 +10,7 @@ pub fn run_libtest(tests: &[&test::TestDescAndFn]) {
 
 	std::panic::set_hook(Box::new(PanicStore::panic_hook));
 
-	let suite_outputs = LibtestSuite::collect_and_run(&config, tests, run_test);
+	let suite_outputs = TestSuite::collect_and_run(&config, tests, run_test);
 
 	let (async_suite_outputs, suite_results) =
 		SuiteOutput::finalize_sync(&config, suite_outputs);
@@ -35,13 +35,12 @@ pub async fn run_with_pending() -> Result<(), JsValue> {
 		async_suite_outputs,
 	} = PartialResultStore::take();
 
-	// begin async shenanigans
 	let futs =
 		SweetTestCollector::drain()
 			.into_iter()
 			.map(|(desc, fut)| async {
 				let raw_result = TestFuture::new(async move {
-					fut.await.unwrap_libtest_err();
+					fut.await;
 					Ok(JsValue::NULL)
 				})
 				.await
@@ -58,20 +57,5 @@ pub async fn run_with_pending() -> Result<(), JsValue> {
 		async_suite_outputs,
 		async_test_outputs,
 	);
-
-
 	Ok(())
 }
-
-
-
-// SET_HOOK.call_once(|| {
-// 	std::panic::set_hook(Box::new(|panic_info| {
-// 			panic_handling(panic_info.to_string());
-// 	}));
-// });
-// #[cfg(all(
-// 	not(feature = "std"),
-// 	target_arch = "wasm32",
-// 	any(target_os = "unknown", target_os = "none")
-// ))]

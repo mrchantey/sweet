@@ -8,18 +8,17 @@ pub fn run_libtest(tests: &[&test::TestDescAndFn]) {
 	let config = TestRunnerConfig::from_env_args().unwrap();
 	let logger = RunnerLoggerNative::start(&config);
 
-	std::panic::set_hook(Box::new(|panic| {
-		if false {
-			// TODO bactrace
-			let payload = panic.payload_as_str().unwrap_or("no payload");
-			eprintln!(
-				"Uncaught Sweet Panic\nPlease file a bug report\n{:?}",
-				payload
-			);
-		}
+	std::panic::set_hook(Box::new(|_panic| {
+			// TODO we should be able to detect a panic, but async wont do this
+			// let payload = panic.payload_as_str().unwrap_or("no payload");
+			// eprintln!(
+			// 	"Uncaught Sweet Panic\nPlease file a bug report\n{:?}",
+			// 	payload
+			// );
 	}));
+	
 
-	let suite_outputs = LibtestSuite::collect_and_run(&config, tests, run_test);
+	let suite_outputs = TestSuite::collect_and_run(&config, tests, run_test);
 
 
 	let (async_suite_outputs, suite_results) =

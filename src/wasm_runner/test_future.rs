@@ -61,14 +61,3 @@ impl<F: Future<Output = Result<JsValue, JsValue>>> Future for TestFuture<F> {
 		next_state
 	}
 }
-
-
-pub trait UnitOrResult {
-	fn unwrap_libtest_err(self) -> ();
-}
-impl UnitOrResult for () {
-	fn unwrap_libtest_err(self) -> () { self }
-}
-impl<T> UnitOrResult for Result<(), T> {
-	fn unwrap_libtest_err(self) -> () { TestDescExt::result_to_panic(self); }
-}

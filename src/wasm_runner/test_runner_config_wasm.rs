@@ -1,4 +1,4 @@
-use crate::test_runner_utils::*;
+use crate::test_runner::*;
 use anyhow::Result;
 use forky::web::SearchParams;
 use glob::Pattern;

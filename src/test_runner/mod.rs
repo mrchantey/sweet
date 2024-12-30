@@ -7,6 +7,9 @@ pub use self::runner_logger::*;
 pub mod test_output;
 #[allow(unused_imports)]
 pub use self::test_output::*;
+pub mod test_runner;
+#[allow(unused_imports)]
+pub use self::test_runner::*;
 pub mod test_runner_config;
 #[allow(unused_imports)]
 pub use self::test_runner_config::*;

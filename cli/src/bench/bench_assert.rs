@@ -5,31 +5,51 @@ use std::process::Command;
 
 /// Measure the compilation time for the assert! macro
 ///
-/// Interestingly it seems fastest at 1000, i guess it has to start going to disk or something?
-/// 
+/// For context of an average large project:
+///
+/// `egrep -r "assert[!_]" . | wc -l`
+///
+/// bevy: 7,000
+/// wasm-bindgen: 3,000
+/// rust: 50,000
+///
+/// ## Expect
 /// 10 lines of 'expect' comilied in 0.53s, each line added 53.00ms
 /// 100 lines of 'expect' comilied in 0.47s, each line added 4.70ms
 /// 1000 lines of 'expect' comilied in 0.49s, each line added 0.49ms
 /// 2000 lines of 'expect' comilied in 0.50s, each line added 0.25ms
 /// 3000 lines of 'expect' comilied in 0.53s, each line added 0.18ms
-/// 5000 lines of 'expect' comilied in 0.56s, each line added 0.11ms * keeps geting smaller
-
+/// 5000 lines of 'expect' comilied in 0.56s, each line added 0.11ms
+/// 10000 lines of 'expect' comilied in 0.70s, each line added 0.07ms * consistency starts here
+/// 100000 lines of 'expect' comilied in 5.37s, each line added 0.05ms
+/// 20000 lines of 'expect' comilied in 1.06s, each line added 0.05ms
+/// 500000 lines of 'expect' comilied in 44.00s, each line added 0.09ms
+///
+/// ## Assert
+///
 /// 10 lines of 'assert' comilied in 0.21s, each line added 21.00ms
 /// 100 lines of 'assert' comilied in 0.23s, each line added 2.30ms
 /// 1000 lines of 'assert' comilied in 1.54s, each line added 1.54ms * smallest
 /// 2000 lines of 'assert' comilied in 4.92s, each line added 2.46ms
 /// 3000 lines of 'assert' comilied in 11.61s, each line added 3.87ms
-/// 5000 lines of 'assert' comilied in 31.51s, each line added 6.30ms
+/// 5000 lines of 'assert' comilied in 26.96s, each line added 5.39ms * consistency starts here
+/// 10000 lines of 'assert' comilied in 55.00s, each line added 5.50ms
+/// 20000 lines of 'expect' comilied in 1.06s, each line added 0.05ms * this is incorrect, it actually took 10 mins
+/// 100000... no way dude
 #[derive(Debug, Parser)]
 pub struct BenchAssert {
-	#[arg(long, default_value_t = 1000)]// 1000 is the most gracious
+	#[arg(long, default_value_t = 1000)] // 1000 is the most gracious
 	iterations: usize,
-	#[arg(long)]
-	release: bool,
 	#[arg(long)]
 	expect_only: bool,
 	#[arg(long)]
 	assert_only: bool,
+	/// no detectable difference
+	#[arg(long)]
+	release: bool,
+	/// no detectable difference
+	#[arg(long)]
+	run: bool,
 }
 
 const BENCH_DIR: &str = "./tests";
@@ -56,7 +76,9 @@ impl BenchAssert {
 			format!("\tassert_eq!({},{});\n", i, i)
 		})?;
 		self.bench_compile("assert")?;
-		// self.bench_run("assert")?;
+		if self.run {
+			self.bench_run("assert")?;
+		}
 		Ok(())
 	}
 	fn run_expect(&self) -> Result<()> {
@@ -64,7 +86,9 @@ impl BenchAssert {
 			format!("\texpect({},{});\n", i, i)
 		})?;
 		self.bench_compile("expect")?;
-		// self.bench_run("expect")?;
+		if self.run {
+			self.bench_run("expect")?;
+		}
 		Ok(())
 	}
 
@@ -89,17 +113,14 @@ impl BenchAssert {
 
 	fn bench_compile(&self, test_name: &str) -> Result<()> {
 		// let path = path::Path::new(BENCH_DIR).join(test_name);
-		let output = Command::new("cargo")
-			.arg("build")
-			// .arg("--release")
-			.arg("--test")
-			.arg(test_name)
-			// .current_dir(path)
-			.output()?;
+		let mut command = Command::new("cargo");
+		command.arg("build").arg("--test").arg(test_name);
+		if self.release {
+			command.arg("--release");
+		}
+		let output = command.output()?;
 
-		// let stdout = String::from_utf8_lossy(&output.stdout);
 		let stderr = String::from_utf8_lossy(&output.stderr);
-		// println!("{}", stderr);
 
 		let duration = stderr
 			.lines()
@@ -121,9 +142,6 @@ impl BenchAssert {
 		Ok(())
 	}
 
-
-	// no detectable difference
-	#[allow(unused)]
 	fn bench_run(&self, test_name: &str) -> Result<()> {
 		let output = Command::new("cargo")
 			.arg("test")

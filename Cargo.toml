@@ -85,8 +85,8 @@ keywords = [ # 5 at most
 
 [features]
 default = ["collect_libtest"]
-# allows collecting #[test], requires nightly
 collect_libtest = []
+# allows collecting #[test], requires nightly
 bevy = ["dep:bevy"]
 
 [dependencies]

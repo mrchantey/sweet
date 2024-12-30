@@ -39,12 +39,12 @@ pub mod backtrace;
 /// Utilities for [libtest](https://github.com/rust-lang/rust/tree/master/library/test)
 pub mod libtest;
 /// Test runner module
-pub mod test_runner_utils;
+pub mod test_runner;
 /// Test suite module
 pub mod test_suite;
 pub mod utils;
 
-#[path = "./_matchers/mod.rs"]
+#[path = "_matchers/mod.rs"]
 /// Matchers used for assertions: `expect(true).to_be_true()`
 pub mod matchers;
 #[cfg(not(target_arch = "wasm32"))]
@@ -61,7 +61,7 @@ pub mod prelude {
 	#[cfg(not(target_arch = "wasm32"))]
 	pub use crate::native::*;
 	pub use crate::sweet_test::*;
-	pub use crate::test_runner_utils::*;
+	pub use crate::test_runner::*;
 	pub use crate::test_suite::*;
 	pub use crate::utils::*;
 	#[cfg(target_arch = "wasm32")]

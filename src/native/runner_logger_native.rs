@@ -1,4 +1,4 @@
-use crate::test_runner_utils::*;
+use crate::prelude::*;
 use forky::prelude::terminal;
 use std::time::Instant;
 

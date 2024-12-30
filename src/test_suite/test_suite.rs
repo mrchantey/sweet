@@ -2,32 +2,34 @@ use crate::prelude::*;
 use std::collections::HashMap;
 use test::TestDescAndFn;
 
+
+/// In sweet, a test suite is all tests in a file.
 #[derive(Debug)]
-pub struct LibtestSuite {
+pub struct TestSuite {
 	pub source_file: &'static str,
 	pub tests: Vec<TestDescAndFn>,
 }
 
-impl PartialEq for LibtestSuite {
+impl PartialEq for TestSuite {
 	fn eq(&self, other: &Self) -> bool { self.source_file == other.source_file }
 }
 
-impl Eq for LibtestSuite {}
+impl Eq for TestSuite {}
 
-impl PartialOrd for LibtestSuite {
+impl PartialOrd for TestSuite {
 	fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
 		Some(self.source_file.cmp(other.source_file))
 	}
 }
 
-impl Ord for LibtestSuite {
+impl Ord for TestSuite {
 	fn cmp(&self, other: &Self) -> std::cmp::Ordering {
 		self.source_file.cmp(other.source_file)
 	}
 }
 
 
-impl LibtestSuite {
+impl TestSuite {
 	pub fn new(source_file: &'static str) -> Self {
 		Self {
 			source_file,
@@ -52,7 +54,7 @@ impl LibtestSuite {
 		for test in tests.iter() {
 			let suite = suites
 				.entry(test.desc.source_file)
-				.or_insert_with(|| LibtestSuite::new(test.desc.source_file));
+				.or_insert_with(|| TestSuite::new(test.desc.source_file));
 			suite.tests.push(TestDescAndFnExt::clone(test));
 		}
 		let mut suites: Vec<Self> =

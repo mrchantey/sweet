@@ -2,10 +2,8 @@ name: 🔎 Test Crates
 on:
   push:
     branches: main
-    paths: ['**','!**/*.md']
   pull_request:
     branches: main
-    paths: ['**','!**/*.md']
 env:
   CARGO_TERM_COLOR: always
 jobs:
@@ -36,9 +34,12 @@ jobs:
     #   if: runner.os == 'Windows'
     #   with:
     #     install-dir: C:\tools\cygwin
-    - name: 🔨 Install Bevy Dependencies
-      if: runner.os == 'Linux'
-      run: sudo apt-get update && sudo apt-get install g++ pkg-config libx11-dev libasound2-dev libudev-dev
+    # don't currently need this, we're using no-default-features for bevy
+    # - name: 🔨 Install Bevy Dependencies
+    #   if: runner.os == 'Linux'
+    #   run: sudo apt-get update && sudo apt-get install g++ pkg-config libx11-dev libasound2-dev libudev-dev
+    - name: 🔨 Install Just
+      uses: extractions/setup-just@v1
     - name: 🔨 Install Rust
       uses: actions-rs/toolchain@v1
       with:
@@ -46,5 +47,11 @@ jobs:
         override: true
         default: true
         # components: rustfmt, clippy
+    - name: 🔨 Install wasm bindgen cli
+      run: cargo install wasm-bindgen-cli --version 0.2.86
+    - name: 🔨 Install Deno
+      uses: denoland/setup-deno@v2
+      with:
+        deno-version: v2.x
     - name: 🔎 Test
-      run: cargo run -p sweet --example test_sweet --features sweet/bevy -- --parallel
+      run: just test-all

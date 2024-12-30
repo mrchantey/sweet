@@ -14,7 +14,7 @@ book:
 cli *args:
 	cargo run -p sweet-cli -- {{args}}
 
-install *args:
+install-cli *args:
 	cargo install --path ./cli {{args}}
 
 #💡 Test
@@ -29,6 +29,8 @@ test-all *args:
 	cargo test --test hello_test --target wasm32-unknown-unknown -- {{args}}
 	cargo test --test hello_async -- {{args}}
 	cargo test --test hello_async --target wasm32-unknown-unknown -- {{args}}
+	cargo test --lib -- {{args}}
+	cargo test --lib --target wasm32-unknown-unknown -- {{args}}
 
 expand-wasm test *args:
 	just watch 'cargo expand --test {{test}} --target wasm32-unknown-unknown {{args}}'
@@ -54,11 +56,6 @@ build-wasm example *args:
 	--target web \
 	--no-typescript \
 	~/.cargo_target/wasm32-unknown-unknown/debug/examples/{{example}}.wasm
-
-run-wasm example *args:
-	just build-wasm {{example}} {{args}}
-	deno --allow-read run.ts
-# wasmtime ./target/wasm/bindgen_bg.wasm
 
 test-runner test-binary *args:
 	wasm-bindgen \

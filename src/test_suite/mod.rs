@@ -7,3 +7,6 @@ pub use self::suite_output::*;
 pub mod suite_result;
 #[allow(unused_imports)]
 pub use self::suite_result::*;
+pub mod test_suite;
+#[allow(unused_imports)]
+pub use self::test_suite::*;

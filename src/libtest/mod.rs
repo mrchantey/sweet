@@ -1,6 +1,3 @@
-pub mod libtest_suite;
-#[allow(unused_imports)]
-pub use self::libtest_suite::*;
 pub mod run_libtest_pretty;
 #[allow(unused_imports)]
 pub use self::run_libtest_pretty::*;
