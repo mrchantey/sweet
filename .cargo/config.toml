@@ -1,7 +1,13 @@
-# [target.wasm32-unknown-unknown]
-# runner = "wasmtime"
+# Using the sweet wasm runner:
+# 1. `cargo binstall sweet-cli`
+# 2. add the following to .cargo/config.toml:
+
+# 	[target.wasm32-unknown-unknown]
+# 	runner = 'sweet test-wasm'
+
 [target.wasm32-unknown-unknown]
-runner = 'just test-runner'
+runner = 'cargo run -p sweet-cli -- test-wasm'
+
 
 [target.wasm32-wasi]
 runner = "wasmtime"

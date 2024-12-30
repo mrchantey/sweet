@@ -7,14 +7,17 @@ default:
 book:
 	mdbook serve
 
-expand-wasm test *args:
-	just watch 'cargo expand --test {{test}} --target wasm32-unknown-unknown {{args}}'
-expand test *args:
-	just watch 'cargo expand --test {{test}} {{args}}'
 # just watch 'cargo expand --example scratch {{args}}'
+
+#💡 CLI
+
+cli *args:
+	cargo run -p sweet-cli -- {{args}}
 
 install *args:
 	cargo install --path ./cli {{args}}
+
+#💡 Test
 
 test test_name *args:
 	just watch 'cargo test --test {{test_name}} -- --watch {{args}}'
@@ -27,6 +30,12 @@ test-all *args:
 	cargo test --test hello_async -- {{args}}
 	cargo test --test hello_async --target wasm32-unknown-unknown -- {{args}}
 
+expand-wasm test *args:
+	just watch 'cargo expand --test {{test}} --target wasm32-unknown-unknown {{args}}'
+expand test *args:
+	just watch 'cargo expand --test {{test}} {{args}}'
+
+#💡 Publish
 
 publish-all:
 	just publish sweet_macros			| true
@@ -35,13 +44,7 @@ publish-all:
 
 publish crate *args:
 	cargo publish -p {{crate}} --allow-dirty --no-verify {{args}}
-	sleep 2
-
-# test-all-wasm *args:
-# 	just test-wasm sweet --cargo=--features=bevy {{args}}
-
-# test-wasm crate *args:
-# 	cargo run -p sweet-cli -- -p {{crate}} --example test_{{crate}}_wasm {{args}}
+	sleep 1
 
 build-wasm example *args:
 	cargo build --example {{example}} --target wasm32-unknown-unknown {{args}}
@@ -59,7 +62,7 @@ run-wasm example *args:
 
 test-runner test-binary *args:
 	wasm-bindgen \
-	--out-dir ./target/wasm \
+	--out-dir ./target/sweet \
 	--out-name bindgen \
 	--target web \
 	--no-typescript \

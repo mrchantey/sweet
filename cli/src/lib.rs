@@ -1,3 +1,6 @@
-pub fn foo() {
-    println!("this used to run wasm tests with fantoccini but is now unused");
+pub mod test_runners;
+
+pub mod prelude{
+pub use crate::test_runners::*;
+
 }

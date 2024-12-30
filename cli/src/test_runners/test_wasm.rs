@@ -1,0 +1,89 @@
+use anyhow::Result;
+use clap::Parser;
+use std::fs;
+use std::process::Command;
+
+const DENO_RUNNER_PATH: &str = "./target/sweet/deno.ts";
+
+
+/// The wasm test runner
+///
+/// To use add the following:
+///
+/// ```toml
+///
+/// # .cargo/config.toml
+///
+/// [target.wasm32-unknown-unknown]
+///
+/// runner = 'sweet test-wasm'
+///
+/// ```
+///
+#[derive(Debug, Parser)]
+pub struct TestWasm {
+	/// the file passed in by cargo test.
+	///
+	/// It will look something like $CARGO_TARGET_DIR/wasm32-unknown-unknown/debug/deps/hello_test-c3298911e67ad05b.wasm
+	test_binary: String,
+	/// arguments passed to wasm-bindgen
+	wasm_bindgen_args: Option<String>,
+	/// arguments passed to deno, node, etc
+	wasm_runtime_args: Option<String>, // TODO these are the sweet clap args
+	#[arg(short, long)]
+	watch: bool,
+}
+
+
+impl TestWasm {
+	pub fn run(&self) -> anyhow::Result<()> {
+		self.run_wasm_bindgen()?;
+		self.create_deno_runner()?;
+		self.run_deno()?;
+		Ok(())
+	}
+	fn run_wasm_bindgen(&self) -> Result<()> {
+		let status = Command::new("wasm-bindgen")
+			.arg("--out-dir")
+			.arg("./target/sweet")
+			.arg("--out-name")
+			.arg("bindgen")
+			.arg("--target")
+			.arg("web")
+			.arg("--no-typescript")
+			.arg(&self.test_binary)
+			.args(
+				self.wasm_bindgen_args
+					.as_deref()
+					.unwrap_or_default()
+					.split_whitespace(),
+			)
+			.status()?;
+
+		if !status.success() {
+			anyhow::bail!("wasm-bindgen command failed");
+		}
+		Ok(())
+	}
+
+	fn create_deno_runner(&self) -> Result<()> {
+		if let Ok(true) = fs::exists(DENO_RUNNER_PATH) {
+			return Ok(());
+		}
+		// wasm-bindgen will ensure parent dir exists
+		fs::write(DENO_RUNNER_PATH, include_str!("./deno.ts"))?;
+		Ok(())
+	}
+
+	fn run_deno(&self) -> Result<()> {
+		let status = Command::new("deno")
+			.arg("--allow-read")
+			.arg(DENO_RUNNER_PATH)
+			.status()?;
+
+		if !status.success() {
+			anyhow::bail!("deno command failed");
+		}
+		Ok(())
+	}
+}
