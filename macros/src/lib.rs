@@ -1,43 +1,33 @@
 mod macros;
 use macros::*;
 use proc_macro::TokenStream;
+use sweet_test_attr::SweetTestAttr;
 
-/// Mark a function to be ran by the sweet test runner.
+/// A unified macro for handling all test cases:
+/// - sync native
+/// - sync wasm
+/// - async native
+/// - async wasm
 ///
-/// # Accepted Signatures
+/// In the case of sync tests this simply replaces `#[sweet::test]` with `#[test]`.
+///
 /// ```rust
 ///
 /// #[sweet::test]
-/// fn empty() {}
+/// fn my_test() {
+/// 	assert_eq!(2 + 2, 4);
+/// }
 ///
 /// #[sweet::test]
-/// fn returns_result() -> sweet::Result<()> {}
+/// async fn my_async_test() {
+/// 	// some cross-platform async function 🥳
+/// }
 ///
-/// #[sweet::test]
-/// async fn is_async() {}
-/// #[sweet::test(skip)]
-/// #[ignore]
-/// async fn is_async() {}
 ///
 /// ```
-///
-///
-/// # Attributes
-/// - `#[sweet::test(skip)]`: Skips the test
-/// - `#[sweet::test(only)]`: Skips all other tests in file
-/// - `#[sweet::test(e2e)]`: Runs in-browser wasm tests in a seperate process as an iframe
-/// - `#[sweet::test(non_send)]`: Always runs the test in the main thread which is required in crates like `bevy` and `fantoccini`.
-///
 #[proc_macro_attribute]
 pub fn test(attr: TokenStream, input: TokenStream) -> TokenStream {
-	TestCaseAttr2::parse(attr, input)
-		.unwrap_or_else(syn::Error::into_compile_error)
-		.into()
-}
-
-#[proc_macro_attribute]
-pub fn test_old(attr: TokenStream, input: TokenStream) -> TokenStream {
-	TestCaseAttr::parse(attr, input)
+	SweetTestAttr::parse(attr, input)
 		.unwrap_or_else(syn::Error::into_compile_error)
 		.into()
 }

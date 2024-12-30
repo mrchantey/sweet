@@ -1,4 +1,9 @@
 use crate::prelude::*;
+use futures::FutureExt;
+use std::future::Future;
+use std::panic::UnwindSafe;
+use std::pin::Pin;
+use test::TestDesc;
 use test::TestDescAndFn;
 
 pub fn run_test(test: &TestDescAndFn) -> TestOutput {
@@ -13,4 +18,16 @@ pub fn run_test(test: &TestDescAndFn) -> TestOutput {
 			}
 		}
 	})
+}
+
+
+pub async fn run_test_async(
+	(desc, fut): (TestDesc, Pin<Box<dyn Future<Output = ()> + UnwindSafe>>),
+) -> (TestDesc, TestOutput) {
+	let raw_output = fut
+		.catch_unwind()
+		.await
+		.map_err(|panic| TestDescExt::panic_full_format(&desc, panic));
+
+	(desc, TestOutput::from_result(raw_output))
 }

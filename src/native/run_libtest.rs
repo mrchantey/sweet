@@ -1,6 +1,5 @@
 use super::run_test::run_test;
 use crate::prelude::*;
-use futures::FutureExt;
 extern crate test;
 
 /// maybe we can allow test_main_with_filenames() as a feature
@@ -9,30 +8,28 @@ pub fn run_libtest(tests: &[&test::TestDescAndFn]) {
 	let config = TestRunnerConfig::from_env_args().unwrap();
 	let logger = RunnerLoggerNative::start(&config);
 
-	std::panic::set_hook(Box::new(|_| {
-		// ⚠️ THIS DISABLES INTERNAL PANICS ⚠️
-		// we do this for a cleaner terminal output
-		// as panics are catch_unwind
+	std::panic::set_hook(Box::new(|panic| {
+		if false {
+			// TODO bactrace
+			let payload = panic.payload_as_str().unwrap_or("no payload");
+			eprintln!(
+				"Uncaught Sweet Panic\nPlease file a bug report\n{:?}",
+				payload
+			);
+		}
 	}));
 
 	let suite_outputs = LibtestSuite::collect_and_run(&config, tests, run_test);
 
 
-	let (mut async_suite_outputs, mut suite_results) =
+	let (async_suite_outputs, suite_results) =
 		SuiteOutput::finalize_sync(&config, suite_outputs);
 
 	// begin async shenanigans
 	let async_test_outputs =
 		tokio::runtime::Runtime::new().unwrap().block_on(async {
-			let futs = SweetTestCollector::drain().into_iter().map(
-				|(desc, fut)| async {
-					let raw_output =
-						fut.catch_unwind().await.map_err(|panic| {
-							TestDescExt::panic_full_format(&desc, panic)
-						});
-					(desc, TestOutput::from_result(raw_output))
-				},
-			);
+			let futs =
+				SweetTestCollector::drain().into_iter().map(run_test_async);
 			futures::future::join_all(futs).await
 		});
 
@@ -43,7 +40,6 @@ pub fn run_libtest(tests: &[&test::TestDescAndFn]) {
 		async_suite_outputs,
 		async_test_outputs,
 	);
-	
 }
 
 // async fn run_native_parallel(

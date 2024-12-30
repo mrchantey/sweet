@@ -1,28 +1,22 @@
-#![allow(unused)]
+//! example usage of async tests
 #![cfg_attr(test, feature(test, custom_test_frameworks))]
 #![cfg_attr(test, test_runner(sweet::test_runner))]
-use std::cell::RefCell;
-use std::rc::Rc;
 use sweet::prelude::*;
-// use sweet::prelude::*;
-#[test]
-// #[should_panic]
-fn async_test() {
-	SweetTestCollector::register(Box::pin(async {
-		// this is better than how #[test] does it anyway
-		// #[test] discards the error and returns a useless one
-		if let Err(err) = returns_err().await {
-			panic!("{:?}", err);
-		}
-	}));
-	// SweetTestCollector::register(Box::pin(my_test()));
-	// sweet::prelude::panic_with_id(id);
-}
 
-async fn panics() -> Result<(), String> { panic!("foo") }
-async fn returns_ok() -> Result<(), String> { Ok(()) }
+#[sweet::test]
+#[should_panic]
 async fn returns_err() -> Result<(), String> { Err("foo".to_string()) }
 
+#[sweet::test]
+#[should_panic]
+async fn panics() { panic!("foo") }
 
-#[test]
-fn succeeds() { sweet::prelude::expect(false).to_be_true().unwrap(); }
+
+/// tokio tests are just `#[test]` wrapped in a tokio runtime,
+/// of course they only run for native targets.
+///
+/// Use `#[tokio::test]` when you need an isolated async runtime,
+/// 99% of the time you don't need it.
+#[cfg(not(target_arch = "wasm32"))]
+#[tokio::test]
+async fn its_tokio() {}

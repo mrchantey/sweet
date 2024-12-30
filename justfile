@@ -7,10 +7,10 @@ default:
 book:
 	mdbook serve
 
-expand-macro *args:
-	just watch 'cargo expand --test sweet_macro {{args}}'
-expand *args:
-	just watch 'cargo expand --test test_macro {{args}}'
+expand-wasm test *args:
+	just watch 'cargo expand --test {{test}} --target wasm32-unknown-unknown {{args}}'
+expand test *args:
+	just watch 'cargo expand --test {{test}} {{args}}'
 # just watch 'cargo expand --example scratch {{args}}'
 
 install *args:
@@ -24,6 +24,8 @@ test-wasm test_name *args:
 test-all *args:
 	cargo test --test hello_test -- {{args}}
 	cargo test --test hello_test --target wasm32-unknown-unknown -- {{args}}
+	cargo test --test hello_async -- {{args}}
+	cargo test --test hello_async --target wasm32-unknown-unknown -- {{args}}
 
 
 publish-all:

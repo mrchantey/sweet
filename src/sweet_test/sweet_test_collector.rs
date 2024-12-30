@@ -10,7 +10,7 @@ type Fut = Pin<Box<dyn UnwindSafe + Future<Output = ()>>>;
 type FutCell = Rc<RefCell<Option<Fut>>>;
 
 crate::scoped_thread_local! {
-	static CURRENT_FUT: FutCell
+	static FUTURE: FutCell
 }
 
 thread_local! {
@@ -25,10 +25,12 @@ impl SweetTestCollector {
 	/// # Panics
 	/// If called outside of [`Self::set`]
 	pub fn register(fut: Fut) {
-		CURRENT_FUT.with(|current_fut| {
+		FUTURE.with(|current_fut| {
 			*current_fut.borrow_mut() = Some(fut);
 		});
 	}
+
+	pub fn is_in_scope() -> bool { FUTURE.is_set() }
 
 	/// All tests must be executed within the provided closure.
 	/// This ensures sweet::tests can be registered.
@@ -37,7 +39,7 @@ impl SweetTestCollector {
 		F: FnOnce() -> Result<(), String>,
 	{
 		let val = Rc::new(RefCell::new(None));
-		CURRENT_FUT.set(&val, || {
+		FUTURE.set(&val, || {
 			let out = f();
 			if let Some(fut) = val.borrow_mut().take() {
 				ASYNC_TESTS.with(|async_tests| {

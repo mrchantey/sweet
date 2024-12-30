@@ -33,7 +33,6 @@
 extern crate test;
 // the #[sweet::test] macro
 pub use sweet_macros::test;
-pub use sweet_macros::test_old;
 // #[cfg(test)]
 // use libtest_runner::testlib_runner as libtest_runner;
 /// Utilities for [libtest](https://github.com/rust-lang/rust/tree/master/library/test)
