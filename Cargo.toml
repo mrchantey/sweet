@@ -8,7 +8,7 @@ edition = "2021"
 license = "MIT OR Apache-2.0"
 readme = "README.md"
 authors = ["Peter Hayman <peteyhayman@gmail.com>"]
-description = "Delightful unified testing in rust"
+description = "Delightful Rust testing"
 documentation = "https://mrchantey.github.io/forky/docs"
 repository = "https://github.com/mrchantey/sweet"
 

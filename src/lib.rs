@@ -1,14 +1,7 @@
 #![cfg_attr(any(test, feature = "collect_libtest"), feature(test))]
 #![cfg_attr(test, feature(custom_test_frameworks))]
 #![cfg_attr(test, test_runner(crate::test_runner))]
-// #![cfg_attr(
-// 	feature = "collect_libtest",
-// 	test_runner(libtest_runner::libtest_runner)
-// )]
-#![feature(async_closure, doc_cfg, panic_payload_as_str)]
-#![allow(async_fn_in_trait)]
-
-//! Declarative full-stack test framework.
+#![feature(panic_payload_as_str)]
 //!
 //! # Usage
 //!
@@ -18,9 +11,10 @@
 //!
 //!
 //! # use sweet::prelude::*;
+//!
 //! #[test]
 //! fn it_passes() -> Result<()>{
-//! 	assert!("this is a regular test");
+//! 	assert!(1 + 1 == 2);
 //! 	expect("sweet").not().to_contain("verbose matchers")
 //! }
 //!
