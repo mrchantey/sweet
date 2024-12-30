@@ -36,12 +36,8 @@ pub use sweet_macros::test;
 pub use sweet_macros::test_old;
 // #[cfg(test)]
 // use libtest_runner::testlib_runner as libtest_runner;
-
-pub mod common;
 /// Utilities for [libtest](https://github.com/rust-lang/rust/tree/master/library/test)
 pub mod libtest;
-/// Matchers used for assertions: `expect(true).to_be_true()`
-pub mod matchers;
 /// Test case module
 pub mod test_case;
 /// Test runner module
@@ -50,21 +46,17 @@ pub mod test_runner_utils;
 pub mod test_suite;
 pub mod utils;
 
-#[cfg(feature = "bevy")]
-pub mod bevy_matchers;
+#[path = "./_matchers/mod.rs"]
+/// Matchers used for assertions: `expect(true).to_be_true()`
+pub mod matchers;
 #[cfg(not(target_arch = "wasm32"))]
 #[doc(hidden)]
 pub mod native;
 pub mod sweet_test;
 #[cfg(target_arch = "wasm32")]
-pub mod wasm_matchers;
-#[cfg(target_arch = "wasm32")]
 pub mod wasm_runner;
 
 pub mod prelude {
-	#[cfg(feature = "bevy")]
-	pub use crate::bevy_matchers::*;
-	pub use crate::common::*;
 	pub use crate::libtest::*;
 	pub use crate::matchers::*;
 	#[cfg(not(target_arch = "wasm32"))]
@@ -74,8 +66,6 @@ pub mod prelude {
 	pub use crate::test_runner_utils::*;
 	pub use crate::test_suite::*;
 	pub use crate::utils::*;
-	#[cfg(target_arch = "wasm32")]
-	pub use crate::wasm_matchers::*;
 	#[cfg(target_arch = "wasm32")]
 	pub use crate::wasm_runner::*;
 	pub use anyhow::Result;

@@ -1,6 +1,9 @@
 pub mod close_to;
 #[allow(unused_imports)]
 pub use self::close_to::*;
+pub mod expect;
+#[allow(unused_imports)]
+pub use self::expect::*;
 pub mod matcher;
 #[allow(unused_imports)]
 pub use self::matcher::*;
@@ -37,3 +40,9 @@ pub use self::matcher_str::*;
 pub mod matcher_vec;
 #[allow(unused_imports)]
 pub use self::matcher_vec::*;
+pub mod mock_func;
+#[allow(unused_imports)]
+pub use self::mock_func::*;
+pub mod mock_value;
+#[allow(unused_imports)]
+pub use self::mock_value::*;
