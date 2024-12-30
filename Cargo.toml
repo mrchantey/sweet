@@ -16,7 +16,8 @@ repository = "https://github.com/mrchantey/sweet"
 sweet = { path = ".", version = "0.3.0-rc.1" }
 sweet_macros = { path = "./macros", version = "0.3.0-rc.1" }
 # forky = { version = "0.2.0-rc.2", path = "../forky/crates/forky" }
-forky = { path = "../forky" }
+forky = { git = "https://github.com/mrchantey/forky" }
+# forky = { path = "../forky" }
 # forky = { version = "0.2.0-rc.7" }
 
 
