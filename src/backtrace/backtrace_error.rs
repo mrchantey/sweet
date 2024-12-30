@@ -45,7 +45,7 @@ impl BacktraceError {
 			frame.resolve();
 
 			let symbol = &frame.symbols()[0];
-			let file = crate::test_case::BacktraceFile::new(symbol);
+			let file = crate::backtrace::BacktraceFile::new(symbol);
 			file.file_context().unwrap_or(format!(
 				"Failed to get backtrace, file not found: {:?}",
 				file.file

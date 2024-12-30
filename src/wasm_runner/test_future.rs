@@ -1,12 +1,10 @@
-//! donation from the good folks at wasm-bindgen
+//! donation from the good folks at wasm-bindgen 🙏
 //! https://github.com/rustwasm/wasm-bindgen/blob/24f20ae9bc480c5ad0778fdb1481eb23461f0d82/crates/test/src/rt/mod.rs#L764
-use super::PanicStore;
+use crate::prelude::*;
 use std::future::Future;
 use std::pin::Pin;
+use std::task;
 use std::task::Poll;
-use std::task::{
-	self,
-};
 use wasm_bindgen::prelude::*;
 
 pub struct TestFuture<F> {
@@ -62,4 +60,15 @@ impl<F: Future<Output = Result<JsValue, JsValue>>> Future for TestFuture<F> {
 
 		next_state
 	}
+}
+
+
+pub trait UnitOrResult {
+	fn unwrap_libtest_err(self) -> ();
+}
+impl UnitOrResult for () {
+	fn unwrap_libtest_err(self) -> () { self }
+}
+impl<T> UnitOrResult for Result<(), T> {
+	fn unwrap_libtest_err(self) -> () { TestDescExt::result_to_panic(self); }
 }

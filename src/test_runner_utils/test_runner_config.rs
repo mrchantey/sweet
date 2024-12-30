@@ -8,6 +8,7 @@ use std::path::PathBuf;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TestRunnerConfig {
 	pub watch: bool,
+	/// native only
 	pub parallel: bool,
 	pub silent: bool,
 	#[serde(skip)]

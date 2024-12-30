@@ -2,7 +2,7 @@ use forky::prelude::*;
 use std::path::Path;
 use std::path::PathBuf;
 use sweet::prelude::*;
-use sweet::test_case::*;
+use sweet::backtrace::*;
 
 struct Case;
 impl TestCase for Case {

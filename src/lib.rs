@@ -35,10 +35,9 @@ extern crate test;
 pub use sweet_macros::test;
 // #[cfg(test)]
 // use libtest_runner::testlib_runner as libtest_runner;
+pub mod backtrace;
 /// Utilities for [libtest](https://github.com/rust-lang/rust/tree/master/library/test)
 pub mod libtest;
-/// Test case module
-pub mod test_case;
 /// Test runner module
 pub mod test_runner_utils;
 /// Test suite module
@@ -56,12 +55,12 @@ pub mod sweet_test;
 pub mod wasm_runner;
 
 pub mod prelude {
+	pub use crate::backtrace::*;
 	pub use crate::libtest::*;
 	pub use crate::matchers::*;
 	#[cfg(not(target_arch = "wasm32"))]
 	pub use crate::native::*;
 	pub use crate::sweet_test::*;
-	pub use crate::test_case::*;
 	pub use crate::test_runner_utils::*;
 	pub use crate::test_suite::*;
 	pub use crate::utils::*;

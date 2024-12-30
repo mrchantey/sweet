@@ -2,6 +2,9 @@ use crate::test_suite::*;
 use crossterm::*;
 use std::io::stdout;
 
+
+/// currently unused, this is a way of gagging output
+/// until test ended, native only
 pub struct SuiteLoggerNative {
 	stdout: Option<gag::BufferRedirect>,
 	stderr: Option<gag::BufferRedirect>,
