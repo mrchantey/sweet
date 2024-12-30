@@ -1,3 +1,5 @@
 book
 rustc-ice*
 target
+tests/assert.rs
+tests/expect.rs

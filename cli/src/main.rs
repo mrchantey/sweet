@@ -14,10 +14,12 @@ struct Cli {
 #[derive(Subcommand)]
 enum Commands {
 	TestWasm(TestWasm),
+	Bench(BenchAssert),
 }
 
 fn main() -> Result<()> {
 	match &Cli::parse().command {
-		Commands::TestWasm(run_wasm) => run_wasm.run(),
+		Commands::TestWasm(cmd) => cmd.run(),
+		Commands::Bench(cmd) => cmd.run(),
 	}
 }
