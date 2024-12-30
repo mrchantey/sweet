@@ -1,11 +1,9 @@
 use colorize::*;
-use serde::Deserialize;
-use serde::Serialize;
 use std::path::Path;
 use std::path::PathBuf;
 // use std::default;
 
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[derive(Debug, Default)]
 pub struct SuiteResult {
 	pub file: String,
 	pub num_tests: usize,

@@ -916,18 +916,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1d674e81391d1e1ab681a28d99df07927c6d4aa5b027d7da16ba32d1d21ecd99"
 
 [[package]]
-name = "flume"
-version = "0.11.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "55ac459de2512911e4b674ce33cf20befaba382d05b62b008afc1c8b57cbf181"
-dependencies = [
- "futures-core",
- "futures-sink",
- "nanorand",
- "spin",
-]
-
-[[package]]
 name = "forky"
 version = "0.2.0-rc.10"
 dependencies = [
@@ -1240,12 +1228,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "inventory"
-version = "0.3.15"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f958d3d68f4167080a18141e10381e7634563984a537f2a49a30fd8e53ac5767"
-
-[[package]]
 name = "is_terminal_polyfill"
 version = "1.70.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1386,15 +1368,6 @@ dependencies = [
  "log",
  "wasi",
  "windows-sys 0.48.0",
-]
-
-[[package]]
-name = "nanorand"
-version = "0.7.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6a51313c5820b0b02bd422f4b44776fbf47961755c74ce64afc73bfad10226c3"
-dependencies = [
- "getrandom",
 ]
 
 [[package]]
@@ -1909,15 +1882,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "spin"
-version = "0.9.8"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6980e8d7511241f8acf4aebddbb1ff938df5eebe98691418c4468d0b72a96a67"
-dependencies = [
- "lock_api",
-]
-
-[[package]]
 name = "strsim"
 version = "0.11.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1934,21 +1898,15 @@ dependencies = [
  "colorize",
  "console_error_panic_hook",
  "console_log",
- "crossterm",
  "extend",
- "flume",
  "forky",
  "futures",
- "gag",
  "getrandom",
  "glob",
- "inventory",
  "js-sys",
  "log",
  "pretty_env_logger",
  "rayon",
- "serde",
- "serde_json",
  "sweet_macros",
  "tokio",
  "wasm-bindgen",
@@ -1961,6 +1919,7 @@ name = "sweet-cli"
 version = "0.3.0-rc.1"
 dependencies = [
  "anyhow",
+ "clap",
 ]
 
 [[package]]

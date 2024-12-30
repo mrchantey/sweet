@@ -1,11 +1,9 @@
 use crate::prelude::*;
 use forky::web::*;
-use serde::Deserialize;
-use serde::Serialize;
 use std::time::Duration;
 use web_sys::console;
 
-#[derive(Default, Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug,Default)]
 pub struct RunnerLoggerWasm {
 	start_time: f64,
 }
@@ -30,13 +28,4 @@ impl RunnerLogger for RunnerLoggerWasm {
 			log_val(&summary);
 		}
 	}
-}
-
-#[derive(Default, Debug, Clone)]
-pub struct SuiteLoggerWasm;
-
-
-impl SuiteLogger for SuiteLoggerWasm {
-	fn on_start(_: String) -> Self { Self }
-	fn on_end(self, end_str: String) { log_val(&end_str); }
 }

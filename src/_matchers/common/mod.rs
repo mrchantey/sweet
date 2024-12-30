@@ -22,9 +22,6 @@ pub use self::matcher_error::*;
 pub mod matcher_func;
 #[allow(unused_imports)]
 pub use self::matcher_func::*;
-pub mod matcher_mock_value;
-#[allow(unused_imports)]
-pub use self::matcher_mock_value::*;
 pub mod matcher_option;
 #[allow(unused_imports)]
 pub use self::matcher_option::*;
@@ -43,6 +40,3 @@ pub use self::matcher_vec::*;
 pub mod mock_func;
 #[allow(unused_imports)]
 pub use self::mock_func::*;
-pub mod mock_value;
-#[allow(unused_imports)]
-pub use self::mock_value::*;

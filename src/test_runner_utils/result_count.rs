@@ -1,8 +1,6 @@
 use colorize::*;
-use serde::Deserialize;
-use serde::Serialize;
 
-#[derive(Debug, Default, Clone, Serialize, Deserialize)]
+#[derive(Debug, Default)]
 pub struct ResultCount {
 	pub tests: usize,
 	pub failed: usize,
@@ -11,13 +9,6 @@ pub struct ResultCount {
 
 
 impl ResultCount {
-	pub fn new() -> Self {
-		ResultCount {
-			tests: 0,
-			failed: 0,
-			skipped: 0,
-		}
-	}
 	pub fn pretty_print(&self, prefix: &'static str) -> String {
 		let ResultCount {
 			tests,

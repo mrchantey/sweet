@@ -1,12 +1,10 @@
 use super::*;
 use crate::test_suite::*;
 use colorize::*;
-use serde::Deserialize;
-use serde::Serialize;
 use std::time::Duration;
 use test::TestDesc;
 
-#[derive(Debug, Default, Serialize, Deserialize)]
+#[derive(Debug)]
 pub struct TestRunnerResult {
 	pub suite_results: Vec<SuiteResult>,
 	pub suites: ResultCount,
@@ -46,7 +44,7 @@ impl TestRunnerResult {
 	pub fn did_fail(&self) -> bool { self.cases.failed > 0 }
 
 	pub fn from_suite_results(suite_results: Vec<SuiteResult>) -> Self {
-		let mut suites = ResultCount::new();
+		let mut suites = ResultCount::default();
 		let cases = suite_results.iter().fold(
 			ResultCount::default(),
 			|mut acc, item| {
