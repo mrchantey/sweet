@@ -22,7 +22,7 @@ use std::process::Command;
 /// 5000 lines of 'assert' comilied in 31.51s, each line added 6.30ms
 #[derive(Debug, Parser)]
 pub struct BenchAssert {
-	#[arg(long, default_value_t = 2000)]
+	#[arg(long, default_value_t = 1000)]// 1000 is the most gracious
 	iterations: usize,
 	#[arg(long)]
 	release: bool,
