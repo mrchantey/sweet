@@ -10,12 +10,16 @@ pub fn run_libtest(tests: &[&test::TestDescAndFn]) {
 
 	std::panic::set_hook(Box::new(PanicStore::panic_hook));
 
-	let suite_results = LibtestSuite::collect_and_run(&config, tests, run_test);
+	let suite_outputs = LibtestSuite::collect_and_run(&config, tests, run_test);
+
+	let (async_suite_outputs, suite_results) =
+		SuiteOutput::finalize_sync(&config, suite_outputs);
 
 	PartialResultStore {
 		config,
 		logger,
 		suite_results,
+		async_suite_outputs,
 	}
 	.set();
 }
@@ -27,11 +31,11 @@ pub async fn run_with_pending() -> Result<(), JsValue> {
 	let PartialResultStore {
 		config,
 		logger,
-		mut suite_results,
-	} = PartialResultStore::get().map_err(anyhow_to_jsvalue)?;
+		suite_results,
+		async_suite_outputs,
+	} = PartialResultStore::take();
 
-
-
+	// begin async shenanigans
 	let futs =
 		SweetTestCollector::drain()
 			.into_iter()
@@ -40,19 +44,21 @@ pub async fn run_with_pending() -> Result<(), JsValue> {
 					fut.await.unwrap_libtest_err();
 					Ok(JsValue::NULL)
 				})
-				.await;
+				.await
+				.map_err(|err| TestDescExt::best_effort_full_err(&desc, &err));
+				let result = TestOutput::from_result(raw_result);
 
-				let failure = TestDescExt::parse_result(&desc, raw_result)
-					.err()
-					.map(|err| TestDescExt::best_effort_full_err(&desc, &err));
-
-				(desc, failure)
+				(desc, result)
 			});
-	let sweet_test_results = futures::future::join_all(futs).await;
+	let async_test_outputs = futures::future::join_all(futs).await;
+	TestRunnerResult::finalize(
+		config,
+		logger,
+		suite_results,
+		async_suite_outputs,
+		async_test_outputs,
+	);
 
-	SuiteResult::append_sweet_tests(&mut suite_results, sweet_test_results);
-
-	TestRunnerResult::from_suite_results(suite_results).end(&config, logger);
 
 	Ok(())
 }

@@ -4,6 +4,7 @@ use colorize::*;
 use serde::Deserialize;
 use serde::Serialize;
 use std::time::Duration;
+use test::TestDesc;
 
 #[derive(Debug, Default, Serialize, Deserialize)]
 pub struct TestRunnerResult {
@@ -19,6 +20,29 @@ impl Into<TestRunnerResult> for Vec<SuiteResult> {
 }
 
 impl TestRunnerResult {
+	/// Common finalization for both native and wasm runners
+	pub fn finalize(
+		config: TestRunnerConfig,
+		logger: impl RunnerLogger,
+		mut suite_results: Vec<SuiteResult>,
+		mut async_suite_outputs: Vec<SuiteOutput>,
+		async_test_outputs: Vec<(TestDesc, TestOutput)>,
+	) {
+		SuiteOutput::extend_test_outputs(
+			&mut async_suite_outputs,
+			async_test_outputs,
+		);
+		let async_results =
+			SuiteOutput::finalize_all(&config, async_suite_outputs);
+		suite_results.extend(async_results);
+
+		Self::from_suite_results(suite_results).end(&config, logger);
+	}
+
+
+
+
+
 	pub fn did_fail(&self) -> bool { self.cases.failed > 0 }
 
 	pub fn from_suite_results(suite_results: Vec<SuiteResult>) -> Self {

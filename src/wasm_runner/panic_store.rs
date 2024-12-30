@@ -39,14 +39,17 @@ impl PanicStore {
 	/// Source of truth is the last panic that occured,
 	/// # Returns
 	/// an error if a panic occured
-	pub fn with_scope<F, R>(func: F) -> Option<String>
+	pub fn with_scope<F, R>(func: F) -> Result<(), String>
 	where
 		F: FnOnce() -> R,
 	{
 		let output = Default::default();
 		CURRENT_LISTENER.set(&output, || {
 			let _useless_panic_err = func();
-			output.borrow_mut().take()
+			match output.borrow_mut().take() {
+				Some(err) => Err(err),
+				None => Ok(()),
+			}
 		})
 	}
 

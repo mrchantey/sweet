@@ -49,7 +49,7 @@ impl<F: Future<Output = Result<JsValue, JsValue>>> Future for TestFuture<F> {
 			// case 1: its still going
 			(_, Some(Poll::Pending)) => Poll::Pending,
 			// case 2: it panicked
-			(Some(e), _) => Poll::Ready(Err(e)),
+			(Err(e), _) => Poll::Ready(Err(e)),
 			// case 3: it returned ok
 			(_, Some(Poll::Ready(Ok(_)))) => Poll::Ready(Ok(())),
 			// case 4: it returned an error but didnt panic
@@ -57,7 +57,7 @@ impl<F: Future<Output = Result<JsValue, JsValue>>> Future for TestFuture<F> {
 				panic!("future returned an error but no panic registered, submit a bug report!\n{:?}", err)
 			}
 			// case 5: wtf
-			(None, None) => wasm_bindgen::throw_str("invalid poll state"),
+			(Ok(_), None) => wasm_bindgen::throw_str("invalid poll state"),
 		};
 
 		next_state

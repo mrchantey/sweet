@@ -21,6 +21,7 @@ pub fn run_libtest(tests: &[&test::TestDescAndFn]) {
 	let (mut async_suite_outputs, mut suite_results) =
 		SuiteOutput::finalize_sync(&config, suite_outputs);
 
+	// begin async shenanigans
 	let async_test_outputs =
 		tokio::runtime::Runtime::new().unwrap().block_on(async {
 			let futs = SweetTestCollector::drain().into_iter().map(
@@ -35,14 +36,14 @@ pub fn run_libtest(tests: &[&test::TestDescAndFn]) {
 			futures::future::join_all(futs).await
 		});
 
-	SuiteOutput::extend_test_outputs(
-		&mut async_suite_outputs,
+	TestRunnerResult::finalize(
+		config,
+		logger,
+		suite_results,
+		async_suite_outputs,
 		async_test_outputs,
 	);
-	let async_results = SuiteOutput::finalize_all(&config, async_suite_outputs);
-	suite_results.extend(async_results);
-
-	TestRunnerResult::from_suite_results(suite_results).end(&config, logger);
+	
 }
 
 // async fn run_native_parallel(
