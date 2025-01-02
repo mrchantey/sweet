@@ -1,6 +1,7 @@
 #![cfg_attr(any(test, feature = "collect_libtest"), feature(test))]
 #![cfg_attr(test, feature(custom_test_frameworks))]
 #![cfg_attr(test, test_runner(crate::test_runner))]
+#![feature(panic_payload_as_str)]
 // #![feature(panic_payload_as_str)]
 //!
 //! # Usage

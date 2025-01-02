@@ -10,10 +10,20 @@ async fn returns_err() -> Result<(), String> { Err("foo".to_string()) }
 
 #[sweet::test]
 #[should_panic]
-async fn dummy1() { tokio::time::sleep(Duration::from_secs(1)).await; }
-#[sweet::test]
+async fn dummy1() {
+	tokio::time::sleep(Duration::from_secs(1)).await;
+
+	panic!("foo")
+}
+
+// #[cfg(target_arch = "wasm32")]
+#[cfg(not(target_arch = "wasm32"))]
+#[tokio::test]
 // #[should_panic]
-async fn dummy2() { tokio::time::sleep(Duration::from_secs(1)).await; }
+async fn dummy2() {
+	tokio::time::sleep(Duration::from_secs(1)).await;
+	panic!("waddup")
+}
 #[sweet::test]
 // #[should_panic]
 async fn dummy3() { tokio::time::sleep(Duration::from_secs(1)).await; }

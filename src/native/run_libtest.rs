@@ -2,7 +2,6 @@
 use crate::prelude::*;
 extern crate test;
 use anyhow::Result;
-use futures::future::join_all;
 use futures::future::try_join_all;
 use tokio::task::LocalSet;
 /// maybe we can allow test_main_with_filenames() as a feature
@@ -61,12 +60,19 @@ fn run_libtest_inner(tests: &[&test::TestDescAndFn]) -> Result<()> {
 			futs.push(fut);
 		}
 
+		// let futs = futs.par_iter(|future| {
+
+
+
+		// });
+
 
 		let _fut_result = LocalSet::new()
 			.run_until(async move {
 				let futs = futs.into_iter().map(|future| {
 					// while let Ok(future) = future_rx.recv_async().await {
 					tokio::task::spawn_local(async move {
+					// tokio::task::spawn_local(async move {
 						println!("running future");
 						let result = (future.fut)().await;
 						println!("Result {}: {:?}", future.desc.name, result);

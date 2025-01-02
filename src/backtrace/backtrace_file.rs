@@ -5,6 +5,7 @@ use backtrace::BacktraceFrame;
 use colorize::*;
 use forky::prelude::*;
 use std::fs;
+use std::panic::PanicHookInfo;
 use std::path::Path;
 use test::TestDesc;
 
@@ -28,8 +29,27 @@ impl BacktraceFile {
 	}
 
 	pub fn file_context_from_desc(desc: &TestDesc) -> Result<String> {
-		let file = Path::new(&desc.source_file);
-		Self::file_context(file, desc.start_line, desc.start_col)
+		Self::file_context(
+			Path::new(&desc.source_file),
+			desc.start_line,
+			desc.start_col,
+		)
+	}
+
+	/// will fall back to desc if no location is found
+	pub fn file_context_from_panic(
+		info: &PanicHookInfo,
+		desc: &TestDesc,
+	) -> Result<String> {
+		if let Some(location) = info.location() {
+			Self::file_context(
+				Path::new(&location.file()),
+				location.line() as usize,
+				location.column() as usize,
+			)
+		} else {
+			Self::file_context_from_desc(desc)
+		}
 	}
 
 

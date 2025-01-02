@@ -84,10 +84,36 @@ impl TestResult {
 			ShouldPanic::Yes => TestResult::Pass,
 			ShouldPanic::YesWithMessage(_) => TestResult::Pass,
 			ShouldPanic::No => {
-				let bt_str = BacktraceFile::backtrace_str(FRAME_DEPTH)
-					.unwrap_or_else(|err| err.to_string());
-				let payload_str = payload_to_string(info.payload());
-				TestResult::Fail(Self::format_backtrace(payload_str, bt_str))
+				let (payload, bt) =
+					if let Some(str) = info.payload().downcast_ref::<&str>() {
+						(
+							str.to_string(),
+							BacktraceFile::file_context_from_panic(info, desc),
+						)
+					} else if let Some(str) =
+						info.payload().downcast_ref::<String>()
+					{
+						(
+							str.clone(),
+							BacktraceFile::file_context_from_panic(info, desc),
+						)
+					} else if let Some(err) =
+						info.payload().downcast_ref::<MatchErr>()
+					{
+						let bt_str = BacktraceFile::backtrace_str(FRAME_DEPTH);
+						let payload = err.to_string();
+						(payload, bt_str)
+					} else {
+						(
+							"Unknown Payload".to_string(),
+							BacktraceFile::file_context_from_panic(info, desc),
+						)
+					};
+
+				TestResult::Fail(Self::format_backtrace(
+					payload,
+					bt.unwrap_or_else(|err| err.to_string()),
+				))
 			}
 		}
 	}

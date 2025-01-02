@@ -1,8 +1,7 @@
+use super::*;
 use proc_macro2::TokenStream;
 use quote::quote;
 use syn::ItemFn;
-use syn::ReturnType;
-use syn::Type;
 
 pub struct SweetTestAttr;
 
@@ -13,31 +12,17 @@ impl SweetTestAttr {
 	) -> syn::Result<TokenStream> {
 		let func = syn::parse::<ItemFn>(input)?;
 
-		let is_async = func.sig.asyncness.is_some();
 
-		// non async tests are just #[test]
-		if !is_async {
-			let out = quote! {
-				#[test]
-				#func
-			}
-			.into();
-			return Ok(out);
+		if let Some(non_async) = non_async(&func) {
+			return Ok(non_async);
 		}
 
-		let func_inner = wrap_func_inner(&func)?;
+		let func_native = parse_native(&func)?;
+		let func_wasm = parse_wasm(&func)?;
 
-		let attrs = &func.attrs;
-		let vis = &func.vis;
-		let sig = &func.sig;
-		let name = &sig.ident;
 		let out = quote! {
-				#[test]
-				#(#attrs)*
-				#vis fn #name() {
-						#func_inner
-						sweet::prelude::SweetTestCollector::register(inner);
-				}
+			#func_native
+			#func_wasm
 		};
 
 		Ok(out)
@@ -45,48 +30,15 @@ impl SweetTestAttr {
 }
 
 
-fn wrap_func_inner(func: &ItemFn) -> syn::Result<TokenStream> {
-	let body = &func.block;
-
-	match &func.sig.output {
-		ReturnType::Default => Ok(quote! {
-			async fn inner() -> Result<(),String> {
-				async #body.await;
-				Ok(())
-			}
-		}),
-		ReturnType::Type(_, ty) => {
-			if !returns_result(ty) {
-				return Err(syn::Error::new_spanned(
-					ty,
-					"async test functions must return Unit or Result",
-				));
-			}
-			// println!("RFSDDSSD {}", ty);
-			// let ty = ty.to_token_stream();
-			Ok(quote! {
-				async fn inner() -> Result<(),String> {
-					let result:#ty = async #body.await;
-					match result {
-						Ok(_) => Ok(()),
-						Err(err)=> Err(err.to_string()),
-					}
-				}
-			})
-		}
+/// non async tests are just #[test]
+fn non_async(func: &ItemFn) -> Option<TokenStream> {
+	if func.sig.asyncness.is_some() {
+		return None;
 	}
-}
-
-fn returns_result(ty: &Box<Type>) -> bool {
-	match &**ty {
-		syn::Type::Path(type_path) => {
-			let segments = &type_path.path.segments;
-			if let Some(last_segment) = segments.last() {
-				last_segment.ident == "Result"
-			} else {
-				false
-			}
-		}
-		_ => false,
+	let out = quote! {
+		#[test]
+		#func
 	}
+	.into();
+	Some(out)
 }
