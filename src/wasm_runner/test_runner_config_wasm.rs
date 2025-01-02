@@ -2,7 +2,6 @@ use crate::test_runner::*;
 use anyhow::Result;
 use forky::web::SearchParams;
 use glob::Pattern;
-pub const MATCHES_KEY: &str = "m";
 
 impl TestRunnerConfig {
 	pub fn from_deno_args() -> Result<Self> {
@@ -20,7 +19,8 @@ impl TestRunnerConfig {
 
 
 	pub fn from_search_params() -> Self {
-		let silent = SearchParams::get_flag("silent");
+		const MATCHES_KEY: &str = "m";
+		let quiet = SearchParams::get_flag("quiet");
 
 		let matches = SearchParams::get_all(MATCHES_KEY)
 			.iter()
@@ -30,11 +30,9 @@ impl TestRunnerConfig {
 		// 	//todo error onn malformed pattern
 		// 	matches.push(Pattern::new(&file).unwrap());
 		// }
-		Self {
-			watch: false,
-			parallel: false,
-			silent,
-			matches,
-		}
+		let mut config = Self::default();
+		config.matches = matches;
+		config.quiet = quiet;
+		config
 	}
 }

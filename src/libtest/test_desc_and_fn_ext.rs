@@ -29,4 +29,30 @@ impl TestDescAndFnExt {
 			_ => panic!("non-static tests are not supported"),
 		}
 	}
+
+
+	// pub fn run(test: &TestDescAndFn) -> Result<(), String> {
+		
+
+	// 	// match test.testfn {
+	// 	// 	TestFn::StaticTestFn(func) => func(),
+	// 	// 	TestFn::StaticBenchFn(func) => func(&mut Bencher::()),
+	// 	// 	_ => panic!("non-static tests are not supported"),
+	// 	// }
+	// }
+
+	// pub fn into_runnable(self) -> Runnable {
+	// 	match self {
+	// 		StaticTestFn(f) => Runnable::Test(RunnableTest::Static(f)),
+	// 		StaticBenchFn(f) => Runnable::Bench(RunnableBench::Static(f)),
+	// 		StaticBenchAsTestFn(f) => {
+	// 			Runnable::Test(RunnableTest::StaticBenchAsTest(f))
+	// 		}
+	// 		DynTestFn(f) => Runnable::Test(RunnableTest::Dynamic(f)),
+	// 		DynBenchFn(f) => Runnable::Bench(RunnableBench::Dynamic(f)),
+	// 		DynBenchAsTestFn(f) => {
+	// 			Runnable::Test(RunnableTest::DynamicBenchAsTest(f))
+	// 		}
+	// 	}
+	// }
 }

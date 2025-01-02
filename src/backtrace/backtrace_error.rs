@@ -16,6 +16,7 @@ impl<T> BuildableResult<T> for Result<T, BacktraceError> {
 
 /// A special error designed to be 'unwrapped' into anyhow
 /// at the last minute, so it captures the correct frame
+// TODO deprecate this
 pub struct BacktraceError(pub String);
 
 impl BacktraceError {
@@ -27,33 +28,34 @@ impl BacktraceError {
 	}
 
 	#[cfg(not(target_arch = "wasm32"))]
-	pub(crate) fn build_inner(self, additional_frames: usize) -> anyhow::Error {
-		use backtrace::Backtrace;
+	pub(crate) fn build_inner(
+		self,
+		_additional_frames: usize,
+	) -> anyhow::Error {
+		// use crate::prelude::BacktraceFile;
+		// use backtrace::Backtrace;
 		// 3 = actual code
 		// 2 = assertion: to_be(){}
 		// 1 = build_err/build_res
 		// 0 = build_inner
-		const FRAME_DEPTH: usize = 3;
+		// const FRAME_DEPTH: usize = 3;
 
 		// without unresolved this is VERY slow >500ms
-		let bt = Backtrace::new_unresolved();
+		// let bt = Backtrace::new_unresolved();
 
-		let backtrace_str = if let Some(frame) =
-			&bt.frames().get(FRAME_DEPTH - additional_frames)
-		{
-			let mut frame = frame.to_owned().clone();
-			frame.resolve();
-
-			let symbol = &frame.symbols()[0];
-			let file = crate::backtrace::BacktraceFile::new(symbol);
-			file.file_context().unwrap_or(format!(
-				"Failed to get backtrace, file not found: {:?}",
-				file.file
-			))
-		} else {
-			"Backtrace frame not found".to_string()
-		};
-		anyhow::anyhow!("{}\n\n{}", self.0, backtrace_str)
+		// let backtrace_str = if let Some(frame) =
+		// 	&bt.frames().get(FRAME_DEPTH - additional_frames)
+		// {
+		// 	let mut frame = frame.to_owned().clone();
+		// 	frame.resolve();
+		// 	BacktraceFile::file_context(&frame.symbols()[0]).unwrap_or(format!(
+		// 		"Failed to get backtrace, file not found: {:?}",
+		// 		frame.symbols()[0].filename()
+		// 	))
+		// } else {
+		// 	"Backtrace frame not found".to_string()
+		// };
+		anyhow::anyhow!("{}\n\n", self.0)
 	}
 	pub fn build_err(self) -> anyhow::Error { self.build_inner(0) }
 	pub fn build_res(self) -> anyhow::Result<()> { Err(self.build_inner(0)) }

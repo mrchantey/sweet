@@ -3,6 +3,4 @@
 
 #[sweet::test]
 #[should_panic]
-fn it_panics() { panic!("foo") }
-
-
+async fn it_panics() { panic!("foo") }

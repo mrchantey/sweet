@@ -7,7 +7,7 @@ pub struct RunnerLoggerNative {
 }
 impl RunnerLogger for RunnerLoggerNative {
 	fn start(config: &TestRunnerConfig) -> Self {
-		if !config.silent {
+		if !config.quiet {
 			if config.watch {
 				terminal::clear();
 			}
@@ -20,7 +20,7 @@ impl RunnerLogger for RunnerLoggerNative {
 		Self { start_time }
 	}
 	fn end(self, config: &TestRunnerConfig, results: &TestRunnerResult) {
-		if !config.silent {
+		if !config.quiet {
 			let duration = self.start_time.elapsed();
 			let summary = results.end_str(duration);
 			println!("{summary}");

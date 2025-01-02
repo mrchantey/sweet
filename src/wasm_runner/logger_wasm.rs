@@ -10,7 +10,7 @@ pub struct RunnerLoggerWasm {
 
 impl RunnerLogger for RunnerLoggerWasm {
 	fn start(config: &TestRunnerConfig) -> Self {
-		if !config.silent {
+		if !config.quiet {
 			if config.watch {
 				console::clear();
 			}
@@ -20,7 +20,7 @@ impl RunnerLogger for RunnerLoggerWasm {
 		Self { start_time }
 	}
 	fn end(self, config: &TestRunnerConfig, results: &TestRunnerResult) {
-		if !config.silent {
+		if !config.quiet {
 			let duration = Duration::from_millis(
 				(performance_now() - self.start_time) as u64,
 			);

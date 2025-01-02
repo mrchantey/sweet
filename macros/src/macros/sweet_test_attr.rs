@@ -35,7 +35,8 @@ impl SweetTestAttr {
 				#[test]
 				#(#attrs)*
 				#vis fn #name() {
-						sweet::sweet_test::SweetTestCollector::register(Box::pin(#func_inner));
+						#func_inner
+						sweet::prelude::SweetTestCollector::register(inner);
 				}
 		};
 
@@ -49,7 +50,10 @@ fn wrap_func_inner(func: &ItemFn) -> syn::Result<TokenStream> {
 
 	match &func.sig.output {
 		ReturnType::Default => Ok(quote! {
-			async #body
+			async fn inner() -> Result<(),String> {
+				async #body.await;
+				Ok(())
+			}
 		}),
 		ReturnType::Type(_, ty) => {
 			if !returns_result(ty) {
@@ -61,10 +65,11 @@ fn wrap_func_inner(func: &ItemFn) -> syn::Result<TokenStream> {
 			// println!("RFSDDSSD {}", ty);
 			// let ty = ty.to_token_stream();
 			Ok(quote! {
-				async {
+				async fn inner() -> Result<(),String> {
 					let result:#ty = async #body.await;
-					if let Err(e) = result {
-							panic!("{:?}", e);
+					match result {
+						Ok(_) => Ok(()),
+						Err(err)=> Err(err.to_string()),
 					}
 				}
 			})

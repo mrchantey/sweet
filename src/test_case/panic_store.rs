@@ -1,3 +1,4 @@
+use crate::prelude::*;
 use std::cell::RefCell;
 use std::panic::PanicHookInfo;
 use std::rc::Rc;
@@ -17,7 +18,7 @@ impl PanicStore {
 	/// This will be called from inside thie function
 	/// at some point duing a Scoped Set
 	pub fn panic_hook(info: &PanicHookInfo) {
-		let payload = info.payload_as_str().unwrap_or("no panic message");
+		let payload = payload_to_string(info.payload());
 		if !CURRENT_LISTENER.is_set() {
 			// nobody is listening, must be a real one
 			crate::log!("Uncaught Sweet Panic:\n{}", payload);
@@ -39,16 +40,17 @@ impl PanicStore {
 	/// Source of truth is the last panic that occured,
 	/// # Returns
 	/// an error if a panic occured
-	pub fn with_scope<F, R>(func: F) -> Result<(), String>
+	pub fn with_scope<F>(func: F) -> TestOutput
 	where
-		F: FnOnce() -> R,
+		F: FnOnce() -> Result<(), String>,
 	{
 		let output = Default::default();
 		CURRENT_LISTENER.set(&output, || {
-			let _useless_panic_err = func();
-			match output.borrow_mut().take() {
-				Some(err) => Err(err),
-				None => Ok(()),
+			let test_out = func();
+			match (output.borrow_mut().take(), test_out) {
+				(Some(err), _) => TestOutput::Panic(err),
+				(None, Ok(_)) => TestOutput::Ok,
+				(None, Err(err)) => TestOutput::Error(err),
 			}
 		})
 	}

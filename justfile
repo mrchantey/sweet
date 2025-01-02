@@ -4,9 +4,6 @@ set positional-arguments
 default:
 	just --list --unsorted
 
-book:
-	mdbook serve
-
 # just watch 'cargo expand --example scratch {{args}}'
 
 #💡 CLI
@@ -16,6 +13,9 @@ cli *args:
 
 install-cli *args:
 	cargo install --path ./cli {{args}}
+
+run example *args:
+	just watch 'cargo run --example {{example}} {{args}}'
 
 #💡 Test
 

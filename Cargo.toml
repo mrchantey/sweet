@@ -110,9 +110,11 @@ backtrace.workspace = true
 glob.workspace = true
 clap.workspace = true
 
-#💡 async 
+#💡 async
+flume = "0.11.1"
 rayon.workspace = true
 futures.workspace = true
+thread_local = "1.1.8"
 
 #💡 bevy 
 bevy = { workspace = true, optional = true }
@@ -122,6 +124,7 @@ bevy = { workspace = true, optional = true }
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 tokio.workspace = true
 forky = { workspace = true, features = ["fs"] }
+pin-project-lite = "0.2.15"
 
 #💡 wasm
 [target.'cfg(target_arch = "wasm32")'.dependencies]
@@ -203,3 +206,6 @@ path = "example_tests/hello_async.rs"
 [[test]]
 name = "sweet_macro"
 path = "example_tests/sweet_macro.rs"
+[[test]]
+name = "scratchpad"
+path = "example_tests/scratchpad.rs"

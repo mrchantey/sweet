@@ -5,7 +5,6 @@ use std::hash::DefaultHasher;
 use std::hash::Hash;
 use std::hash::Hasher;
 use std::path::PathBuf;
-use test::ShouldPanic;
 use test::TestDesc;
 
 
@@ -42,23 +41,6 @@ pub struct TestDescExt;
 impl TestDescExt {
 	pub fn hash(desc: &TestDesc) -> LibtestHash {
 		LibtestHash::new(&desc.source_file, desc.start_line)
-	}
-
-	/// A failing test that should_panic is actually a success, etc
-	pub fn parse_result(
-		desc: &TestDesc,
-		result: Result<(), String>,
-	) -> Result<(), String> {
-		match (result, desc.should_panic) {
-			(Ok(_), ShouldPanic::No) => Ok(()),
-			(Ok(_), ShouldPanic::Yes) => Err(format!("Expected panic")),
-			(Ok(_), ShouldPanic::YesWithMessage(msg)) => {
-				Err(format!("Expected panic: {}", msg))
-			}
-			(Err(err), ShouldPanic::No) => Err(err),
-			(Err(_), ShouldPanic::Yes) => Ok(()),
-			(Err(_), ShouldPanic::YesWithMessage(_)) => Ok(()),
-		}
 	}
 
 
@@ -116,18 +98,6 @@ impl TestDescExt {
 		test_err_full_format(&loc, &err, "")
 	}
 
-	/// Checks both the file path and the full test name
-	///
-	/// for matcher `foo` the following will pass:
-	/// - path: `/src/foo/bar.rs`
-	/// - name: `crate::foo::test::it_works`
-	pub fn passes_filter(desc: &TestDesc, config: &TestRunnerConfig) -> bool {
-		let path = desc.source_file;
-		let name = desc.name.to_string();
-		config.matches.len() == 0
-			|| config.matches.iter().any(|a| a.matches(&path))
-			|| config.matches.iter().any(|a| a.matches(&name))
-	}
 
 	/// wasm doesnt have access to the fs so instead we just link
 	/// to the `path_to_test.rs:line:col` in the console

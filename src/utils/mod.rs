@@ -1,3 +1,6 @@
+pub mod error_utils;
+#[allow(unused_imports)]
+pub use self::error_utils::*;
 pub mod log;
 #[allow(unused_imports)]
 pub use self::log::*;

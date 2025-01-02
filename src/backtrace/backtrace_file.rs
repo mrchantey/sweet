@@ -1,55 +1,67 @@
 use crate::libtest::test_err_link;
-use backtrace::BacktraceSymbol;
+use anyhow::Result;
+use backtrace::Backtrace;
+use backtrace::BacktraceFrame;
 use colorize::*;
 use forky::prelude::*;
 use std::fs;
-use std::io;
-use std::path::PathBuf;
+use std::path::Path;
+use test::TestDesc;
 
-const LINE_CONTEXT_SIZE: usize = 2;
-
-pub struct BacktraceFile {
-	pub file: PathBuf,
-	pub file_rel: PathBuf,
-	pub line: u32,
-	pub col: u32,
-}
+pub struct BacktraceFile;
 
 impl BacktraceFile {
-	/// This method is hardcoded to only be called from Matcher::new
+	pub fn backtrace_str(depth: usize) -> Result<String> {
+		let bt = Backtrace::new_unresolved();
+		let frame = Self::get_frame(&bt, depth)?;
+		Self::file_context_from_frame(&frame)
+	}
 
-	pub fn new(symbol: &BacktraceSymbol) -> BacktraceFile {
-		let file = symbol.filename().expect("invalid backtrace symbol");
-		let file_rel = file.relative().unwrap_or(file);
-		let line = symbol.lineno().unwrap_or(0);
-		if let Some(col) = symbol.colno() {
-			BacktraceFile {
-				file: file.to_path_buf(),
-				file_rel: file_rel.to_path_buf(),
-				line,
-				col,
-			}
+	pub fn get_frame(bt: &Backtrace, depth: usize) -> Result<BacktraceFrame> {
+		if let Some(frame) = &bt.frames().get(depth) {
+			let mut frame = frame.to_owned().clone();
+			frame.resolve();
+			Ok(frame)
 		} else {
-			BacktraceFile {
-				file: file.to_path_buf(),
-				file_rel: file_rel.to_path_buf(),
-				line,
-				col: 0,
-			}
+			anyhow::bail!("Failed to find backtrace frame");
 		}
+	}
+
+	pub fn file_context_from_desc(desc: &TestDesc) -> Result<String> {
+		let file = Path::new(&desc.source_file);
+		Self::file_context(file, desc.start_line, desc.start_col)
+	}
+
+
+	pub fn file_context_from_frame(frame: &BacktraceFrame) -> Result<String> {
+		let symbol = frame
+			.symbols()
+			.get(0)
+			.ok_or_else(|| anyhow::anyhow!("No symbols"))?;
+		let file = symbol
+			.filename()
+			.ok_or_else(|| anyhow::anyhow!("Bactrace has no file"))?;
+
+		let line_no = symbol.lineno().unwrap_or_default() as usize;
+		let col_no = symbol.colno().unwrap_or_default() as usize;
+
+		Self::file_context(file, line_no, col_no)
 	}
 
 
 	/// # Errors
 	/// This function will return an error if the file cannot be read
-	pub fn file_context(&self) -> io::Result<String> {
+	pub fn file_context(
+		file: &Path,
+		line_no: usize,
+		col_no: usize,
+	) -> Result<String> {
 		//line number is one-indexed
-		let line_no = self.line as usize;
-		let col_no = self.col as usize;
-		let lines = fs::read_to_string(&self.file)?;
+		const LINE_CONTEXT_SIZE: usize = 2;
+		let lines = fs::read_to_string(file)?;
 		let lines: Vec<&str> = lines.split("\n").collect();
 		let start =
-			usize::max(0, line_no.saturating_sub(LINE_CONTEXT_SIZE - 1));
+			usize::max(0, line_no.saturating_sub(LINE_CONTEXT_SIZE + 1));
 		let end = usize::min(lines.len() - 1, line_no + LINE_CONTEXT_SIZE);
 
 		let mut output = String::new();
@@ -79,9 +91,9 @@ impl BacktraceFile {
 		}
 
 		output.push_string(&test_err_link(
-			self.file_rel.to_str().unwrap_or("unkown file"),
-			self.line as usize,
-			self.col as usize,
+			&file.relative().unwrap_or(file).to_string_lossy(),
+			line_no,
+			col_no,
 		));
 		Ok(output)
 	}
@@ -92,6 +104,6 @@ const LINE_BUFFER_LEN: usize = 3;
 fn line_number_buffer(line_no: usize) -> String {
 	let line_no = line_no.to_string();
 	let digits = line_no.len();
-	let len = LINE_BUFFER_LEN - digits;
+	let len = LINE_BUFFER_LEN.saturating_sub(digits);
 	" ".repeat(len)
 }

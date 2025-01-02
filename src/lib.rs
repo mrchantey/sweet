@@ -1,7 +1,7 @@
 #![cfg_attr(any(test, feature = "collect_libtest"), feature(test))]
 #![cfg_attr(test, feature(custom_test_frameworks))]
 #![cfg_attr(test, test_runner(crate::test_runner))]
-#![feature(panic_payload_as_str)]
+// #![feature(panic_payload_as_str)]
 //!
 //! # Usage
 //!
@@ -44,7 +44,7 @@ pub mod matchers;
 #[cfg(not(target_arch = "wasm32"))]
 #[doc(hidden)]
 pub mod native;
-pub mod sweet_test;
+pub mod test_case;
 #[cfg(target_arch = "wasm32")]
 pub mod wasm_runner;
 
@@ -54,7 +54,7 @@ pub mod prelude {
 	pub use crate::matchers::*;
 	#[cfg(not(target_arch = "wasm32"))]
 	pub use crate::native::*;
-	pub use crate::sweet_test::*;
+	pub use crate::test_case::*;
 	pub use crate::test_runner::*;
 	pub use crate::test_suite::*;
 	pub use crate::utils::*;

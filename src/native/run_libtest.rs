@@ -1,121 +1,92 @@
-use super::run_test::run_test;
+// use super::run_test::run_test;
 use crate::prelude::*;
 extern crate test;
-
+use anyhow::Result;
+use futures::future::join_all;
+use futures::future::try_join_all;
+use tokio::task::LocalSet;
 /// maybe we can allow test_main_with_filenames() as a feature
 
 pub fn run_libtest(tests: &[&test::TestDescAndFn]) {
-	let config = TestRunnerConfig::from_env_args().unwrap();
-	let logger = RunnerLoggerNative::start(&config);
-
-	std::panic::set_hook(Box::new(|_panic| {
-			// TODO we should be able to detect a panic, but async wont do this
-			// let payload = panic.payload_as_str().unwrap_or("no payload");
-			// eprintln!(
-			// 	"Uncaught Sweet Panic\nPlease file a bug report\n{:?}",
-			// 	payload
-			// );
-	}));
-	
-
-	let suite_outputs = TestSuite::collect_and_run(&config, tests, run_test);
-
-
-	let (async_suite_outputs, suite_results) =
-		SuiteOutput::finalize_sync(&config, suite_outputs);
-
-	// begin async shenanigans
-	let async_test_outputs =
-		tokio::runtime::Runtime::new().unwrap().block_on(async {
-			let futs =
-				SweetTestCollector::drain().into_iter().map(run_test_async);
-			futures::future::join_all(futs).await
-		});
-
-	TestRunnerResult::finalize(
-		config,
-		logger,
-		suite_results,
-		async_suite_outputs,
-		async_test_outputs,
-	);
+	if let Err(err) = run_libtest_inner(tests) {
+		eprintln!("Sweet Internal Error: {}", err);
+		std::process::exit(1);
+	}
 }
 
-// async fn run_native_parallel(
-// 	to_run: &TestCaseNativeSplit<'_>,
-// ) -> anyhow::Result<Vec<Error>> {
-// 	if to_run.series.len() > 0 {
-// 		panic!(
-// 			"\n\nattempted to run suites containing 'non_send' in parallel\n\n"
-// 		)
-// 	}
+fn run_libtest_inner(tests: &[&test::TestDescAndFn]) -> Result<()> {
+	let config = TestRunnerConfig::from_env_args();
+	let _logger = RunnerLoggerNative::start(&config);
+	// we disable the default panic hook
+	// std::panic::set_hook(Box::new(|_| {}));
+
+	// TestCaseContext::set_panic_hook();
+	// std::panic::set_hook(Box::new(TestCaseContext::panic_hook));
+
+	let (future_tx, future_rx) = flume::unbounded::<TestDescAndFuture>();
+	let (result_tx, result_rx) = flume::unbounded::<TestDescAndResult>();
+
+	tokio::runtime::Runtime::new().unwrap().block_on(async {
+		let _recv_result = tokio::spawn(async move {
+			while let Ok(result) = result_rx.recv_async().await {
+				let status = result.result.status_str();
+				println!(
+					"{} {}{}",
+					status,
+					result.desc.name,
+					result.result.stdout()
+				);
+			}
+		});
+
+		// let future_rx2 = future_rx.clone();
+		// let recv_fut = tokio::spawn(async move {
+		// 	while let Ok(future) = future_rx2.recv_async().await {
+		// 		let a = tokio::spawn(async move {
+		// 			let result = (future.fut)().await;
+		// 			result_tx.send_async(TestDescAndResult {
+		// 				desc: future.desc,
+		// 				result:TestResult::Pass,
+		// 			})
+		// 		});
+		// 	}
+		// });
+
+		TestRunnerRayon::collect_and_run(&config, future_tx, result_tx, tests)
+			.unwrap();
+
+		// Run the local task set.
+		let mut futs = Vec::new();
+		while let Ok(fut) = future_rx.try_recv() {
+			futs.push(fut);
+		}
 
 
-// 	let handles_parallel = to_run
-// 		.parallels
-// 		.iter()
-// 		.map(|(t, f)| {
-// 			let t = (*t).clone();
-// 			let f = (*f).clone();
-// 			tokio::spawn(async move {
-// 				let result = unwrap_panic_async(f()).await;
-// 				t.format_error(result)
-// 			})
-// 		})
-// 		.collect::<Vec<_>>();
+		let _fut_result = LocalSet::new()
+			.run_until(async move {
+				let futs = futs.into_iter().map(|future| {
+					// while let Ok(future) = future_rx.recv_async().await {
+					tokio::task::spawn_local(async move {
+						println!("running future");
+						let result = (future.fut)().await;
+						println!("Result {}: {:?}", future.desc.name, result);
+					})
+				});
+				try_join_all(futs).await
+			})
+			.await
+			.unwrap();
 
-// 	let results_parallel = tokio::spawn(async move {
-// 		futures::future::join_all(handles_parallel).await
-// 	}); // TODO seems like awkward way to force handles to run
+		// recv_task.abort();
+		// recv_task.await.unwrap();
 
-// 	let results_sync_str = to_run
-// 		.syncs_str
-// 		.par_iter()
-// 		.map(|(t, f)| {
-// 			let result = unwrap_panic_str(&f);
-// 			t.format_error(result)
-// 		})
-// 		.collect::<Vec<_>>(); //blocks until syncs complete
-// 	let results_sync = to_run
-// 		.syncs
-// 		.par_iter()
-// 		.map(|(t, f)| {
-// 			let result = unwrap_panic(&f);
-// 			t.format_error(result)
-// 		})
-// 		.collect::<Vec<_>>(); //blocks until syncs complete
-
-
-// 	// let results_parallel = futures::future::join_all(handles_parallel).await
-// 	let results_parallel = results_parallel
-// 		.await? //blocks until parallels complete
-// 		.into_iter()
-// 		.collect::<std::result::Result<Vec<_>, JoinError>>()?;
-// 	let errs = results_sync
-// 		.into_iter()
-// 		.chain(results_sync_str)
-// 		.chain(results_parallel)
-// 		.filter_map(|r| r.err())
-// 		.collect();
-// 	Ok(errs)
-// }
-// async fn run_group_parallel(
-// 	to_run: Vec<TestSuiteNative>,
-// 	config: &TestRunnerConfig,
-// ) -> TestRunnerResult {
-// 	let handles_parallel = to_run.into_iter().map(|suite| {
-// 		let config = (*config).clone();
-// 		tokio::spawn(async move {
-// 			suite.run::<SuiteLoggerNativeSimple>(&config).await
-// 		})
-// 	});
-// 	let results = join_all(handles_parallel)
-// 		.await
-// 		.into_iter()
-// 		.collect::<Result<Vec<_>, _>>();
-
-// 	match results {
-// 		Ok(results) => results.into(),
-// 		Err(e) => panic!("Error in parallel test suite\n{:?}", e),
-// 	}
-// }
+		// while let Ok(result) = output_rx.recv() {
+		// 	// let result = result.into_result();
+		// 	println!("Result {}: {}", result.desc.name, result.result);
+		// 	// logger.log_test_output(&output);
+		// }
+		println!("All tests done");
+		Ok(())
+	})
+	// logger.end();
+}

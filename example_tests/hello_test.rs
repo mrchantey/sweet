@@ -4,7 +4,18 @@
 
 #[test]
 fn it_succeeds() { assert!(true) }
+#[test]
+fn it_succeeds2() { assert!(true) }
+#[test]
+#[should_panic]
+fn it_succeeds3() { assert!(true) }
+
 
 #[test]
 #[should_panic]
 fn it_panics() { panic!("foo") }
+
+
+#[test]
+// #[should_panic]
+fn it_panics2() { panic!("foo") }
