@@ -19,43 +19,39 @@ impl RunnerLogger {
 		config: Arc<TestRunnerConfig>,
 		tests: &[&TestDescAndFn],
 	) -> Self {
-		let test_logger = CaseLoggerEnum::new(config.clone(), tests);
-		if !config.quiet {
-			crate::log!("\n🤘 sweet as! 🤘\n\n{config}")
-		}
+		let case_logger = CaseLoggerEnum::new(config.clone(), tests);
 
 		#[cfg(not(target_arch = "wasm32"))]
 		{
 			use forky::prelude::terminal;
-			if !config.quiet {
-				if config.watch {
-					terminal::clear();
-				}
-				// pretty_env_logger::try_init().ok();
+			if !config.quiet && config.watch {
+				terminal::clear();
 			}
+			if !config.quiet {
+				crate::log!("\n🤘 sweet as! 🤘\n\n{config}")
+			}
+
 			Self {
 				start_time: std::time::Instant::now(),
 				cases: Vec::new(),
-				case_logger: test_logger,
+				case_logger,
 				config,
 			}
 		}
 		#[cfg(target_arch = "wasm32")]
 		{
-			use crate::prelude::*;
 			use forky::web::*;
-			use std::time::Duration;
 			use web_sys::console;
+			if !config.quiet && config.watch {
+				console::clear();
+			}
 			if !config.quiet {
-				if config.watch {
-					console::clear();
-				}
-				log_val(&Self::pretty_print_intro(&config));
+				crate::log!("\n🤘 sweet as! 🤘\n\n{config}")
 			}
 			let start_time = performance_now();
 			Self {
 				start_time,
-				test_logger,
+				case_logger,
 				cases: Vec::new(),
 				config,
 			}
@@ -75,7 +71,7 @@ impl RunnerLogger {
 		return self.start_time.elapsed();
 		#[cfg(target_arch = "wasm32")]
 		return Duration::from_millis(
-			(performance_now() - self.start_time) as u64,
+			(forky::web::performance_now() - self.start_time) as u64,
 		);
 	}
 
@@ -88,7 +84,7 @@ impl RunnerLogger {
 		}
 		self.on_results_printed();
 		if !self.config.watch && !result_count.succeeded() {
-			std::process::exit(1);
+			// std::process::exit(1);
 		}
 	}
 

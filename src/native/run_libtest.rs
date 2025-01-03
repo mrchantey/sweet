@@ -6,14 +6,7 @@ use anyhow::Result;
 use tokio::task::JoinHandle;
 /// maybe we can allow test_main_with_filenames() as a feature
 
-pub fn run_libtest(tests: &[&test::TestDescAndFn]) {
-	if let Err(err) = run_libtest_inner(tests) {
-		eprintln!("Sweet Internal Error: {}", err);
-		std::process::exit(1);
-	}
-}
-
-fn run_libtest_inner(tests: &[&test::TestDescAndFn]) -> Result<()> {
+pub fn run_libtest(tests: &[&test::TestDescAndFn]) -> Result<()> {
 	tokio::runtime::Runtime::new()
 		.unwrap()
 		.block_on(async move {

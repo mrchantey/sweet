@@ -69,9 +69,10 @@ impl TestRunner for TestRunnerRayon {
 						tls_desc_cell.set(Some(test.desc.clone()));
 
 						let func = TestDescAndFnExt::func(&test);
-						let result = SweetTestCollector::with_scope(|| {
-							std::panic::catch_unwind(func)
-						});
+						let result =
+							SweetTestCollector::with_scope(&test.desc, || {
+								std::panic::catch_unwind(func)
+							});
 						match result {
 							Ok(Ok(result)) => {
 								result_tx
@@ -88,12 +89,7 @@ impl TestRunner for TestRunnerRayon {
 								// panic result was sent in the hook
 							}
 							Err(fut) => {
-								future_tx
-									.send(TestDescAndFuture::new(
-										test.desc.clone(),
-										fut,
-									))
-									.unwrap();
+								future_tx.send(fut).unwrap();
 							}
 						};
 						let cell = desc_cell.get_or(|| Default::default());

@@ -30,24 +30,10 @@ impl TestDescAndResult {
 }
 
 pub enum TestResultOrFut {
-	Result(TestResult),
-	Fut(SweetFutFunc),
+	Result(TestDescAndResult),
+	Fut(TestDescAndFuture),
 }
 
-impl Into<TestResultOrFut> for TestResult {
-	fn into(self) -> TestResultOrFut { TestResultOrFut::Result(self) }
-}
-
-/// The raw output of a test.
-/// This does not consider #[should_panic]
-pub enum TestOutput {
-	/// The test ran and did not panic or output an error
-	Ok,
-	/// The test ran and panicked returned an error.
-	Error(String),
-	Panic(String),
-	Ignored(&'static str),
-}
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum TestResult {
@@ -79,7 +65,6 @@ impl TestResult {
 	/// This must be called directly from the panic hook
 	/// or else the bactrace frame will be off
 	pub fn from_panic(info: &PanicHookInfo, desc: &TestDesc) -> Self {
-		const FRAME_DEPTH: usize = 7 + 2;
 		match &desc.should_panic {
 			ShouldPanic::Yes => TestResult::Pass,
 			ShouldPanic::YesWithMessage(_) => TestResult::Pass,
@@ -100,6 +85,7 @@ impl TestResult {
 					} else if let Some(err) =
 						info.payload().downcast_ref::<SweetError>()
 					{
+						const FRAME_DEPTH: usize = 7 + 2;
 						let bt_str = BacktraceFile::backtrace_str(FRAME_DEPTH);
 						let payload = err.to_string();
 						(payload, bt_str)

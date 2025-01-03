@@ -1,3 +1,6 @@
+pub mod file_logger;
+#[allow(unused_imports)]
+pub use self::file_logger::*;
 pub mod log;
 #[allow(unused_imports)]
 pub use self::log::*;
@@ -10,9 +13,6 @@ pub use self::runner_logger::*;
 pub mod sweet_case_logger;
 #[allow(unused_imports)]
 pub use self::sweet_case_logger::*;
-pub mod file_logger;
-#[allow(unused_imports)]
-pub use self::file_logger::*;
 pub mod test_logger;
 #[allow(unused_imports)]
 pub use self::test_logger::*;

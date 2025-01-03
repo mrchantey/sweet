@@ -7,15 +7,17 @@ fn it_succeeds() { assert!(true) }
 #[test]
 fn it_succeeds2() { assert!(true) }
 #[test]
-#[should_panic]
+// #[should_panic]
 fn it_succeeds3() { assert!(true) }
 
 
-#[test]
-#[should_panic]
-fn it_panics() { panic!("foo") }
-
-
-#[test]
+// #[test]
 // #[should_panic]
+// fn it_panics() { panic!("foo") }
+
+
+#[test]
+// #[ignore]
+#[should_panic]
+// fn it_panics2() {}
 fn it_panics2() { panic!("foo") }

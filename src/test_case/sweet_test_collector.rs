@@ -3,6 +3,7 @@ use std::future::Future;
 use std::pin::Pin;
 use std::sync::Arc;
 use std::sync::Mutex;
+use test::TestDesc;
 
 pub trait SweetestFuture:
 	'static + Future<Output = Result<(), String>>
@@ -37,7 +38,10 @@ impl SweetTestCollector {
 
 	/// This function uses the Error type to represent
 	/// that a future has been registered
-	pub fn with_scope<F, R>(func: F) -> Result<R, SweetFutFunc>
+	pub fn with_scope<F, R>(
+		desc: &TestDesc,
+		func: F,
+	) -> Result<R, TestDescAndFuture>
 	where
 		F: FnOnce() -> R,
 	{
@@ -45,7 +49,7 @@ impl SweetTestCollector {
 		FUTURE.with(|val| {
 			let out = func();
 			if let Some(fut) = val.lock().unwrap().take() {
-				Err(fut)
+				Err(TestDescAndFuture::new(desc.clone(), fut))
 			} else {
 				Ok(out)
 			}

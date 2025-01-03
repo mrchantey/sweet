@@ -4,6 +4,37 @@ use flume::Sender;
 use test::TestDescAndFn;
 
 
+/// The first step of the runner is to:
+/// - Clone the tests
+/// - Sort by source file unless `--shuffle`
+/// - Filter out ignored unless `--ignored` or `--include-ignored`
+pub fn collect_runnable_tests(
+	config: &TestRunnerConfig,
+	result_tx: &Sender<TestDescAndResult>,
+	tests: &[&TestDescAndFn],
+) -> Result<Vec<TestDescAndFn>> {
+	let tests = tests
+		.into_iter()
+		.filter_map(|test| {
+			if let Some(ignore_msg) = config.should_not_run(test) {
+				result_tx
+					.send(TestDescAndResult::new(
+						test.desc.clone(),
+						TestResult::Ignore(Some(ignore_msg.to_string())),
+					))
+					.expect("channel was dropped");
+				None
+			} else {
+				Some(TestDescAndFnExt::clone(test))
+			}
+		})
+		.collect::<Vec<_>>();
+	// already sorted
+	// tests.sort_by(|a, b| a.desc.source_file.cmp(&b.desc.source_file));
+	Ok(tests)
+}
+
+
 pub trait TestRunner {
 	fn collect_and_run(
 		config: &TestRunnerConfig,
@@ -11,40 +42,11 @@ pub trait TestRunner {
 		result_tx: Sender<TestDescAndResult>,
 		tests: &[&TestDescAndFn],
 	) -> Result<()> {
-		let tests = Self::collect(config, &result_tx, tests)?;
+		let tests = collect_runnable_tests(config, &result_tx, tests)?;
 		Self::run(config, future_tx, result_tx, tests)?;
 		Ok(())
 	}
 
-	/// The first step of the runner is to:
-	/// - Clone the tests
-	/// - Sort by source file unless `--shuffle`
-	/// - Filter out ignored unless `--ignored` or `--include-ignored`
-	fn collect(
-		config: &TestRunnerConfig,
-		result_tx: &Sender<TestDescAndResult>,
-		tests: &[&TestDescAndFn],
-	) -> Result<Vec<TestDescAndFn>> {
-		let tests = tests
-			.into_iter()
-			.filter_map(|test| {
-				if let Some(ignore_msg) = config.should_not_run(test) {
-					result_tx
-						.send(TestDescAndResult::new(
-							test.desc.clone(),
-							TestResult::Ignore(Some(ignore_msg.to_string())),
-						))
-						.expect("channel was dropped");
-					None
-				} else {
-					Some(TestDescAndFnExt::clone(test))
-				}
-			})
-			.collect::<Vec<_>>();
-		// already sorted
-		// tests.sort_by(|a, b| a.desc.source_file.cmp(&b.desc.source_file));
-		Ok(tests)
-	}
 
 	fn run(
 		config: &TestRunnerConfig,

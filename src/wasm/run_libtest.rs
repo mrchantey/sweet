@@ -1,61 +1,66 @@
 use crate::prelude::*;
+use anyhow::Result;
+use std::sync::Arc;
 use wasm_bindgen::prelude::wasm_bindgen;
 use wasm_bindgen::JsValue;
-// use web_sys::window;
-// use test::*;
 
-pub fn run_libtest(tests: &[&test::TestDescAndFn]) {
+pub fn run_libtest(tests: &[&test::TestDescAndFn]) -> Result<()> {
 	let config = TestRunnerConfig::from_deno_args().unwrap();
-	let logger = RunnerLoggerWasm::start(&config);
+	let config = Arc::new(config);
+	let mut logger = RunnerLogger::start(config.clone(), tests);
+
+
+	let (result_tx, result_rx) = flume::unbounded::<TestDescAndResult>();
+
+	let tests = collect_runnable_tests(&config, &result_tx, tests)?;
+	flush_rx(&mut logger, &result_rx);
 
 	std::panic::set_hook(Box::new(PanicStore::panic_hook));
+	let futures = run_wasm_tests_sync(tests, &result_tx);
+	flush_rx(&mut logger, &result_rx);
 
-	let suite_outputs = TestSuite::collect_and_run(&config, tests, run_test);
 
-	let (async_suite_outputs, suite_results) =
-		SuiteOutput::finalize_sync(&config, suite_outputs);
 
-	PartialResultStore {
-		config,
+	PartialRunnerState {
 		logger,
-		suite_results,
-		async_suite_outputs,
+		futures,
+		result_tx,
+		result_rx,
 	}
 	.set();
+	Ok(())
+}
+
+fn flush_rx(
+	logger: &mut RunnerLogger,
+	result_rx: &flume::Receiver<TestDescAndResult>,
+) {
+	while let Ok(result) = result_rx.try_recv() {
+		logger.on_result(result).unwrap();
+	}
 }
 
 
 /// Pending async functions cannot be collected in the first initial run
 #[wasm_bindgen]
 pub async fn run_with_pending() -> Result<(), JsValue> {
-	let PartialResultStore {
-		config,
-		logger,
-		suite_results,
-		async_suite_outputs,
-	} = PartialResultStore::take();
+	let PartialRunnerState {
+		mut logger,
+		futures,
+		result_tx,
+		result_rx,
+	} = PartialRunnerState::take().ok_or("no partial runner state")?;
 
-	let futs =
-		SweetTestCollector::drain()
-			.into_iter()
-			.map(|(desc, fut)| async {
-				let raw_result = TestFuture::new(async move {
-					fut.await;
-					Ok(JsValue::NULL)
-				})
-				.await
-				.map_err(|err| TestDescExt::best_effort_full_err(&desc, &err));
-				let result = TestOutput::from_result(raw_result);
+	let futs = futures.into_iter().map(|fut| async {
+		TestFuture::new(fut.desc, result_tx.clone(), async move {
+			(fut.fut)().await.ok();
+			Ok(JsValue::NULL)
+		})
+		.await;
+	});
+	let _async_test_outputs = futures::future::join_all(futs).await;
 
-				(desc, result)
-			});
-	let async_test_outputs = futures::future::join_all(futs).await;
-	TestRunnerResult::finalize(
-		config,
-		logger,
-		suite_results,
-		async_suite_outputs,
-		async_test_outputs,
-	);
+	flush_rx(&mut logger, &result_rx);
+	logger.end();
 	Ok(())
 }

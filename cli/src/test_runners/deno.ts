@@ -6,7 +6,9 @@
 
 import init from './bindgen.js'
 
+// wrapper function to avoid abort
 globalThis.__wbg_test_invoke = f => f();
+globalThis.read_file = (path:string) => Deno.readTextFileSync(path);
 
 const wasm = await init()
 	.catch((_err: any) => {

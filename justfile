@@ -16,6 +16,8 @@ install-cli *args:
 
 run example *args:
 	just watch 'cargo run --example {{example}} {{args}}'
+run-wasm example *args:
+	just watch 'cargo run --example {{example}} --target wasm32-unknown-unknown {{args}}'
 
 #💡 Test
 

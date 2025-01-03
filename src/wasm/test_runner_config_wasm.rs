@@ -13,25 +13,22 @@ impl TestRunnerConfig {
 			.map(|arg| arg.as_string().unwrap())
 			.collect::<Vec<String>>();
 
-		Self::from_raw_args(args.into_iter())
+
+		Ok(Self::from_raw_args(args.into_iter()))
 	}
 
 
 
 	pub fn from_search_params() -> Self {
-		const MATCHES_KEY: &str = "m";
+		const FILTERS_KEY: &str = "f";
 		let quiet = SearchParams::get_flag("quiet");
 
-		let matches = SearchParams::get_all(MATCHES_KEY)
+		let filters = SearchParams::get_all(FILTERS_KEY)
 			.iter()
-			.map(|s| Pattern::new(&format!("*{s}*")).unwrap())
+			.map(|f| Pattern::new(&format!("*{f}*")).unwrap())
 			.collect::<Vec<_>>();
-		// if let Some(file) =  {
-		// 	//todo error onn malformed pattern
-		// 	matches.push(Pattern::new(&file).unwrap());
-		// }
 		let mut config = Self::default();
-		config.matches = matches;
+		config.filters = filters;
 		config.quiet = quiet;
 		config
 	}

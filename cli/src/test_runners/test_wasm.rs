@@ -30,8 +30,8 @@ pub struct TestWasm {
 	wasm_bindgen_args: Option<String>,
 	/// arguments passed to deno, node, etc
 	wasm_runtime_args: Option<String>, // TODO these are the sweet clap args
-	#[arg(short, long)]
-	watch: bool,
+	#[command(flatten)]
+	runner_args: sweet::prelude::TestRunnerConfig,
 }
 
 
@@ -76,9 +76,14 @@ impl TestWasm {
 	}
 
 	fn run_deno(&self) -> Result<()> {
+		// args will look like this so skip 3
+		// sweet test-wasm binary-path *actual-args
+		// why doesnt it work with three?
+		let args = std::env::args().skip(2).collect::<Vec<_>>();
 		let status = Command::new("deno")
 			.arg("--allow-read")
 			.arg(DENO_RUNNER_PATH)
+			.args(args)
 			.status()?;
 
 		if !status.success() {

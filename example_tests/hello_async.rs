@@ -12,7 +12,7 @@ async fn returns_err() -> Result<(), String> { Err("foo".to_string()) }
 #[should_panic]
 #[ignore = "its just a dummy"]
 async fn dummy1() {
-	tokio::time::sleep(Duration::from_secs(1)).await;
+	// tokio::time::sleep(Duration::from_secs(1)).await;
 
 	panic!("foo")
 }
@@ -27,13 +27,16 @@ async fn dummy2() {
 }
 #[sweet::test]
 // #[should_panic]
-async fn dummy3() { tokio::time::sleep(Duration::from_secs(1)).await; }
+async fn dummy3() { sleep(Duration::from_secs(1)).await; }
 #[sweet::test]
 // #[should_panic]
-async fn dummy4() { tokio::time::sleep(Duration::from_secs(1)).await; }
+async fn dummy4() { sleep(Duration::from_secs(1)).await; }
 #[sweet::test]
-async fn dummy5() { tokio::time::sleep(Duration::from_secs(1)).await; }
 // #[should_panic]
+async fn dummy5() {
+	sleep(Duration::from_secs(1)).await;
+	panic!("whaya");
+}
 
 // #[sweet::test]
 // #[should_panic]
@@ -43,12 +46,24 @@ async fn dummy5() { tokio::time::sleep(Duration::from_secs(1)).await; }
 // 	}
 // }
 
+#[cfg(target_arch = "wasm32")]
+async fn sleep(duration: Duration) {
+	use wasm_bindgen_futures::JsFuture;
+	use web_sys::window;
+	let window = window().unwrap();
+	let promise = js_sys::Promise::new(&mut |resolve, _| {
+		window
+			.set_timeout_with_callback_and_timeout_and_arguments_0(
+				&resolve,
+				duration.as_millis() as i32,
+			)
+			.expect("should register `setTimeout` OK");
+	});
 
-// /// tokio tests are just `#[test]` wrapped in a tokio runtime,
-// /// of course they only run for native targets.
-// ///
-// /// Use `#[tokio::test]` when you need an isolated async runtime,
-// /// 99% of the time you don't need it.
-// #[cfg(not(target_arch = "wasm32"))]
-// #[tokio::test]
-// async fn its_tokio() {}
+	JsFuture::from(promise)
+		.await
+		.expect("should await `setTimeout` OK");
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+async fn sleep(duration: Duration) { tokio::time::sleep(duration).await; }

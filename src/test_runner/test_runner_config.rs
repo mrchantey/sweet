@@ -166,7 +166,7 @@ impl std::fmt::Display for TestRunnerConfig {
 			messages.push(format!("watch: true"));
 		}
 		if self.format != OutputFormat::File {
-			messages.push(format!("format: {}",self.format));
+			messages.push(format!("format: {}", self.format));
 		}
 		if self.filters.len() > 0 {
 			let matches = self
@@ -191,7 +191,7 @@ impl std::fmt::Display for TestRunnerConfig {
 	}
 }
 
-#[derive(Debug, Clone, Default,PartialEq)]
+#[derive(Debug, Clone, Default, PartialEq)]
 pub enum OutputFormat {
 	/// Output per file
 	#[default]

@@ -2,10 +2,16 @@ use crate::prelude::*;
 use std::cell::RefCell;
 use std::panic::PanicHookInfo;
 use std::rc::Rc;
+use test::TestDesc;
+
+pub enum PanicStoreOut<T> {
+	Panicked(TestDescAndResult),
+	Ok(T),
+}
 
 
 crate::scoped_thread_local! {
-	static CURRENT_LISTENER: Rc<RefCell<Option<String>>>
+	static CURRENT_LISTENER: Rc<RefCell<(TestDesc,Option<TestResult>)>>
 }
 
 /// when a test panics, store it globally
@@ -18,14 +24,16 @@ impl PanicStore {
 	/// This will be called from inside thie function
 	/// at some point duing a Scoped Set
 	pub fn panic_hook(info: &PanicHookInfo) {
-		let payload = payload_to_string(info.payload());
 		if !CURRENT_LISTENER.is_set() {
 			// nobody is listening, must be a real one
+			let payload = payload_to_string(info.payload());
 			crate::log!("Uncaught Sweet Panic:\n{}", payload);
 			return;
 		} else {
 			CURRENT_LISTENER.with(|last_panic| {
-				*last_panic.borrow_mut() = Some(payload.to_string());
+				let result =
+					TestResult::from_panic(info, &last_panic.borrow().0);
+				last_panic.borrow_mut().1 = Some(result);
 			});
 		}
 	}
@@ -35,22 +43,22 @@ impl PanicStore {
 	// }
 
 
-	/// All sync and async wasm tests must be ran inside this scope.
-	/// It will catch any panics and store them globally.
-	/// Source of truth is the last panic that occured,
-	/// # Returns
-	/// an error if a panic occured
-	pub fn with_scope<F>(func: F) -> TestOutput
+
+	/// if the function panics, and it should not have
+	/// this will return None and emit a result.
+	/// Otherwise deal with the function
+	pub fn with_scope<F, R>(desc: &TestDesc, func: F) -> PanicStoreOut<R>
 	where
-		F: FnOnce() -> Result<(), String>,
+		F: FnOnce() -> R,
 	{
-		let output = Default::default();
+		let output = Rc::new(RefCell::new((desc.clone(), None)));
 		CURRENT_LISTENER.set(&output, || {
 			let test_out = func();
-			match (output.borrow_mut().take(), test_out) {
-				(Some(err), _) => TestOutput::Panic(err),
-				(None, Ok(_)) => TestOutput::Ok,
-				(None, Err(err)) => TestOutput::Error(err),
+			match (output.borrow_mut().1.take(), test_out) {
+				(Some(panic_result), _) => PanicStoreOut::Panicked(
+					TestDescAndResult::new(desc.clone(), panic_result),
+				),
+				(None, result) => PanicStoreOut::Ok(result),
 			}
 		})
 	}
