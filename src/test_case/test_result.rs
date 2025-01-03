@@ -27,9 +27,6 @@ impl TestDescAndResult {
 	pub fn new(desc: TestDesc, result: TestResult) -> Self {
 		Self { desc, result }
 	}
-	pub fn ignore(desc: TestDesc, ignore_msg: &'static str) -> Self {
-		Self::new(desc, TestResult::Ignore(Some(ignore_msg.to_string())))
-	}
 }
 
 pub enum TestResultOrFut {

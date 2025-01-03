@@ -30,9 +30,9 @@ pub trait TestRunner {
 			.filter_map(|test| {
 				if let Some(ignore_msg) = config.should_not_run(test) {
 					result_tx
-						.send(TestDescAndResult::ignore(
+						.send(TestDescAndResult::new(
 							test.desc.clone(),
-							ignore_msg,
+							TestResult::Ignore(Some(ignore_msg.to_string())),
 						))
 						.expect("channel was dropped");
 					None
