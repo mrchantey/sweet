@@ -69,37 +69,34 @@ impl TestResult {
 			ShouldPanic::Yes => TestResult::Pass,
 			ShouldPanic::YesWithMessage(_) => TestResult::Pass,
 			ShouldPanic::No => {
-				let (payload, bt) = if let Some(str) =
-					info.payload().downcast_ref::<&str>()
-				{
-					(
-						str.to_string(),
-						BacktraceFile::file_context_from_panic(info, desc),
-					)
-				} else if let Some(str) =
-					info.payload().downcast_ref::<String>()
-				{
-					(
-						str.clone(),
-						BacktraceFile::file_context_from_panic(info, desc),
-					)
-				} else if let Some(err) =
-					info.payload().downcast_ref::<SweetError>()
-				{
-					const FRAME_DEPTH: usize = 7 + 2;
-					let bt_str = BacktraceFile::backtrace_str(FRAME_DEPTH)
-						.or_else(|_| {
-							// wasm will fail so use the panic info
-							BacktraceFile::file_context_from_panic(info, desc)
-						});
-					let payload = err.to_string();
-					(payload, bt_str)
-				} else {
-					(
-						"Unknown Payload".to_string(),
-						BacktraceFile::file_context_from_panic(info, desc),
-					)
-				};
+				let (payload, bt) =
+					if let Some(str) = info.payload().downcast_ref::<&str>() {
+						(
+							str.to_string(),
+							BacktraceFile::file_context_from_panic(info, desc),
+						)
+					} else if let Some(str) =
+						info.payload().downcast_ref::<String>()
+					{
+						(
+							str.clone(),
+							BacktraceFile::file_context_from_panic(info, desc),
+						)
+					} else if let Some(sweet_error) =
+						info.payload().downcast_ref::<SweetError>()
+					{
+						#[cfg(target_arch = "wasm32")]
+						let bt_str = BacktraceFile::file_context_from_panic(info, desc);
+						#[cfg(not(target_arch = "wasm32"))]
+						let bt_str = sweet_error.backtrace_str();
+						let payload = sweet_error.message.clone();
+						(payload, bt_str)
+					} else {
+						(
+							"Unknown Payload".to_string(),
+							BacktraceFile::file_context_from_panic(info, desc),
+						)
+					};
 
 				TestResult::Fail(Self::format_backtrace(
 					payload,

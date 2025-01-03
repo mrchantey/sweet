@@ -24,6 +24,8 @@ clear-deno:
 
 #💡 Test
 
+test-lib *args:
+	just watch 'cargo test --lib -- --watch {{args}}'
 test test_name *args:
 	just watch 'cargo test --test {{test_name}} -- --watch {{args}}'
 test-wasm test_name *args:

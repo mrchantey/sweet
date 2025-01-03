@@ -1,5 +1,4 @@
 use crate::prelude::*;
-use anyhow::Result;
 use bevy::prelude::*;
 use extend::ext;
 use std::ops::Deref;
@@ -24,50 +23,43 @@ pub impl<'a, W> Matcher<W>
 where
 	W: 'a + Deref<Target = World>,
 {
-	fn to_have_entity(&self, entity: Entity) -> Result<()> {
+	fn to_have_entity(&self, entity: Entity) {
 		let value = self.value.deref();
 		let received = value.get_entity(entity);
-		self.assert_option_with_received_negatable(received.ok())
-			.build_res_mapped()
+		self.assert_option_with_received_negatable(received.ok());
 	}
 
-	fn to_have_component<T: Component>(&self, entity: Entity) -> Result<()> {
+	fn to_have_component<T: Component>(&self, entity: Entity) {
 		let received = self.value.deref().get::<T>(entity);
-		self.assert_option_with_received_negatable(received)
-			.build_res_mapped()
+		self.assert_option_with_received_negatable(received);
 	}
 
-	fn component<T: Component>(&self, entity: Entity) -> Result<Matcher<&T>> {
+	fn component<T: Component>(&self, entity: Entity) -> Matcher<&T> {
 		let received = self.value.deref().get::<T>(entity);
-		self.assert_option_with_received(received)
-			.map_err(BacktraceError::build_err)
-			.map(|c| Matcher::new(c))
+		self.assert_some_with_received(received);
+		Matcher::new(received.unwrap())
 	}
 
-	fn to_contain_resource<T: Resource>(&self) -> Result<()> {
+	fn to_contain_resource<T: Resource>(&self) {
 		let received = self.value.deref().get_resource::<T>();
-		self.assert_option_with_received_negatable(received)
-			.build_res_mapped()
+		self.assert_option_with_received_negatable(received);
 	}
 
-	fn resource<T: Resource>(&self) -> Result<Matcher<&T>> {
+	fn resource<T: Resource>(&self) -> Matcher<&T> {
 		let received = self.value.deref().get_resource::<T>();
-		self.assert_option_with_received(received)
-			.map_err(BacktraceError::build_err)
-			.map(|c| Matcher::new(c))
+		self.assert_some_with_received(received);
+		Matcher::new(received.unwrap())
 	}
 
-	fn to_contain_non_send_resource<T: 'static>(&self) -> Result<()> {
+	fn to_contain_non_send_resource<T: 'static>(&self) {
 		let received = self.value.deref().get_non_send_resource::<T>();
-		self.assert_option_with_received_negatable(received)
-			.build_res_mapped()
+		self.assert_option_with_received_negatable(received);
 	}
 
-	fn non_send_resource<T: 'static>(&self) -> Result<Matcher<&T>> {
+	fn non_send_resource<T: 'static>(&self) -> Matcher<&T> {
 		let received = self.value.deref().get_non_send_resource::<T>();
-		self.assert_option_with_received(received)
-			.map_err(BacktraceError::build_err)
-			.map(|c| Matcher::new(c))
+		self.assert_some_with_received(received);
+		Matcher::new(received.unwrap())
 	}
 
 	//breaks backtracing
@@ -75,7 +67,7 @@ where
 	// 	&self,
 	// 	entity: impl SweetInto<Entity>,
 	// 	other: &T,
-	// ) -> Result<()>
+	// )
 	// where
 	// 	T: Component + PartialEq + std::fmt::Debug,
 	// {
@@ -93,38 +85,39 @@ mod test {
 	pub struct Health(pub u32);
 
 	#[test]
-	fn world() -> Result<()> {
+	fn world() {
 		let mut world = World::new();
-		expect(&world).not().to_contain_resource::<Health>()?;
+		expect(&world).not().to_contain_resource::<Health>();
 		world.insert_resource(Health(5));
-		expect(&world).to_contain_resource::<Health>()?;
-
-		Ok(())
+		expect(&world).to_contain_resource::<Health>();
 	}
 
 	#[test]
-	fn app() -> Result<()> {
+	fn app() {
 		let mut app = App::new();
 		let entity = app.world_mut().spawn_empty().id();
 
 		expect(app.world())
 			.not()
-			.to_have_component::<Health>(entity)?;
+			.to_have_component::<Health>(entity);
 		app.world_mut().entity_mut(entity).insert(Health(7));
-		expect(app.world()).to_have_component::<Health>(entity)?;
-		expect(app.world()).component(entity)?.to_be(&Health(7))?;
+		expect(app.world()).to_have_component::<Health>(entity);
+		expect(app.world())
+			.component::<Health>(entity)
+			.to_be(&Health(7));
 
-		expect(app.world()).not().to_contain_resource::<Health>()?;
+		expect(app.world()).not().to_contain_resource::<Health>();
 		app.world_mut().insert_resource(Health(5));
-		expect(app.world()).to_contain_resource::<Health>()?;
-		expect(app.world()).resource()?.to_be(&Health(5))?;
+		expect(app.world()).to_contain_resource::<Health>();
+		expect(app.world()).resource::<Health>().to_be(&Health(5));
 
 		expect(app.world())
 			.not()
-			.to_contain_non_send_resource::<Health>()?;
+			.to_contain_non_send_resource::<Health>();
 		app.world_mut().insert_non_send_resource(Health(5));
-		expect(app.world()).to_contain_non_send_resource::<Health>()?;
-		expect(app.world()).non_send_resource()?.to_be(&Health(5))?;
-		Ok(())
+		expect(app.world()).to_contain_non_send_resource::<Health>();
+		expect(app.world())
+			.non_send_resource::<Health>()
+			.to_be(&Health(5));
 	}
 }

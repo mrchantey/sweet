@@ -1,5 +1,3 @@
-use anyhow::Result;
-
 //TODO should probably be in matcher module
 
 /// The base struct for all matchers.
@@ -22,17 +20,6 @@ impl<T> Matcher<T> {
 	pub fn map<T2>(&self, func: impl FnOnce(&T) -> T2) -> Matcher<T2> {
 		Matcher::new(func(&self.value))
 	}
-	/// Some assertions do not support negation, in that case call this function within the matcher.
-	///
-	/// This will return an error if the matcher is already negated.
-	pub fn disallow_negated(&self) -> Result<(), String> {
-		if self.negated {
-			Err("Unsupported: Negation not supported for this matcher, please remove `.not()`".to_string())
-		} else {
-			Ok(())
-		}
-	}
-
 	/// Negate this matcher to flip the result of an assertion.
 	/// ```rust
 	/// # use sweet::prelude::*;
@@ -44,7 +31,7 @@ impl<T> Matcher<T> {
 		self
 	}
 
-	/// Parse a boolean as-is if not negated, otherwise flip it.
+	/// Return a boolean as-is if not negated, otherwise flip it.
 	pub fn is_true_with_negated(&self, received: bool) -> bool {
 		if self.negated {
 			!received
@@ -52,25 +39,4 @@ impl<T> Matcher<T> {
 			received
 		}
 	}
-}
-
-pub trait MatcherTrait<T> {
-	fn get_matcher(&self) -> &Matcher<T>;
-	fn get_matcher_mut(&mut self) -> &mut Matcher<T>;
-	fn get_matcher_owned(self) -> Matcher<T>;
-	fn get_value(&self) -> &T;
-	fn get_value_mut(&mut self) -> &mut T;
-	fn get_value_owned(self) -> T;
-	fn get_negated(&self) -> bool;
-	fn set_negated(&mut self, value: bool);
-}
-impl<T> MatcherTrait<T> for Matcher<T> {
-	fn get_matcher_owned(self) -> Matcher<T> { self }
-	fn get_matcher(&self) -> &Matcher<T> { self }
-	fn get_matcher_mut(&mut self) -> &mut Matcher<T> { self }
-	fn get_value(&self) -> &T { &self.value }
-	fn get_value_mut(&mut self) -> &mut T { &mut self.value }
-	fn get_value_owned(self) -> T { self.value }
-	fn get_negated(&self) -> bool { self.negated }
-	fn set_negated(&mut self, value: bool) { self.negated = value; }
 }

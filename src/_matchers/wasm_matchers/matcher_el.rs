@@ -19,23 +19,21 @@ where
 		let received = parent.x_query_selector::<HtmlElement>(selector);
 		matcher
 			.assert_option_with_received(received)
-			.map(|c| Matcher::new(c))
-			.build_res_mapped()
+			.map(|c| Matcher::new(c));
 	}
 
 	fn to_contain_text(&self, other: &str) -> Result<()> {
 		let receive =
 			self.get_value().as_ref().text_content().unwrap_or_default();
-		self.contains(other, &receive, "text").build_res_mapped()
+		self.contains(other, &receive, "text");
 	}
 	fn to_contain_visible_text(&self, other: &str) -> Result<()> {
 		let receive = self.get_value().as_ref().inner_text();
-		self.contains(other, &receive, "visible text")
-			.build_res_mapped()
+		self.contains(other, &receive, "visible text");
 	}
 	fn to_contain_html(&self, other: &str) -> Result<()> {
 		let receive = self.get_value().as_ref().inner_html();
-		self.contains(other, &receive, "html").build_res_mapped()
+		self.contains(other, &receive, "html");
 	}
 	fn contains(
 		&self,

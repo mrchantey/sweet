@@ -1,5 +1,5 @@
 use crate::prelude::*;
-/// Alias for `Matcher::new()`
+/// Alias for [`Matcher::new()`]
 ///
 /// # Example
 ///
