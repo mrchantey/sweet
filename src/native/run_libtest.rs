@@ -1,9 +1,9 @@
 // use super::run_test::run_test;
 use crate::prelude::*;
+use std::sync::Arc;
 extern crate test;
 use anyhow::Result;
-use futures::future::try_join_all;
-use tokio::task::LocalSet;
+use tokio::task::JoinHandle;
 /// maybe we can allow test_main_with_filenames() as a feature
 
 pub fn run_libtest(tests: &[&test::TestDescAndFn]) {
@@ -14,85 +14,34 @@ pub fn run_libtest(tests: &[&test::TestDescAndFn]) {
 }
 
 fn run_libtest_inner(tests: &[&test::TestDescAndFn]) -> Result<()> {
-	let config = TestRunnerConfig::from_env_args();
-	let _logger = RunnerLoggerNative::start(&config);
-	// we disable the default panic hook
-	// std::panic::set_hook(Box::new(|_| {}));
-
-	// TestCaseContext::set_panic_hook();
-	// std::panic::set_hook(Box::new(TestCaseContext::panic_hook));
-
-	let (future_tx, future_rx) = flume::unbounded::<TestDescAndFuture>();
-	let (result_tx, result_rx) = flume::unbounded::<TestDescAndResult>();
-
-	tokio::runtime::Runtime::new().unwrap().block_on(async {
-		let _recv_result = tokio::spawn(async move {
-			while let Ok(result) = result_rx.recv_async().await {
-				let status = result.result.status_str();
-				println!(
-					"{} {}{}",
-					status,
-					result.desc.name,
-					result.result.stdout()
-				);
-			}
-		});
-
-		// let future_rx2 = future_rx.clone();
-		// let recv_fut = tokio::spawn(async move {
-		// 	while let Ok(future) = future_rx2.recv_async().await {
-		// 		let a = tokio::spawn(async move {
-		// 			let result = (future.fut)().await;
-		// 			result_tx.send_async(TestDescAndResult {
-		// 				desc: future.desc,
-		// 				result:TestResult::Pass,
-		// 			})
-		// 		});
-		// 	}
-		// });
-
-		TestRunnerRayon::collect_and_run(&config, future_tx, result_tx, tests)
-			.unwrap();
-
-		// Run the local task set.
-		let mut futs = Vec::new();
-		while let Ok(fut) = future_rx.try_recv() {
-			futs.push(fut);
-		}
-
-		// let futs = futs.par_iter(|future| {
-
-
-
-		// });
-
-
-		let _fut_result = LocalSet::new()
-			.run_until(async move {
-				let futs = futs.into_iter().map(|future| {
-					// while let Ok(future) = future_rx.recv_async().await {
-					tokio::task::spawn_local(async move {
-					// tokio::task::spawn_local(async move {
-						println!("running future");
-						let result = (future.fut)().await;
-						println!("Result {}: {:?}", future.desc.name, result);
-					})
+	tokio::runtime::Runtime::new()
+		.unwrap()
+		.block_on(async move {
+			let (future_tx, _future_rx) =
+				flume::unbounded::<TestDescAndFuture>();
+			let (result_tx, result_rx) =
+				flume::unbounded::<TestDescAndResult>();
+			let config = Arc::new(TestRunnerConfig::from_env_args());
+			let mut logger = RunnerLogger::start(config.clone(), tests);
+			let recv_result: JoinHandle<Result<RunnerLogger>> =
+				tokio::spawn(async move {
+					while let Ok(result) = result_rx.recv_async().await {
+						logger.on_result(result)?;
+					}
+					Ok(logger)
 				});
-				try_join_all(futs).await
-			})
-			.await
+
+			// let logger = RunnerLoggerNative::start(&config);
+			TestRunnerRayon::collect_and_run(
+				&config, future_tx, result_tx, tests,
+			)
 			.unwrap();
 
-		// recv_task.abort();
-		// recv_task.await.unwrap();
+			let logger = recv_result.await??;
 
-		// while let Ok(result) = output_rx.recv() {
-		// 	// let result = result.into_result();
-		// 	println!("Result {}: {}", result.desc.name, result.result);
-		// 	// logger.log_test_output(&output);
-		// }
-		println!("All tests done");
-		Ok(())
-	})
+			logger.end();
+
+			Ok(())
+		})
 	// logger.end();
 }

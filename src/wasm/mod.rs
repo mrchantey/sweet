@@ -1,6 +1,3 @@
-pub mod logger_wasm;
-#[allow(unused_imports)]
-pub use self::logger_wasm::*;
 pub mod partial_result_store;
 #[allow(unused_imports)]
 pub use self::partial_result_store::*;

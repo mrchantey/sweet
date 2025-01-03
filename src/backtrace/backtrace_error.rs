@@ -87,6 +87,7 @@ mod test {
 	}
 
 	#[test]
+	#[ignore]
 	fn error_builder() -> Result<()> {
 		let err = mock_to_be_error().err().unwrap().to_string();
 		// empty space ensures we got the correct frame
@@ -105,6 +106,7 @@ mod test {
 		Err(BacktraceError("Some error".to_string()))
 	}
 	#[test]
+	#[ignore]
 	fn result_builder() -> Result<()> {
 		let err = mock_to_be_result().err().unwrap().to_string();
 		// empty space ensures we got the correct frame

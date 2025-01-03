@@ -3,6 +3,7 @@ use clap::Parser;
 use glob::Pattern;
 use glob::PatternError;
 use std::path::PathBuf;
+use std::str::FromStr;
 use test::ShouldPanic;
 use test::TestDesc;
 use test::TestDescAndFn;
@@ -36,12 +37,14 @@ pub struct TestRunnerConfig {
 	#[arg(short, long)]
 	pub watch: bool,
 	#[arg(short, long)]
-	pub parallel: bool,
-	#[arg(short, long)]
 	pub quiet: bool,
+	/// The output format to use: 'file', 'case', 'vanilla'
+	#[arg(short, long, default_value_t = OutputFormat::File)]
+	pub format: OutputFormat,
 	// pub nocapture: bool,
 	// #[arg(short, long, action = clap::ArgAction::Count)]
 	// verbose: u8,
+	/// Number of test threads to run, defaults to max available.
 	#[arg(long)]
 	pub test_threads: Option<usize>,
 	// /// TODO
@@ -162,8 +165,8 @@ impl std::fmt::Display for TestRunnerConfig {
 		if self.watch {
 			messages.push(format!("watch: true"));
 		}
-		if self.parallel {
-			messages.push(format!("parallel: true"));
+		if self.format != OutputFormat::File {
+			messages.push(format!("format: {}", self.format));
 		}
 		if self.filters.len() > 0 {
 			let matches = self
@@ -185,5 +188,38 @@ impl std::fmt::Display for TestRunnerConfig {
 		// 	messages.push(format!("verbosity: {}", self.verbose));
 		// }
 		write!(f, "{}\n", messages.join("\n"))
+	}
+}
+
+#[derive(Debug, Clone, Default, PartialEq)]
+pub enum OutputFormat {
+	/// Output per file
+	#[default]
+	File,
+	Case,
+	/// The default test my::test ... ok
+	Vanilla,
+}
+
+impl FromStr for OutputFormat {
+	type Err = String;
+	fn from_str(s: &str) -> Result<Self, Self::Err> {
+		match s {
+			"file" => Ok(Self::File),
+			"case" => Ok(Self::Case),
+			"vanilla" => Ok(Self::Vanilla),
+			_ => Err(format!("unknown output format: {}", s)),
+		}
+	}
+}
+
+
+impl std::fmt::Display for OutputFormat {
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		match self {
+			OutputFormat::File => write!(f, "file"),
+			OutputFormat::Case => write!(f, "case"),
+			OutputFormat::Vanilla => write!(f, "vanilla"),
+		}
 	}
 }

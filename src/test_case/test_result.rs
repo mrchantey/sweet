@@ -1,12 +1,13 @@
 use crate::prelude::*;
+use colorize::*;
 use std::panic::PanicHookInfo;
 use test::ShouldPanic;
 use test::TestDesc;
 
-
 /// a method for sending test descriptions with outputs
 /// This implementation may change to be more restricted
 /// to reduce clone cost
+#[derive(Debug)]
 pub struct TestDescAndResult {
 	pub desc: TestDesc,
 	pub result: TestResult,
@@ -27,7 +28,7 @@ impl TestDescAndResult {
 		Self { desc, result }
 	}
 	pub fn ignore(desc: TestDesc, ignore_msg: &'static str) -> Self {
-		Self::new(desc, TestResult::Ignore(ignore_msg))
+		Self::new(desc, TestResult::Ignore(Some(ignore_msg.to_string())))
 	}
 }
 
@@ -51,30 +52,32 @@ pub enum TestOutput {
 	Ignored(&'static str),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum TestResult {
 	Pass,
 	Fail(String),
-	Ignore(&'static str),
+	Ignore(Option<String>),
 }
 
 impl TestResult {
-	pub fn status_str(&self) -> &'static str {
+	pub fn status_prefix(&self) -> String {
 		match self {
-			TestResult::Pass => "PASS",
-			TestResult::Fail(_) => "FAIL",
-			TestResult::Ignore(_) => "SKIP",
+			TestResult::Pass => " PASS ".black().bold().greenb(),
+			TestResult::Fail(_) => " FAIL ".black().bold().redb(),
+			TestResult::Ignore(_) => " SKIP ".black().bold().yellowb(),
 		}
 	}
 
-	pub fn stdout(&self) -> String {
+	/// The message to display for the test result
+	/// If pass this is an empty string
+	pub fn message(&self) -> String {
 		match self {
-			TestResult::Pass => "".to_string(),
-			TestResult::Fail(msg) => format!("\n{}", msg),
-			TestResult::Ignore(msg) => format!("\n{}", msg),
+			TestResult::Pass => String::new(),
+			TestResult::Fail(msg) => format!("\n\n{}", msg),
+			TestResult::Ignore(Some(msg)) => format!("\t{}", msg).yellow(),
+			TestResult::Ignore(None) => String::new(),
 		}
 	}
-
 
 	/// This must be called directly from the panic hook
 	/// or else the bactrace frame will be off
@@ -98,7 +101,7 @@ impl TestResult {
 							BacktraceFile::file_context_from_panic(info, desc),
 						)
 					} else if let Some(err) =
-						info.payload().downcast_ref::<MatchErr>()
+						info.payload().downcast_ref::<SweetError>()
 					{
 						let bt_str = BacktraceFile::backtrace_str(FRAME_DEPTH);
 						let payload = err.to_string();
@@ -171,12 +174,6 @@ impl TestResult {
 	fn format_backtrace(err: String, bt: String) -> String {
 		format!("{}\n\n{}", err, bt)
 	}
-
-
-
-	pub fn pass() -> Self { Self::Pass }
-	pub fn fail(msg: impl Into<String>) -> Self { Self::Fail(msg.into()) }
-	pub fn ignored(msg: &'static str) -> Self { Self::Ignore(msg) }
 }
 
 
@@ -185,7 +182,8 @@ impl std::fmt::Display for TestResult {
 		match self {
 			TestResult::Pass => write!(f, "Pass"),
 			TestResult::Fail(msg) => write!(f, "Fail: {}", msg),
-			TestResult::Ignore(msg) => write!(f, "Ignore: {}", msg),
+			TestResult::Ignore(Some(msg)) => write!(f, "Ignore: {}", msg),
+			TestResult::Ignore(None) => write!(f, "Ignore"),
 		}
 	}
 }
