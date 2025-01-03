@@ -79,12 +79,11 @@ impl BacktraceFile {
 		//line number is one-indexed
 		const LINE_CONTEXT_SIZE: usize = 2;
 		#[cfg(target_arch = "wasm32")]
-		// let lines = wasm_fs::read_file(&file.to_string_lossy().to_string())
-		// 	.map_err(|err| anyhow::anyhow!("Failed to read file: {:?}", err))?
-		// 	.as_string()
-		// 	.ok_or_else(|| anyhow::anyhow!("No string"))?;
-		return Ok("wasm cannot backtrace".to_string());
-		// #[cfg(not(target_arch = "wasm32"))]
+		let lines = wasm_fs::read_file(&file.to_string_lossy().to_string())
+			.ok_or_else(|| {
+				anyhow::anyhow!("Failed to read file {}", &file.display())
+			})?;
+		#[cfg(not(target_arch = "wasm32"))]
 		let lines = fs::read_to_string(file)?;
 		let lines: Vec<&str> = lines.split("\n").collect();
 		let start =
@@ -137,11 +136,24 @@ fn line_number_buffer(line_no: usize) -> String {
 
 
 #[cfg(target_arch = "wasm32")]
-mod wasm_fs {
+pub mod wasm_fs {
 	use wasm_bindgen::prelude::*;
 	#[wasm_bindgen]
 	extern "C" {
-		#[wasm_bindgen(catch)]
-		pub fn read_file(path: &str) -> Result<JsValue, JsValue>;
+		pub fn read_file(path: &str) -> Option<String>;
+	}
+}
+
+
+#[cfg(test)]
+mod test {
+	use crate::prelude::*;
+
+	#[test]
+	#[cfg(target_arch = "wasm32")]
+	fn works() -> Result<()> {
+		expect(wasm_fs::read_file("foobar")).to_be_none()?;
+		expect(wasm_fs::read_file("Cargo.toml")).to_be_some()?;
+		Ok(())
 	}
 }

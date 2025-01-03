@@ -5,19 +5,10 @@ use wasm_bindgen::prelude::*;
 
 // #[wasm_bindgen]
 pub fn main() {
-	sweet::log!("waddup");
-
-	let (send, recv) = flume::unbounded();
-
-	send.send("pizza").unwrap();
-
-	sweet::log!("chicken");
-	while let Ok(msg) = recv.try_recv() {
-		sweet::log!("msg: {}", msg);
-	}
-
-	let a = Arc::new(Mutex::new(0));
-	sweet::log!("bazz: ");
-	let foo = a.lock().unwrap();
-	sweet::log!("foo: {}", foo);
+	console_error_panic_hook::set_once();
+	// let a = read_file("examples/foods.rs");
+	let a = sweet::prelude::wasm_fs::read_file("examples/foo.rs");
+	// .as_string()
+	// .unwrap();
+	sweet::log_val(&a.unwrap_or("empty".to_string()));
 }

@@ -19,6 +19,9 @@ run example *args:
 run-wasm example *args:
 	just watch 'cargo run --example {{example}} --target wasm32-unknown-unknown {{args}}'
 
+clear-deno:
+	rm -rf ./target/sweet/deno.ts
+
 #💡 Test
 
 test test_name *args:
