@@ -85,8 +85,10 @@ impl TestResult {
 					} else if let Some(sweet_error) =
 						info.payload().downcast_ref::<SweetError>()
 					{
+						// in wasm the panic location is useless because its nested inside
+						// the matcher, use the desc location instead
 						#[cfg(target_arch = "wasm32")]
-						let bt_str = BacktraceFile::file_context_from_panic(info, desc);
+						let bt_str = BacktraceFile::file_context_from_desc(desc);
 						#[cfg(not(target_arch = "wasm32"))]
 						let bt_str = sweet_error.backtrace_str();
 						let payload = sweet_error.message.clone();

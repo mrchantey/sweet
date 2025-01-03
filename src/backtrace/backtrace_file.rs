@@ -136,9 +136,8 @@ mod test {
 	use crate::prelude::*;
 
 	#[test]
-	fn works() -> Result<()> {
-		expect(wasm_fs::read_file("foobar")).to_be_none()?;
-		expect(wasm_fs::read_file("Cargo.toml")).to_be_some()?;
-		Ok(())
+	fn works() {
+		expect(wasm_fs::read_file("foobar")).to_be_none();
+		expect(wasm_fs::read_file("Cargo.toml")).to_be_some();
 	}
 }

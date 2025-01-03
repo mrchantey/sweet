@@ -13,10 +13,9 @@ use crate::prelude::*;
 #[derive(Debug, Clone)]
 pub struct SweetError {
 	pub message: String,
+	pub assertion_depth: usize,
 	#[cfg(not(target_arch = "wasm32"))]
 	pub backtrace: backtrace::Backtrace,
-	#[cfg(not(target_arch = "wasm32"))]
-	pub assertion_depth: usize,
 }
 
 
@@ -44,6 +43,7 @@ impl SweetError {
 		#[cfg(target_arch = "wasm32")]
 		return Self {
 			message: message.into(),
+			assertion_depth,
 		};
 		#[cfg(not(target_arch = "wasm32"))]
 		return Self {
@@ -73,6 +73,7 @@ mod test {
 	use crate::prelude::*;
 
 	#[test]
+	#[cfg(not(target_arch = "wasm32"))]
 	fn works() {
 		let err = SweetError::new("expected bar", 1);
 		let msg = err.backtrace_str().unwrap();
