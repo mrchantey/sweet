@@ -4,9 +4,9 @@ pub use self::panic_store::*;
 pub mod partial_runner_state;
 #[allow(unused_imports)]
 pub use self::partial_runner_state::*;
-pub mod run_libtest;
+pub mod run_libtest_wasm;
 #[allow(unused_imports)]
-pub use self::run_libtest::*;
+pub use self::run_libtest_wasm::*;
 pub mod run_wasm_tests;
 #[allow(unused_imports)]
 pub use self::run_wasm_tests::*;

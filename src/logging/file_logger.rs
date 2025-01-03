@@ -21,6 +21,10 @@ impl FileResult {
 
 	pub fn increment_total(&mut self) { self.total += 1; }
 
+
+	/// - If **any** error, the status is [TestResult::Fail]
+	/// - If **all** ignored, the status is [TestResult::Ignore]
+	/// - Otherwise the status is [TestResult::Pass]
 	pub fn status(&self) -> TestResult {
 		let mut failed: Vec<&str> = Vec::new();
 		let mut ignored = 0;
@@ -33,7 +37,7 @@ impl FileResult {
 		}
 		if !failed.is_empty() {
 			TestResult::Fail(failed.join("\n"))
-		} else if ignored > 0 {
+		} else if ignored == self.total {
 			TestResult::Ignore(None)
 		} else {
 			TestResult::Pass

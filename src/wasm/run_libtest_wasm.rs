@@ -4,7 +4,7 @@ use std::sync::Arc;
 use wasm_bindgen::prelude::wasm_bindgen;
 use wasm_bindgen::JsValue;
 
-pub fn run_libtest(tests: &[&test::TestDescAndFn]) -> Result<()> {
+pub fn run_libtest_wasm(tests: &[&test::TestDescAndFn]) -> Result<()> {
 	let config = TestRunnerConfig::from_deno_args().unwrap();
 	let config = Arc::new(config);
 	let mut logger = RunnerLogger::start(config.clone(), tests);

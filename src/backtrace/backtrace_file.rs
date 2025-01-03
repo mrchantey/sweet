@@ -156,11 +156,11 @@ pub mod wasm_fs {
 
 
 #[cfg(test)]
+#[cfg(target_arch = "wasm32")]
 mod test {
 	use crate::prelude::*;
 
 	#[test]
-	#[cfg(target_arch = "wasm32")]
 	fn works() -> Result<()> {
 		expect(wasm_fs::read_file("foobar")).to_be_none()?;
 		expect(wasm_fs::read_file("Cargo.toml")).to_be_some()?;

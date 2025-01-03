@@ -21,6 +21,7 @@ use core::marker::PhantomData;
 pub(crate) struct Wrapper<T>(T);
 
 impl<T> Wrapper<T> {
+	#[allow(unused)]
 	pub(crate) const fn new(value: T) -> Self { Self(value) }
 }
 
@@ -35,6 +36,7 @@ unsafe impl<T> Sync for ScopedKey<T> {}
 
 impl<T> ScopedKey<T> {
 	#[doc(hidden)]
+	#[allow(unused)]
 	/// # Safety
 	/// `inner` must only be accessed through `ScopedKey`'s API
 	pub(crate) const unsafe fn new(

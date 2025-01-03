@@ -4,9 +4,9 @@ pub use self::close_to::*;
 pub mod expect;
 #[allow(unused_imports)]
 pub use self::expect::*;
-pub mod match_err;
+pub mod sweet_error;
 #[allow(unused_imports)]
-pub use self::match_err::*;
+pub use self::sweet_error::*;
 pub mod matcher;
 #[allow(unused_imports)]
 pub use self::matcher::*;

@@ -5,7 +5,7 @@ use anyhow::Result;
 use std::time::Duration;
 
 #[sweet::test]
-// #[should_panic]
+#[ignore = "it returns error"]
 async fn returns_err() -> Result<(), String> { Err("foo".to_string()) }
 
 #[sweet::test]
@@ -20,7 +20,7 @@ async fn dummy1() {
 // #[cfg(target_arch = "wasm32")]
 #[cfg(not(target_arch = "wasm32"))]
 #[tokio::test]
-// #[should_panic]
+#[should_panic]
 async fn dummy2() {
 	tokio::time::sleep(Duration::from_secs(1)).await;
 	panic!("waddup")
@@ -32,7 +32,7 @@ async fn dummy3() { sleep(Duration::from_secs(1)).await; }
 // #[should_panic]
 async fn dummy4() { sleep(Duration::from_secs(1)).await; }
 #[sweet::test]
-// #[should_panic]
+#[should_panic]
 async fn dummy5() {
 	sleep(Duration::from_secs(1)).await;
 	panic!("whaya");
