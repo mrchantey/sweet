@@ -36,8 +36,8 @@ test-all *args:
 	cargo test --test hello_test --target wasm32-unknown-unknown -- {{args}}
 	cargo test --test hello_async -- {{args}}
 	cargo test --test hello_async --target wasm32-unknown-unknown -- {{args}}
-	cargo test --lib -- {{args}}
-	cargo test --lib --target wasm32-unknown-unknown -- {{args}}
+	cargo test --workspace -- {{args}}
+	cargo test --workspace --target wasm32-unknown-unknown -- {{args}}
 
 expand-wasm test *args:
 	just watch 'cargo expand --test {{test}} --target wasm32-unknown-unknown {{args}}'

@@ -2,7 +2,7 @@
 use crate::prelude::*;
 
 /// A sweet error is the panic payload emitted by matchers:
-/// ```rust
+/// ```should_panic
 /// # use sweet::prelude::*;
 /// // this will panic with a MatcherErr
 /// expect(true).to_be_false();
@@ -22,8 +22,8 @@ pub struct SweetError {
 impl SweetError {
 	/// callsite of a users expect, ie
 	/// ```
-	/// #use sweet::prelude::*;
-	/// expect(true).to_be_false();
+	/// # use sweet::prelude::*;
+	/// expect(true).to_be_true();
 	/// ```
 	pub const BACKTRACE_LEVEL_5: usize = 5;
 	/// callsite of Matcher::to_be, ie [Matcher::to_be_true]

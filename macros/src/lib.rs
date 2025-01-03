@@ -11,8 +11,7 @@ use sweet_test_attr::SweetTestAttr;
 ///
 /// In the case of sync tests this simply replaces `#[sweet::test]` with `#[test]`.
 ///
-/// ```rust
-///
+/// ```ignore
 /// #[sweet::test]
 /// fn my_test() {
 /// 	assert_eq!(2 + 2, 4);

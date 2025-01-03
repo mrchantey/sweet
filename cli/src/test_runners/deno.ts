@@ -22,7 +22,8 @@ const wasm = await init()
 		Deno.exit(1);
 	})
 
-await wasm.run_with_pending().catch((_err: any) => {
+// may not exist and thats ok
+await wasm.run_with_pending?.().catch((_err: any) => {
 	// async tests failed
 	Deno.exit(1);
 })

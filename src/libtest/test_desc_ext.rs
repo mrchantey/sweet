@@ -134,7 +134,7 @@ pub fn test_err_full_format(
 
 /// for a given error `it failed!` format like so:
 ///
-/// ```
+/// ```ignore
 /// ● file_name.rs > test_name
 ///
 ///
@@ -147,7 +147,7 @@ pub fn test_err_location(file_stem: &str, test_name: &str) -> String {
 
 /// for a given error `it failed!` format like so:
 ///
-/// ```
+/// ```ignore
 /// it failed!
 ///
 /// at path/to/file_name.rs:1:2
