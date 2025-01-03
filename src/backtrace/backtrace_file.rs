@@ -1,21 +1,31 @@
 use crate::libtest::test_err_link;
+use ::test::TestDesc;
 use anyhow::Result;
 use backtrace::Backtrace;
 use backtrace::BacktraceFrame;
 use colorize::*;
 use forky::prelude::*;
-use std::fs;
 use std::panic::PanicHookInfo;
 use std::path::Path;
-use test::TestDesc;
 
 pub struct BacktraceFile;
 
 impl BacktraceFile {
+	/// Attempts to retrieve a bactrace, using the panic hook
+	/// # Panics
+	/// if wasm is the target
+	#[allow(unused)]
 	pub fn backtrace_str(depth: usize) -> Result<String> {
-		let bt = Backtrace::new_unresolved();
-		let frame = Self::get_frame(&bt, depth)?;
-		Self::file_context_from_frame(&frame)
+		#[cfg(target_arch = "wasm32")]
+		{
+			anyhow::bail!("Backtrace not supported on wasm");
+		}
+		#[cfg(not(target_arch = "wasm32"))]
+		{
+			let bt = Backtrace::new_unresolved();
+			let frame = Self::get_frame(&bt, depth)?;
+			Self::file_context_from_frame(&frame)
+		}
 	}
 
 	pub fn get_frame(bt: &Backtrace, depth: usize) -> Result<BacktraceFrame> {
@@ -84,7 +94,7 @@ impl BacktraceFile {
 				anyhow::anyhow!("Failed to read file {}", &file.display())
 			})?;
 		#[cfg(not(target_arch = "wasm32"))]
-		let lines = fs::read_to_string(file)?;
+		let lines = std::fs::read_to_string(file)?;
 		let lines: Vec<&str> = lines.split("\n").collect();
 		let start =
 			usize::max(0, line_no.saturating_sub(LINE_CONTEXT_SIZE + 1));
