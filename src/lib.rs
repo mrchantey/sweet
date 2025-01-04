@@ -72,5 +72,5 @@ pub fn test_runner(tests: &[&test::TestDescAndFn]) {
 	#[cfg(target_arch = "wasm32")]
 	crate::wasm::run_libtest_wasm(tests).unwrap();
 	#[cfg(not(target_arch = "wasm32"))]
-	crate::native::run_libtest(tests).unwrap();
+	crate::native::run_libtest_native(tests).unwrap();
 }

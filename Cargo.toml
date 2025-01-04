@@ -39,13 +39,13 @@ glob = "0.3.1"
 #💡 async
 futures = "0.3.28"
 futures-util = "0.3.28"
-tokio = { version = "1.27.0", features = [
+tokio = { version = "1.42", features = [
 	"macros",
 	"rt",
 	"rt-multi-thread",
 	"time",
 ] }
-tokio-stream = "0.1.14"
+# tokio-stream = "0.1.14"
 rayon = "1.7.0"
 
 #💡 math
@@ -198,14 +198,8 @@ features = [
 
 [[test]]
 name = "hello_test"
-path = "example_tests/hello_test.rs"
+path = "test_examples/hello_test.rs"
 
 [[test]]
 name = "hello_async"
-path = "example_tests/hello_async.rs"
-[[test]]
-name = "sweet_macro"
-path = "example_tests/sweet_macro.rs"
-[[test]]
-name = "scratchpad"
-path = "example_tests/scratchpad.rs"
+path = "test_examples/hello_async.rs"

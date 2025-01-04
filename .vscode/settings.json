@@ -1,7 +1,7 @@
 {
 	"rust-analyzer.cargo.features": ["bevy"],
 	// "rust-analyzer.files.excludeDirs": ["tests"],
-	"rust-analyzer.cargo.target": "wasm32-unknown-unknown",
+	// "rust-analyzer.cargo.target": "wasm32-unknown-unknown",
 	"deno.enable": true,
 	"search.exclude": {
 		"**/node_modules": true,

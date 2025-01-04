@@ -7,7 +7,3 @@
 
 [target.wasm32-unknown-unknown]
 runner = 'cargo run -p sweet-cli -- test-wasm'
-
-
-[target.wasm32-wasi]
-runner = "wasmtime"

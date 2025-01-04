@@ -1,5 +1,6 @@
 use anyhow::Result;
 use clap::Parser;
+use clap::ValueEnum;
 use glob::Pattern;
 use glob::PatternError;
 use std::path::PathBuf;
@@ -39,7 +40,7 @@ pub struct TestRunnerConfig {
 	#[arg(short, long)]
 	pub quiet: bool,
 	/// The output format to use: 'file', 'case', 'vanilla'
-	#[arg(short, long, default_value_t = OutputFormat::File)]
+	#[clap(long, value_enum, default_value_t)]
 	pub format: OutputFormat,
 	// pub nocapture: bool,
 	// #[arg(short, long, action = clap::ArgAction::Count)]
@@ -191,7 +192,7 @@ impl std::fmt::Display for TestRunnerConfig {
 	}
 }
 
-#[derive(Debug, Clone, Default, PartialEq)]
+#[derive(Debug, Clone, Default, PartialEq, ValueEnum)]
 pub enum OutputFormat {
 	/// Output per file
 	#[default]

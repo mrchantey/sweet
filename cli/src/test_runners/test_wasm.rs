@@ -27,9 +27,11 @@ pub struct TestWasm {
 	/// It will look something like $CARGO_TARGET_DIR/wasm32-unknown-unknown/debug/deps/hello_test-c3298911e67ad05b.wasm
 	test_binary: String,
 	/// arguments passed to wasm-bindgen
+	#[arg(long)]
 	wasm_bindgen_args: Option<String>,
-	/// arguments passed to deno, node, etc
-	wasm_runtime_args: Option<String>, // TODO these are the sweet clap args
+
+	// we wont actuallly use this because the args will
+	// be passed to deno, but it provides --help messages
 	#[command(flatten)]
 	runner_args: sweet::prelude::TestRunnerConfig,
 }
