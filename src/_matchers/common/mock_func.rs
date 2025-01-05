@@ -3,12 +3,37 @@ use std::sync::Mutex;
 
 
 
-fn _empty_func(_: ()) {}
 
-pub fn mock_trigger() -> MockFunc<(), (), fn(())> { MockFunc::new(_empty_func) }
+pub fn mock_trigger() -> MockFunc<(), (), fn(())> {
+	fn func(_: ()) {}
+	MockFunc::new(func)
+}
+pub fn mock_bucket<T>() -> MockFunc<T, T, fn(val: T) -> T> {
+	fn func<T>(val: T) -> T { val }
+	MockFunc::new(func)
+}
 pub fn mock_func<I, O, F: Fn(I) -> O>(func: F) -> MockFunc<I, O, F> {
 	MockFunc::new(func)
 }
+
+
+
+
+impl<I, O, F: Fn(I) -> O> FnOnce<(I,)> for MockFunc<I, O, F> {
+	type Output = ();
+	extern "rust-call" fn call_once(self, args: (I,)) -> () { self.call(args); }
+}
+impl<I, O, F: Fn(I) -> O> FnMut<(I,)> for MockFunc<I, O, F> {
+	extern "rust-call" fn call_mut(&mut self, args: (I,)) -> () {
+		self.call(args);
+	}
+}
+impl<I, O, F: Fn(I) -> O> Fn<(I,)> for MockFunc<I, O, F> {
+	extern "rust-call" fn call(&self, args: (I,)) -> () {
+		self.call_inner(args.0);
+	}
+}
+
 
 #[derive(Debug, Clone)]
 pub struct MockFunc<I, O, F> {
@@ -16,6 +41,7 @@ pub struct MockFunc<I, O, F> {
 	pub func: F,
 	pub _phantom: std::marker::PhantomData<I>,
 }
+
 
 
 impl<I, O, F: Fn(I) -> O> MockFunc<I, O, F> {
@@ -26,7 +52,7 @@ impl<I, O, F: Fn(I) -> O> MockFunc<I, O, F> {
 			_phantom: std::marker::PhantomData,
 		}
 	}
-	pub fn call(&self, input: I) {
+	pub fn call_inner(&self, input: I) {
 		let output = (self.func)(input);
 		self.called.lock().unwrap().push(output);
 	}

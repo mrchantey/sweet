@@ -34,11 +34,11 @@ impl<I, O: Clone, F> Matcher<&MockFunc<I, O, F>> {
 }
 impl<I, O: Debug + PartialEq, F> Matcher<&MockFunc<I, O, F>> {
 	/// checks the first time it was called
-	pub fn to_have_returned_with(&self, expected: &O) {
+	pub fn to_have_returned_with(&self, expected: O) {
 		if let Some(received) = self.value.called.lock().unwrap().first() {
 			self.assert_correct_with_received(
-				received == expected,
-				expected,
+				received == &expected,
+				&expected,
 				received,
 			);
 		} else {
@@ -71,8 +71,8 @@ mod test {
 	#[test]
 	fn test_mock_trigger() {
 		let func = mock_trigger();
-		func.call(());
-		func.call(());
+		func(());
+		func(());
 		expect(&func).to_have_been_called();
 		expect(&func).to_have_been_called_times(2);
 		expect(&func.clone()).not().to_have_been_called_times(1);
@@ -80,11 +80,11 @@ mod test {
 	#[test]
 	fn test_mock_func() {
 		let func = mock_func(|i| i * 2);
-		func.call(0);
-		func.call(2);
+		func(0);
+		func(2);
 		expect(&func).to_have_been_called();
-		expect(&func).to_have_returned_with(&0);
-		expect(&func).not().to_have_returned_with(&4);
+		expect(&func).to_have_returned_with(0);
+		expect(&func).not().to_have_returned_with(4);
 		expect(&func).nth_return(1).to_be(4);
 		expect(&func).nth_return(0).to_be(0);
 		expect(&func).nth_return(1).to_be(4);

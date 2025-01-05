@@ -84,6 +84,7 @@ impl TestWasm {
 		let args = std::env::args().skip(2).collect::<Vec<_>>();
 		let status = Command::new("deno")
 			.arg("--allow-read")
+			.arg("--allow-net")
 			.arg(DENO_RUNNER_PATH)
 			.args(args)
 			.status()?;

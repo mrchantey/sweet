@@ -2,6 +2,8 @@
 #![cfg_attr(test, feature(custom_test_frameworks))]
 #![cfg_attr(test, test_runner(crate::test_runner))]
 #![feature(panic_payload_as_str)]
+// implement FnMut for MockFunc
+#![feature(fn_traits, unboxed_closures)]
 // #![feature(panic_payload_as_str)]
 //!
 //! # Usage
@@ -40,7 +42,8 @@ pub mod test_runner;
 /// Test suite module
 pub mod test_suite;
 pub mod utils;
-pub use logging::log_val;
+/// logging utils
+pub use logging::log::*;
 
 #[path = "_matchers/mod.rs"]
 /// Matchers used for assertions: `expect(true).to_be_true()`

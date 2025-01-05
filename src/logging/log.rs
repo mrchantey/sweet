@@ -21,5 +21,9 @@ macro_rules! log {
 
 /// cross-platform way of logging a string
 pub fn log_val(val: &str) {
-	log!("{}", val);
+	log!("{val}");
+}
+/// cross-platform way of logging a key and value
+pub fn log_kvp(key: &str, val: &str) {
+	log!("{key}: {val}");
 }
