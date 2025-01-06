@@ -40,7 +40,7 @@ pub struct TestWasm {
 impl TestWasm {
 	pub fn run(&self) -> anyhow::Result<()> {
 		self.run_wasm_bindgen()?;
-		self.create_deno_runner()?;
+		self.init_deno()?;
 		self.run_deno()?;
 		Ok(())
 	}
@@ -68,9 +68,22 @@ impl TestWasm {
 		Ok(())
 	}
 
-	fn create_deno_runner(&self) -> Result<()> {
+
+	/// Move the deno file to the correct directory,
+	/// if this is the first time this will also ensure deno is installed
+	/// by running `deno --version`
+	fn init_deno(&self) -> Result<()> {
 		if let Ok(true) = fs::exists(DENO_RUNNER_PATH) {
 			return Ok(());
+		};
+
+		let deno_installed =
+			match Command::new("deno").arg("--version").status() {
+				Ok(val) => val.success(),
+				_ => false,
+			};
+		if !deno_installed {
+			anyhow::bail!(INSTALL_DENO);
 		}
 		// wasm-bindgen will ensure parent dir exists
 		fs::write(DENO_RUNNER_PATH, include_str!("./deno.ts"))?;
@@ -95,3 +108,14 @@ impl TestWasm {
 		Ok(())
 	}
 }
+
+
+const INSTALL_DENO: &str = "
+🦖 Sweet uses Deno for WASM tests 🦖
+
+Installation:
+shell: 				curl -fsSL https://deno.land/install.sh | sh
+powershell: 	irm https://deno.land/install.ps1 | iex
+other: 				https://docs.deno.com/runtime/getting_started/installation/
+
+";
