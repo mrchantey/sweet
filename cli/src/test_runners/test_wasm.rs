@@ -1,10 +1,9 @@
 use anyhow::Result;
 use clap::Parser;
 use std::fs;
+use std::path::PathBuf;
 use std::process::Command;
-
-const DENO_RUNNER_PATH: &str = "./target/sweet/deno.ts";
-
+use std::str::FromStr;
 
 /// The wasm test runner
 ///
@@ -47,7 +46,7 @@ impl TestWasm {
 	fn run_wasm_bindgen(&self) -> Result<()> {
 		let status = Command::new("wasm-bindgen")
 			.arg("--out-dir")
-			.arg("./target/sweet")
+			.arg(sweet_target_dir())
 			.arg("--out-name")
 			.arg("bindgen")
 			.arg("--target")
@@ -73,7 +72,8 @@ impl TestWasm {
 	/// if this is the first time this will also ensure deno is installed
 	/// by running `deno --version`
 	fn init_deno(&self) -> Result<()> {
-		if let Ok(true) = fs::exists(DENO_RUNNER_PATH) {
+		let deno_runner_path = deno_runner_path();
+		if let Ok(true) = fs::exists(&deno_runner_path) {
 			return Ok(());
 		};
 
@@ -86,7 +86,7 @@ impl TestWasm {
 			anyhow::bail!(INSTALL_DENO);
 		}
 		// wasm-bindgen will ensure parent dir exists
-		fs::write(DENO_RUNNER_PATH, include_str!("./deno.ts"))?;
+		fs::write(deno_runner_path, include_str!("./deno.ts"))?;
 		Ok(())
 	}
 
@@ -98,7 +98,8 @@ impl TestWasm {
 		let status = Command::new("deno")
 			.arg("--allow-read")
 			.arg("--allow-net")
-			.arg(DENO_RUNNER_PATH)
+			.arg("--allow-env")
+			.arg(deno_runner_path())
 			.args(args)
 			.status()?;
 
@@ -109,6 +110,22 @@ impl TestWasm {
 	}
 }
 
+fn workspace_root() -> PathBuf {
+	let root_str = std::env::var("SWEET_ROOT").unwrap_or_default();
+	PathBuf::from_str(&root_str).unwrap()
+}
+
+fn sweet_target_dir() -> PathBuf {
+	let mut path = workspace_root();
+	path.push("target/sweet");
+	path
+}
+
+fn deno_runner_path() -> PathBuf {
+	let mut path = sweet_target_dir();
+	path.push("deno.ts");
+	path
+}
 
 const INSTALL_DENO: &str = "
 🦖 Sweet uses Deno for WASM tests 🦖
@@ -119,3 +136,18 @@ powershell: 	irm https://deno.land/install.ps1 | iex
 other: 				https://docs.deno.com/runtime/getting_started/installation/
 
 ";
+
+
+#[cfg(test)]
+mod test {
+	use crate::prelude::*;
+	use sweet::prelude::*;
+	use test_wasm::deno_runner_path;
+
+	#[test]
+	fn works() {
+		expect(deno_runner_path().to_string_lossy())
+			.to_end_with("target/sweet/deno.ts");
+		expect(true).to_be_false();
+	}
+}
