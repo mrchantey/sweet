@@ -136,16 +136,6 @@ wasm-bindgen-futures.workspace = true
 console_error_panic_hook.workspace = true
 forky = { workspace = true, features = ["web"] }
 
-
-#💡 wasm - dev
-[target.'cfg(target_arch = "wasm32")'.dev-dependencies]
-[[test]]
-name = "test_sweet"
-path = "test/sweet.rs"
-harness = false
-required-features = ["bevy"]
-
-
 #https://rustwasm.github.io/wasm-bindgen/api/web_sys/
 #https://github.com/rustwasm/wasm-bindgen/blob/main/crates/web-sys/Cargo.toml
 [workspace.dependencies.web-sys]
