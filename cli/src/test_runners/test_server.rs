@@ -1,7 +1,8 @@
 use anyhow::Result;
 use clap::Parser;
+use forky::prelude::process::unwrap_status;
+use forky::prelude::process::whitespace_command;
 use std::process::Child;
-use std::process::Command;
 
 /// Spin up a server, run some tests, then shut it down.
 ///
@@ -51,23 +52,6 @@ impl TestServer {
 }
 
 
-fn whitespace_command(cmd: &str) -> Command {
-	let cmd = cmd.split_whitespace();
-	let mut command = Command::new(cmd.clone().next().unwrap());
-	for arg in cmd.skip(1) {
-		command.arg(arg);
-	}
-	command
-}
-
-
-fn unwrap_status(mut cmd: Command) -> Result<()> {
-	let status = cmd.status()?;
-	if !status.success() {
-		Err(anyhow::anyhow!("Command failed: {:?}", status))?;
-	}
-	Ok(())
-}
 
 
 #[cfg(test)]

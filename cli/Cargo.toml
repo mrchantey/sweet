@@ -16,7 +16,7 @@ name = "sweet"
 path = "src/main.rs"
 
 [dependencies]
+forky = { workspace = true, features = ["fs"] }
 anyhow.workspace = true
 clap.workspace = true
 sweet.workspace = true
-
