@@ -84,7 +84,7 @@ impl RunnerLogger {
 		}
 		self.on_results_printed();
 		if !self.config.watch && !result_count.succeeded() {
-			// std::process::exit(1);
+			std::process::exit(1);
 		}
 	}
 

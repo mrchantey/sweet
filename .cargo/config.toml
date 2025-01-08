@@ -4,6 +4,12 @@
 
 # 	[target.wasm32-unknown-unknown]
 # 	runner = 'sweet test-wasm'
+# 	[env]
+# 	SWEET_ROOT = { value = "", relative = true }
 
 [target.wasm32-unknown-unknown]
 runner = 'cargo run -p sweet-cli -- test-wasm'
+
+
+[env]
+SWEET_ROOT = { value = "", relative = true }
