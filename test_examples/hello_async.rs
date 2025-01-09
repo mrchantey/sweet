@@ -9,8 +9,8 @@ use std::time::Duration;
 async fn returns_err() -> Result<(), String> { Err("foo".to_string()) }
 
 #[sweet::test]
-#[should_panic]
-#[ignore = "its just a dummy"]
+// #[should_panic]
+// #[ignore = "its just a dummy"]
 async fn dummy1() {
 	// tokio::time::sleep(Duration::from_secs(1)).await;
 

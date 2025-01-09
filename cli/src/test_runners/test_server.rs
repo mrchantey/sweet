@@ -1,7 +1,6 @@
 use anyhow::Result;
 use clap::Parser;
-use forky::prelude::process::unwrap_status;
-use forky::prelude::process::whitespace_command;
+use forky::prelude::*;
 use std::process::Child;
 
 /// Spin up a server, run some tests, then shut it down.
@@ -33,21 +32,21 @@ impl TestServer {
 		result
 	}
 	pub fn run_server(&self) -> Result<Child> {
-		let child = whitespace_command(&self.run_server).spawn()?;
+		let child = CommandExt::from_whitespace(&self.run_server).spawn()?;
 		Ok(child)
 	}
 
 	pub fn build_server(&self) -> Result<()> {
-		let cmd = whitespace_command(&self.build_server);
-		unwrap_status(cmd)
+		let cmd = CommandExt::from_whitespace(&self.build_server);
+		CommandExt::unwrap_status(cmd)
 	}
 
 	pub fn run_test(&self) -> Result<()> {
 		if let Some(delay) = self.delay_secs {
 			std::thread::sleep(std::time::Duration::from_secs_f32(delay));
 		}
-		let cmd = whitespace_command(&self.run_test);
-		unwrap_status(cmd)
+		let cmd = CommandExt::from_whitespace(&self.run_test);
+		CommandExt::unwrap_status(cmd)
 	}
 }
 

@@ -9,14 +9,13 @@ import init from './bindgen.js'
 // cwd will be relative to the crate, ie
 // cargo test --workspace is different cwd from cargo test -p my_crate
 // so we try to use absolute dir
-const sweet_root = Deno.env.get('SWEET_ROOT') || Deno.cwd();
 
 // wrapper function to avoid abort
 globalThis.panic_to_error = f => f();
+globalThis.cwd = () => Deno.cwd()
 globalThis.read_file = (path: string) => {
-	let full_path = `${sweet_root}/${path}`
 	try {
-		return Deno.readTextFileSync(full_path)
+		return Deno.readTextFileSync(path)
 	} catch (err) {
 		return null
 	}
