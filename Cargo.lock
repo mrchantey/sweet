@@ -930,6 +930,7 @@ dependencies = [
 [[package]]
 name = "forky"
 version = "0.2.0-rc.10"
+source = "git+https://github.com/mrchantey/forky#ddc675dc9f7aaff2d8dedec7c968146d668285cc"
 dependencies = [
  "forky_core",
  "forky_fs",
@@ -939,6 +940,7 @@ dependencies = [
 [[package]]
 name = "forky_core"
 version = "0.2.0-rc.10"
+source = "git+https://github.com/mrchantey/forky#ddc675dc9f7aaff2d8dedec7c968146d668285cc"
 dependencies = [
  "anyhow",
  "extend",
@@ -948,6 +950,7 @@ dependencies = [
 [[package]]
 name = "forky_fs"
 version = "0.2.0-rc.10"
+source = "git+https://github.com/mrchantey/forky#ddc675dc9f7aaff2d8dedec7c968146d668285cc"
 dependencies = [
  "anyhow",
  "clap",
@@ -967,6 +970,7 @@ dependencies = [
 [[package]]
 name = "forky_web"
 version = "0.2.0-rc.10"
+source = "git+https://github.com/mrchantey/forky#ddc675dc9f7aaff2d8dedec7c968146d668285cc"
 dependencies = [
  "anyhow",
  "console_error_panic_hook",
