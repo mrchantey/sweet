@@ -7,7 +7,9 @@ pub type ParseResult<T> = Result<T, ParseError>;
 pub enum ParseError {
 	#[error("{0}")]
 	Fs(FsError),
-	#[error("{0}")]
+	#[error("Hydration Error: {0}")]
+	Hydration(String),
+	#[error("Parse Error: {0}")]
 	Other(String),
 }
 

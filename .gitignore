@@ -1,5 +1,5 @@
-book
 rustc-ice*
 target
 tests/assert.rs
 tests/expect.rs
+# crates/sweet_site/src/out

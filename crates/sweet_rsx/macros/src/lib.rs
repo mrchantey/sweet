@@ -1,15 +1,10 @@
 use proc_macro::TokenStream;
-use quote::quote;
-use quote::ToTokens;
 mod rstml_demo;
+mod rsx;
 
-
+/// Make like a cool rsx thing
 #[proc_macro]
-pub fn rsx(_tokens: TokenStream) -> TokenStream {
-	quote! {}.to_token_stream().into()
-	// view_macro_impl(tokens, false)
-}
-
+pub fn rsx(tokens: TokenStream) -> TokenStream { rsx::RsxMacro::parse(tokens) }
 
 /// Converts HTML to `String`.
 ///

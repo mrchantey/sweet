@@ -83,4 +83,4 @@ watch *command:
 	forky watch --rusty	-- {{command}}
 
 expand-rsx:
-	just watch cargo expand -p sweet_rsx --example html_to_string
+	just watch cargo expand -p sweet_rsx --example rsx_macro

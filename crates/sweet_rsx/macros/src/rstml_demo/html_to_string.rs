@@ -173,7 +173,7 @@ where
 				self.output
 					.static_format
 					.push_str(&format!(" {}", attribute.key));
-				if let Some(value) = attribute.value() {
+				if let Some(_value) = attribute.value() {
 					self.output.static_format.push_str(r#"="event-handler-1""#);
 					// self.output.static_format.push_str(r#"="{}""#);
 					// self.output.values.push(value.to_token_stream());
@@ -240,7 +240,9 @@ pub fn html_inner(tokens: TokenStream, ide_helper: bool) -> TokenStream {
 	.into()
 }
 
-fn generate_tags_docs(elements: &[NodeName]) -> Vec<proc_macro2::TokenStream> {
+pub fn generate_tags_docs(
+	elements: &[NodeName],
+) -> Vec<proc_macro2::TokenStream> {
 	// Mark some of elements as type,
 	// and other as elements as fn in crate::docs,
 	// to give an example how to link tag with docs.

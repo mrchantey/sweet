@@ -146,8 +146,10 @@ keywords = [ # 5 at most
 ]
 
 [features]
+rsx = ["dep:sweet_rsx"]
 test = ["dep:sweet_test"]
 bevy = ["sweet_test?/bevy"]
 
 [dependencies]
 sweet_test = { workspace = true, optional = true }
+sweet_rsx = { workspace = true, optional = true }

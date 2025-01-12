@@ -1,3 +1,4 @@
+pub use sweet_rsx_macros;
 pub use sweet_rsx_macros::*;
 pub mod rsx;
 

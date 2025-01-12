@@ -29,6 +29,7 @@
 //!
 extern crate test;
 // the #[sweet::test] macro
+pub use sweet_test_macros;
 pub use sweet_test_macros::test;
 // #[cfg(test)]
 // use libtest_runner::testlib_runner as libtest_runner;

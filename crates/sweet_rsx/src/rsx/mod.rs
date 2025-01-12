@@ -1,3 +1,6 @@
+pub mod hydrate_client;
+#[allow(unused_imports)]
+pub use self::hydrate_client::*;
 pub mod into_html;
 #[allow(unused_imports)]
 pub use self::into_html::*;
