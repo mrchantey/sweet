@@ -73,7 +73,6 @@ impl<F: Future<Output = Result<JsValue, JsValue>>> Future for TestFuture<F> {
 			}
 		}
 
-
 		match future_poll_output {
 			Some(Poll::Pending) => Poll::Pending,
 			_ => {

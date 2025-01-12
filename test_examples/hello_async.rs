@@ -33,9 +33,7 @@ async fn dummy4() { sleep(Duration::from_secs(1)).await; }
 #[sweet::test]
 #[should_panic]
 async fn dummy5() {
-	sweet::log!("here1");
 	sleep(Duration::from_secs(1)).await;
-	sweet::log!("here2");
 	panic!("whaya");
 }
 

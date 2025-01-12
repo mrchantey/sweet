@@ -4,7 +4,7 @@
 import init from './bindgen.js'
 
 // THIS FILE IS CACHED
-// During development, delete target/sweet/deno.ts in between changes
+// ⚠️⚠️⚠️⚠️ For the love of god delete target/sweet/deno.ts in between changes ⚠️⚠️⚠️⚠️
 
 // cwd will be relative to the crate, ie
 // cargo test --workspace is different cwd from cargo test -p my_crate
