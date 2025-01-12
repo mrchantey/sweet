@@ -1,0 +1,15 @@
+[package]
+name = "sweet_site"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+description.workspace = true
+documentation.workspace = true
+repository.workspace = true
+
+
+[dependencies]
+sweet_rsx.workspace = true
+
+reactive_graph = "0.1"

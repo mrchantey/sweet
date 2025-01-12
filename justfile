@@ -77,10 +77,7 @@ test-runner test-binary *args:
 	deno --allow-read run.ts {{args}}
 
 watch *command:
-	forky watch \
-	-w '**/*.rs' \
-	-w '**/*.ts' \
-	-i '{.git,target,html}/**' \
-	-i '**/mod.rs' \
-	-i '**/*_g.rs' \
-	-- {{command}}
+	forky watch --rusty	-- {{command}}
+
+expand-rsx:
+	just watch cargo expand -p sweet_rsx --example html_to_string
