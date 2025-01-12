@@ -887,7 +887,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7199d965852c3bac31f779ef99cbb4537f80e952e2d6aa0ffeb30cce00f4f46e"
 dependencies = [
  "libc",
- "thiserror",
+ "thiserror 1.0.63",
  "winapi",
 ]
 
@@ -929,8 +929,7 @@ dependencies = [
 
 [[package]]
 name = "forky"
-version = "0.2.0-rc.10"
-source = "git+https://github.com/mrchantey/forky#ddc675dc9f7aaff2d8dedec7c968146d668285cc"
+version = "0.2.0-rc.1"
 dependencies = [
  "forky_core",
  "forky_fs",
@@ -939,8 +938,7 @@ dependencies = [
 
 [[package]]
 name = "forky_core"
-version = "0.2.0-rc.10"
-source = "git+https://github.com/mrchantey/forky#ddc675dc9f7aaff2d8dedec7c968146d668285cc"
+version = "0.2.0-rc.1"
 dependencies = [
  "anyhow",
  "extend",
@@ -949,8 +947,7 @@ dependencies = [
 
 [[package]]
 name = "forky_fs"
-version = "0.2.0-rc.10"
-source = "git+https://github.com/mrchantey/forky#ddc675dc9f7aaff2d8dedec7c968146d668285cc"
+version = "0.2.0-rc.1"
 dependencies = [
  "anyhow",
  "clap",
@@ -964,13 +961,13 @@ dependencies = [
  "notify",
  "notify-debouncer-full",
  "sha2",
+ "thiserror 2.0.11",
  "tokio",
 ]
 
 [[package]]
 name = "forky_web"
-version = "0.2.0-rc.10"
-source = "git+https://github.com/mrchantey/forky#ddc675dc9f7aaff2d8dedec7c968146d668285cc"
+version = "0.2.0-rc.1"
 dependencies = [
  "anyhow",
  "console_error_panic_hook",
@@ -1591,9 +1588,9 @@ dependencies = [
 
 [[package]]
 name = "proc-macro2"
-version = "1.0.86"
+version = "1.0.93"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5e719e8df665df0d1c8fbfd238015744736151d4445ec0836b8e628aae103b77"
+checksum = "60946a68e5f9d28b0dc1c21bb8a97ee7d018a8b322fa57838ba31cc878e22d99"
 dependencies = [
  "unicode-ident",
 ]
@@ -1942,9 +1939,9 @@ dependencies = [
 
 [[package]]
 name = "syn"
-version = "2.0.72"
+version = "2.0.96"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dc4b9b9bf2add8093d3f2c0204471e951b2285580335de42f9d2534f3ae7a8af"
+checksum = "d5d0adab1ae378d7f53bdebc67a39f1f151407ef230f0ce2883572f5d8985c80"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1978,7 +1975,16 @@ version = "1.0.63"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c0342370b38b6a11b6cc11d6a805569958d54cfa061a29969c3b5ce2ea405724"
 dependencies = [
- "thiserror-impl",
+ "thiserror-impl 1.0.63",
+]
+
+[[package]]
+name = "thiserror"
+version = "2.0.11"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d452f284b73e6d76dd36758a0c8684b1d5be31f92b89d07fd5822175732206fc"
+dependencies = [
+ "thiserror-impl 2.0.11",
 ]
 
 [[package]]
@@ -1986,6 +1992,17 @@ name = "thiserror-impl"
 version = "1.0.63"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a4558b58466b9ad7ca0f102865eccc95938dca1a74a856f2b57b6629050da261"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
+name = "thiserror-impl"
+version = "2.0.11"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "26afc1baea8a989337eeb52b6e72a039780ce45c3edfcc9c5b9d112feeb173c2"
 dependencies = [
  "proc-macro2",
  "quote",

@@ -55,7 +55,7 @@ pub struct BenchAssert {
 const BENCH_DIR: &str = "./tests";
 
 impl BenchAssert {
-	pub fn run(&self) -> Result<()> {
+	pub fn run(self) -> Result<()> {
 		fs::create_dir_all(BENCH_DIR)?;
 
 		if self.expect_only {

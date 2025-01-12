@@ -3,7 +3,7 @@ use std::fmt::Debug;
 
 impl<T> Matcher<T>
 where
-	T: Debug + Clone,
+	T: Debug,
 {
 	pub fn to_be<T2: Debug>(&self, other: T2)
 	where

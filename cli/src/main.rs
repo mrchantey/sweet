@@ -17,13 +17,15 @@ struct Cli {
 enum Commands {
 	BenchAssert(BenchAssert),
 	Rsx(Rsx),
+	TestServer(TestServer),
 	TestWasm(TestWasm),
 }
 
 fn main() -> Result<()> {
-	match &Cli::parse().command {
+	match Cli::parse().command {
 		Commands::BenchAssert(cmd) => cmd.run(),
 		Commands::Rsx(cmd) => cmd.run(),
+		Commands::TestServer(cmd) => cmd.run(),
 		Commands::TestWasm(cmd) => cmd.run(),
 	}
 }

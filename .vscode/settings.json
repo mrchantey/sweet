@@ -1,5 +1,5 @@
 {
-	"rust-analyzer.cargo.features": ["bevy"],
+	"rust-analyzer.cargo.features": ["sweet/bevy"],
 	// "rust-analyzer.files.excludeDirs": ["tests"],
 	// "rust-analyzer.cargo.target": "wasm32-unknown-unknown",
 	"deno.enable": true,
