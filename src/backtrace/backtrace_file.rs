@@ -6,6 +6,7 @@ use colorize::*;
 use forky::prelude::*;
 use std::panic::PanicHookInfo;
 use std::path::Path;
+use std::path::PathBuf;
 
 pub struct BacktraceFile;
 
@@ -57,19 +58,14 @@ impl BacktraceFile {
 	/// # Errors
 	/// This function will return an error if the file cannot be read
 	pub fn file_context(
-		file: &Path,
+		path: &Path,
 		line_no: usize,
 		col_no: usize,
 	) -> Result<String> {
+		let path = with_sweet_root(path);
+		let file = read_file(&path)?;
+		let lines: Vec<&str> = file.split("\n").collect();
 		//line number is one-indexed
-		#[cfg(target_arch = "wasm32")]
-		let lines = wasm_fs::read_file(&file.to_string_lossy().to_string())
-			.ok_or_else(|| {
-				anyhow::anyhow!("Failed to read file {}", &file.display())
-			})?;
-		#[cfg(not(target_arch = "wasm32"))]
-		let lines = std::fs::read_to_string(file)?;
-		let lines: Vec<&str> = lines.split("\n").collect();
 		let start =
 			usize::max(0, line_no.saturating_sub(Self::LINE_CONTEXT_SIZE + 1));
 		let end =
@@ -102,13 +98,58 @@ impl BacktraceFile {
 		}
 
 		output.push_string(&test_err_link(
-			&file.relative().unwrap_or(file).to_string_lossy(),
+			&path.relative().unwrap_or(&path).to_string_lossy(),
 			line_no,
 			col_no,
 		));
 		Ok(output)
 	}
 }
+/// Prefix the path with $SWEET_ROOT if it exists
+fn with_sweet_root(path: &Path) -> PathBuf {
+	if let Some(sweet_root) = std::env::var("SWEET_ROOT").ok() {
+		let mut root = PathBuf::from(sweet_root);
+		root.push(path);
+		root
+	} else {
+		path.to_path_buf()
+	}
+}
+
+fn read_file(path: &Path) -> Result<String> {
+	let bail = |cwd: &str| {
+		anyhow::anyhow!(
+			"Failed to read file:\ncwd:\t{}\npath:\t{}\n{CONTEXT}",
+			cwd,
+			&path.display()
+		)
+	};
+
+	const CONTEXT: &str = r#"
+This can happen when working with workspaces and the sweet root has not been set.
+Please ensure the following is configured in `.cargo/config.toml`:
+
+[env]
+SWEET_ROOT = { value = "", relative = true }
+
+"#;
+
+	#[cfg(target_arch = "wasm32")]
+	let file = wasm_fs::read_file(&path.to_string_lossy().to_string())
+		.ok_or_else(|| bail(&wasm_fs::cwd()))?;
+	#[cfg(not(target_arch = "wasm32"))]
+	let file = std::fs::read_to_string(path).map_err(|_| {
+		bail(
+			&std::env::current_dir()
+				.unwrap_or_default()
+				.display()
+				.to_string(),
+		)
+	})?;
+
+	Ok(file)
+}
+
 
 const LINE_BUFFER_LEN: usize = 3;
 
@@ -123,6 +164,10 @@ fn line_number_buffer(line_no: usize) -> String {
 #[cfg(target_arch = "wasm32")]
 pub mod wasm_fs {
 	use wasm_bindgen::prelude::*;
+	#[wasm_bindgen]
+	extern "C" {
+		pub fn cwd() -> String;
+	}
 	#[wasm_bindgen]
 	extern "C" {
 		pub fn read_file(path: &str) -> Option<String>;

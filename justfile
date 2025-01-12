@@ -24,6 +24,9 @@ clear-deno:
 
 #💡 Test
 
+test-cli *args:
+	just watch 'cargo test -p sweet-cli --lib -- --watch {{args}}'
+
 test-lib *args:
 	just watch 'cargo test --lib -- --watch {{args}}'
 test test_name *args:

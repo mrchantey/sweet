@@ -37,7 +37,7 @@ pub struct TestWasm {
 
 
 impl TestWasm {
-	pub fn run(&self) -> Result<()> {
+	pub fn run(self) -> Result<()> {
 		self.run_wasm_bindgen()?;
 		self.init_deno()?;
 		self.run_deno()?;

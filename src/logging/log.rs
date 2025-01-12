@@ -24,6 +24,6 @@ pub fn log_val(val: &str) {
 	log!("{val}");
 }
 /// cross-platform way of logging a key and value
-pub fn log_kvp(key: &str, val: &str) {
+pub fn log_kvp(key: &str, val: impl std::fmt::Display) {
 	log!("{key}: {val}");
 }
