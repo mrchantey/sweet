@@ -1,5 +1,6 @@
 use anyhow::Result;
 use clap::Parser;
+use forky::prelude::ReadFile;
 use std::fs;
 use std::path::PathBuf;
 use std::process::Command;
@@ -73,8 +74,15 @@ impl TestWasm {
 	/// by running `deno --version`
 	fn init_deno(&self) -> Result<()> {
 		let deno_runner_path = deno_runner_path();
-		if let Ok(true) = fs::exists(&deno_runner_path) {
-			return Ok(());
+		let deno_str = include_str!("./deno.ts");
+
+		// ⚠️ we should check the hash here
+		if ReadFile::exists(&deno_runner_path) {
+			let runner_hash = ReadFile::hash_file(&deno_runner_path)?;
+			let deno_hash = ReadFile::hash_string(deno_str);
+			if runner_hash == deno_hash {
+				return Ok(());
+			}
 		};
 
 		let deno_installed =
@@ -85,8 +93,10 @@ impl TestWasm {
 		if !deno_installed {
 			anyhow::bail!(INSTALL_DENO);
 		}
+		println!("copying deno file to {}", deno_runner_path.display());
+
 		// wasm-bindgen will ensure parent dir exists
-		fs::write(deno_runner_path, include_str!("./deno.ts"))?;
+		fs::write(deno_runner_path, deno_str)?;
 		Ok(())
 	}
 
@@ -148,6 +158,5 @@ mod test {
 	fn works() {
 		expect(deno_runner_path().to_string_lossy())
 			.to_end_with("target/sweet/deno.ts");
-		expect(true).to_be_false();
 	}
 }
