@@ -1,4 +1,4 @@
-pub use crate::components::Counter;
+pub use super::super::components::Counter;
 pub use sweet_rsx::rsx;
 
 pub fn route() {

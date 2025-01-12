@@ -2119,6 +2119,8 @@ dependencies = [
 name = "sweet_site"
 version = "0.3.0-rc.1"
 dependencies = [
+ "anyhow",
+ "forky",
  "reactive_graph",
  "sweet_rsx",
 ]

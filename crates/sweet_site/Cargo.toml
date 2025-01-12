@@ -10,6 +10,8 @@ repository.workspace = true
 
 
 [dependencies]
+forky = { workspace = true, features = ["fs"] }
+anyhow.workspace = true
 sweet_rsx.workspace = true
 
 reactive_graph = "0.1"
