@@ -1,3 +1,3 @@
-pub mod Counter;
+pub mod counter_html;
 #[allow(unused_imports)]
-pub use self::Counter::*;
+pub use self::counter_html::*;

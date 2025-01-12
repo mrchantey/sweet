@@ -1,5 +1,8 @@
+use sweet_rsx::rsx::IntoHtml;
+use sweet_site::pages::Index;
+
 pub fn main() {
-	let html = sweet_site::out::pages::index::render_html().unwrap();
+	let html = Index::into_html().unwrap();
 
 	println!("{}", html);
 }

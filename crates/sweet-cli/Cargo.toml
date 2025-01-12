@@ -19,4 +19,6 @@ path = "src/main.rs"
 forky = { workspace = true, features = ["fs"] }
 anyhow.workspace = true
 clap.workspace = true
-sweet.workspace = true
+sweet = { workspace = true, features = ["test"] }
+
+[dev-dependencies]

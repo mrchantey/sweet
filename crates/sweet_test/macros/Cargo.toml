@@ -1,5 +1,5 @@
 [package]
-name = "sweet_macros"
+name = "sweet_test_macros"
 version = { workspace = true }
 edition = { workspace = true }
 authors = { workspace = true }

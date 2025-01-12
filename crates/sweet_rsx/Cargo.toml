@@ -10,4 +10,7 @@ repository.workspace = true
 
 
 [dependencies]
+thiserror.workspace = true
+anyhow.workspace = true
 sweet_rsx_macros.workspace = true
+forky = { workspace = true, features = ["fs"] }

@@ -3,6 +3,7 @@
 #![cfg_attr(test, test_runner(sweet::test_runner))]
 use anyhow::Result;
 use std::time::Duration;
+use sweet::prelude::sleep;
 
 #[test]
 #[ignore]
@@ -28,16 +29,16 @@ async fn it_panics() { panic!("foo") }
 #[tokio::test]
 #[should_panic]
 async fn it_tokio_waits_then_panics() {
-	sweet::sleep(Duration::from_secs(1)).await;
+	sleep(Duration::from_secs(1)).await;
 	panic!("waddup")
 }
 #[sweet::test]
 // #[should_panic]
-async fn it_sleeps() { sweet::sleep(Duration::from_secs(1)).await; }
+async fn it_sleeps() { sleep(Duration::from_secs(1)).await; }
 
 #[sweet::test]
 #[should_panic]
 async fn it_sleeps_then_panics() {
-	sweet::sleep(Duration::from_secs(1)).await;
+	sleep(Duration::from_secs(1)).await;
 	panic!("waddup")
 }

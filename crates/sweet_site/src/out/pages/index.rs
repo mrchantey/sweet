@@ -1,19 +1,18 @@
-use super::super::components::Counter;
+use crate::pages::Index;
+use crate::prelude::*;
 use anyhow::Result;
 use forky::prelude::*;
+use sweet_rsx::prelude::*;
 
 
-pub fn render_html() -> Result<String> {
-	let file = file!();
-	let path = std::path::Path::new(file!())
-		.parent()
-		.unwrap()
-		.join("index.html");
-	let html = ReadFile::to_string(path)?;
+impl IntoHtml for Index {
+	fn into_html() -> ParseResult<String> {
+		let html = Self::read_html_file(file!())?;
 
-	let counter = Counter::render_html()?;
+		let counter = Counter::into_html()?;
 
-	let html = html.replace("{{1}}", &counter);
+		let html = html.replace("{{1}}", &counter);
 
-	Ok(html)
+		Ok(html)
+	}
 }

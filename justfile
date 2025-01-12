@@ -35,12 +35,12 @@ test-wasm test_name *args:
 	just watch 'cargo test --test {{test_name}} --target wasm32-unknown-unknown -- --watch {{args}}'
 
 test-all *args:
-	cargo test --test hello_test -- {{args}}
-	cargo test --test hello_test --target wasm32-unknown-unknown -- {{args}}
-	cargo test --test hello_async -- {{args}}
-	cargo test --test hello_async --target wasm32-unknown-unknown -- {{args}}
+	cargo test -p sweet_test --test hello_test -- {{args}}
+	cargo test -p sweet_test --test hello_test --target wasm32-unknown-unknown -- {{args}}
+	cargo test -p sweet_test --test hello_async -- {{args}}
+	cargo test -p sweet_test --test hello_async --target wasm32-unknown-unknown -- {{args}}
 	cargo test --workspace -- {{args}}
-	cargo test --lib --target wasm32-unknown-unknown -- {{args}}
+	cargo test -p sweet_test --lib --target wasm32-unknown-unknown -- {{args}}
 
 expand-wasm test *args:
 	just watch 'cargo expand --test {{test}} --target wasm32-unknown-unknown {{args}}'
@@ -50,9 +50,12 @@ expand test *args:
 #💡 Publish
 
 publish-all:
-	just publish sweet_macros			| true
-	just publish sweet 						| true
-	just publish sweet-cli				| true
+	just publish sweet_rsx_macros		| true
+	just publish sweet_rsx					| true
+	just publish sweet_test_macros	| true
+	just publish sweet_test					| true
+	just publish sweet 							| true
+	just publish sweet-cli					| true
 
 publish crate *args:
 	cargo publish -p {{crate}} --allow-dirty --no-verify {{args}}

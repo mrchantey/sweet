@@ -1,11 +1,12 @@
 [workspace]
 resolver = "2" # Important! wgpu/Bevy needs this!
 members = [
-	"macros",
-	"cli",
 	"crates/sweet_rsx",
 	"crates/sweet_rsx/macros",
 	"crates/sweet_site",
+	"crates/sweet_test",
+	"crates/sweet_test/macros",
+	"crates/sweet-cli",
 ]
 
 [workspace.package]
@@ -19,8 +20,9 @@ documentation = "https://mrchantey.github.io/forky/docs"
 repository = "https://github.com/mrchantey/sweet"
 
 [workspace.dependencies]
-sweet = { path = ".", version = "0.3.0-rc.1" }
-sweet_macros = { path = "./macros", version = "0.3.0-rc.1" }
+sweet = { path = "", version = "0.3.0-rc.1" }
+sweet_test = { path = "crates/sweet_test", version = "0.3.0-rc.1" }
+sweet_test_macros = { path = "crates/sweet_test/macros", version = "0.3.0-rc.1" }
 sweet_rsx = { path = "crates/sweet_rsx", version = "0.3.0-rc.1" }
 sweet_rsx_macros = { path = "crates/sweet_rsx/macros", version = "0.3.0-rc.1" }
 # forky = { version = "0.2.0-rc.2", path = "../forky/crates/forky" }
@@ -33,6 +35,7 @@ forky = { path = "../forky" }
 log = "0.4"
 pretty_env_logger = "0.4"
 anyhow = "1.0"
+thiserror = "2"
 backtrace = "0.3.66"
 extend = "1.1.2"
 
@@ -72,77 +75,6 @@ js-sys = "0.3.63"
 wasm-bindgen = "0.2.99"
 wasm-bindgen-futures = "0.4.36"
 console_error_panic_hook = "0.1.7"
-
-[package]
-name = "sweet"
-version.workspace = true
-edition.workspace = true
-authors.workspace = true
-license.workspace = true
-repository.workspace = true
-readme = "README.md"
-description = "A very pretty test runner for rust"
-documentation = "https://mrchantey.github.io/forky/docs/sweet"
-categories = ["development-tools::testing"]
-keywords = [ # 5 at most
-	"test",
-	"unit",
-	"e2e",
-	"browser",
-	"webdriver",
-]
-
-[features]
-default = ["collect_libtest"]
-collect_libtest = []
-# allows collecting #[test], requires nightly
-bevy = ["dep:bevy"]
-
-[dependencies]
-#💡 internal 
-forky.workspace = true
-sweet_macros.workspace = true
-
-#💡 misc 
-anyhow.workspace = true
-getrandom.workspace = true
-extend.workspace = true
-
-#💡 console 
-log.workspace = true
-pretty_env_logger.workspace = true
-colorize.workspace = true
-backtrace.workspace = true
-
-#💡 parse 
-glob.workspace = true
-clap.workspace = true
-
-#💡 async
-flume = "0.11.1"
-rayon.workspace = true
-futures.workspace = true
-thread_local = "1.1.8"
-
-#💡 bevy 
-bevy = { workspace = true, optional = true }
-
-
-#💡 native
-[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-tokio.workspace = true
-forky = { workspace = true, features = ["fs"] }
-pin-project-lite = "0.2.15"
-
-#💡 wasm
-[target.'cfg(target_arch = "wasm32")'.dependencies]
-console_log.workspace = true
-js-sys.workspace = true
-web-sys.workspace = true
-wasm-bindgen.workspace = true
-wasm-bindgen-futures.workspace = true
-console_error_panic_hook.workspace = true
-forky = { workspace = true, features = ["web"] }
 
 #https://rustwasm.github.io/wasm-bindgen/api/web_sys/
 #https://github.com/rustwasm/wasm-bindgen/blob/main/crates/web-sys/Cargo.toml
@@ -194,10 +126,28 @@ features = [
 ]
 
 
-[[test]]
-name = "hello_test"
-path = "test_examples/hello_test.rs"
+[package]
+name = "sweet"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+readme = "README.md"
+description = "Rust web dev is sweet as!"
+documentation = "https://mrchantey.github.io/forky/docs/sweet"
+categories = ["development-tools::testing"]
+keywords = [ # 5 at most
+	"test",
+	"unit",
+	"e2e",
+	"browser",
+	"webdriver",
+]
 
-[[test]]
-name = "hello_async"
-path = "test_examples/hello_async.rs"
+[features]
+test = ["dep:sweet_test"]
+bevy = ["sweet_test?/bevy"]
+
+[dependencies]
+sweet_test = { workspace = true, optional = true }

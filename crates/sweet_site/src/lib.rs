@@ -1,8 +1,11 @@
-#![allow(non_snake_case, unused)]
+#![allow(unused)]
 
+pub mod components;
 pub mod out;
-pub mod raw;
+pub mod pages;
 
-
-
-pub mod prelude {}
+pub mod prelude {
+	pub use crate::components::*;
+	pub use crate::out::*;
+	pub use crate::pages::*;
+}

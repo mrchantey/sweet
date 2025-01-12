@@ -20,7 +20,7 @@ pub fn rsx(_tokens: TokenStream) -> TokenStream {
 ///
 /// # Example
 ///
-/// ```
+/// ``` ignore
 /// use rstml_to_string_macro::html;
 /// // using this macro, one should write docs module on top level of crate.
 /// // Macro will link html tags to them.
@@ -35,9 +35,13 @@ pub fn rsx(_tokens: TokenStream) -> TokenStream {
 /// # }
 /// ```
 #[proc_macro]
-pub fn html(tokens: TokenStream) -> TokenStream { rstml_demo::html_inner(tokens, false) }
+pub fn html(tokens: TokenStream) -> TokenStream {
+	rstml_demo::html_inner(tokens, false)
+}
 
 /// Same as html but also emit IDE helper statements.
 /// Open tests.rs in ide to see semantic highlight/goto def and docs.
 #[proc_macro]
-pub fn html_ide(tokens: TokenStream) -> TokenStream { rstml_demo::html_inner(tokens, true) }
+pub fn html_ide(tokens: TokenStream) -> TokenStream {
+	rstml_demo::html_inner(tokens, true)
+}

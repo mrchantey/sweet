@@ -2050,30 +2050,7 @@ checksum = "7da8b5736845d9f2fcb837ea5d9e2628564b3b043a70948a3f0b778838c5fb4f"
 name = "sweet"
 version = "0.3.0-rc.1"
 dependencies = [
- "anyhow",
- "backtrace",
- "bevy",
- "clap",
- "colorize",
- "console_error_panic_hook",
- "console_log",
- "extend",
- "flume",
- "forky",
- "futures",
- "getrandom",
- "glob",
- "js-sys",
- "log",
- "pin-project-lite",
- "pretty_env_logger",
- "rayon",
- "sweet_macros",
- "thread_local",
- "tokio",
- "wasm-bindgen",
- "wasm-bindgen-futures",
- "web-sys",
+ "sweet_test",
 ]
 
 [[package]]
@@ -2087,20 +2064,13 @@ dependencies = [
 ]
 
 [[package]]
-name = "sweet_macros"
-version = "0.3.0-rc.1"
-dependencies = [
- "anyhow",
- "proc-macro2",
- "quote",
- "syn",
-]
-
-[[package]]
 name = "sweet_rsx"
 version = "0.3.0-rc.1"
 dependencies = [
+ "anyhow",
+ "forky",
  "sweet_rsx_macros",
+ "thiserror 2.0.11",
 ]
 
 [[package]]
@@ -2123,6 +2093,47 @@ dependencies = [
  "forky",
  "reactive_graph",
  "sweet_rsx",
+]
+
+[[package]]
+name = "sweet_test"
+version = "0.3.0-rc.1"
+dependencies = [
+ "anyhow",
+ "backtrace",
+ "bevy",
+ "clap",
+ "colorize",
+ "console_error_panic_hook",
+ "console_log",
+ "extend",
+ "flume",
+ "forky",
+ "futures",
+ "getrandom",
+ "glob",
+ "js-sys",
+ "log",
+ "pin-project-lite",
+ "pretty_env_logger",
+ "rayon",
+ "sweet",
+ "sweet_test_macros",
+ "thread_local",
+ "tokio",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "web-sys",
+]
+
+[[package]]
+name = "sweet_test_macros"
+version = "0.3.0-rc.1"
+dependencies = [
+ "anyhow",
+ "proc-macro2",
+ "quote",
+ "syn",
 ]
 
 [[package]]
