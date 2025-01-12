@@ -8,14 +8,13 @@ use std::time::Duration;
 #[ignore = "it returns error"]
 async fn returns_err() -> Result<(), String> { Err("foo".to_string()) }
 
-#[sweet::test]
-// #[should_panic]
+// #[sweet::test]
+// // #[should_panic]
 // #[ignore = "its just a dummy"]
-async fn dummy1() {
-	// tokio::time::sleep(Duration::from_secs(1)).await;
-
-	panic!("foo")
-}
+// async fn dummy1() {
+// 	// tokio::time::sleep(Duration::from_secs(1)).await;
+// 	panic!("foo")
+// }
 
 // #[cfg(target_arch = "wasm32")]
 #[cfg(not(target_arch = "wasm32"))]
@@ -34,7 +33,9 @@ async fn dummy4() { sleep(Duration::from_secs(1)).await; }
 #[sweet::test]
 #[should_panic]
 async fn dummy5() {
+	sweet::log!("here1");
 	sleep(Duration::from_secs(1)).await;
+	sweet::log!("here2");
 	panic!("whaya");
 }
 

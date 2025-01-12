@@ -98,7 +98,7 @@ impl BacktraceFile {
 		}
 
 		output.push_string(&test_err_link(
-			&path.relative().unwrap_or(&path).to_string_lossy(),
+			&PathExt::relative(&path).unwrap_or(&path).to_string_lossy(),
 			line_no,
 			col_no,
 		));
@@ -138,7 +138,7 @@ SWEET_ROOT = { value = "", relative = true }
 	let file = wasm_fs::read_file(&path.to_string_lossy().to_string())
 		.ok_or_else(|| bail(&wasm_fs::cwd()))?;
 	#[cfg(not(target_arch = "wasm32"))]
-	let file = std::fs::read_to_string(path).map_err(|_| {
+	let file = ReadFile::to_string(path).map_err(|_| {
 		bail(
 			&std::env::current_dir()
 				.unwrap_or_default()

@@ -1,11 +1,7 @@
 use anyhow::Result;
 use clap::Parser;
-use forky::prelude::fs::read_dir_recursive;
-use std::fs;
-use std::path::Path;
+use forky::prelude::ReadDir;
 use std::path::PathBuf;
-use std::process::Command;
-use std::str::FromStr;
 
 
 
@@ -23,11 +19,16 @@ pub struct Rsx {
 }
 
 impl Rsx {
-	pub fn run(self) -> Result<()> { Ok(()) }
+	pub fn run(self) -> Result<()> {
+		self.for_each_file()?;
+		Ok(())
+	}
 
 
 	fn for_each_file(&self) -> Result<()> {
-		for file in read_dir_recursive(&self.path) {}
+		for file in ReadDir::files_recursive(&self.path)? {
+			println!("{}", file.display());
+		}
 		Ok(())
 	}
 }
