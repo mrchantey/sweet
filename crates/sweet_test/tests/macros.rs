@@ -33,16 +33,16 @@ async fn it_panics() { panic!("foo") }
 #[tokio::test]
 #[should_panic]
 async fn it_tokio_waits_then_panics() {
-	sleep(Duration::from_secs(1)).await;
+	sweet_core::sleep_secs(1).await;
 	panic!("waddup")
 }
 #[sweet::test]
 // #[should_panic]
-async fn it_sleeps() { sleep(Duration::from_secs(1)).await; }
+async fn it_sleeps() { sweet_core::sleep_secs(1).await; }
 
 #[sweet::test]
 #[should_panic]
 async fn it_sleeps_then_panics() {
-	sleep(Duration::from_secs(1)).await;
+	sweet_core::sleep_secs(1).await;
 	panic!("waddup")
 }

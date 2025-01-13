@@ -1,3 +1,4 @@
+pub use sweet_core as core;
 #[cfg(feature = "rsx")]
 pub use sweet_rsx as rsx;
 #[cfg(feature = "rsx")]
@@ -11,6 +12,7 @@ pub use sweet_test::test_runner;
 
 
 pub mod prelude {
+	pub use sweet_core::prelude::*;
 	#[cfg(feature = "rsx")]
 	pub use sweet_rsx::prelude::*;
 	#[cfg(feature = "test")]

@@ -1,6 +1,10 @@
 {
 	"rust-analyzer.cargo.features": "all",
 	"rust-analyzer.cargo.target": "wasm32-unknown-unknown",
+	"rust-analyzer.files.excludeDirs": [
+		"crates/sweet_rsx/macros",
+		"crates/sweet_test/macros",
+	],
 	"deno.enable": true,
 	"search.exclude": {
 		"**/node_modules": true,

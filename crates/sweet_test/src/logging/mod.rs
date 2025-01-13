@@ -1,9 +1,6 @@
 pub mod file_logger;
 #[allow(unused_imports)]
 pub use self::file_logger::*;
-pub mod log;
-#[allow(unused_imports)]
-pub use self::log::*;
 pub mod result_count;
 #[allow(unused_imports)]
 pub use self::result_count::*;

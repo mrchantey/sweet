@@ -1,6 +1,7 @@
 [workspace]
 resolver = "2" # Important! wgpu/Bevy needs this!
 members = [
+	"crates/sweet_core",
 	"crates/sweet_rsx",
 	"crates/sweet_rsx/macros",
 	"crates/sweet_site",
@@ -21,6 +22,7 @@ repository = "https://github.com/mrchantey/sweet"
 
 [workspace.dependencies]
 sweet = { path = "", version = "0.3.0-rc.1" }
+sweet_core = { path = "crates/sweet_core", version = "0.3.0-rc.1" }
 sweet_test = { path = "crates/sweet_test", version = "0.3.0-rc.1" }
 sweet_test_macros = { path = "crates/sweet_test/macros", version = "0.3.0-rc.1" }
 sweet_rsx = { path = "crates/sweet_rsx", version = "0.3.0-rc.1" }
@@ -152,5 +154,6 @@ test = ["dep:sweet_test"]
 bevy = ["sweet_test?/bevy"]
 
 [dependencies]
+sweet_core.workspace = true
 sweet_test = { workspace = true, optional = true }
 sweet_rsx = { workspace = true, optional = true }

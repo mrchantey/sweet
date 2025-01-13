@@ -1,3 +1,4 @@
+#[cfg(not(target_arch = "wasm32"))]
 use forky::prelude::FsError;
 use thiserror::Error;
 
@@ -5,6 +6,7 @@ pub type ParseResult<T> = Result<T, ParseError>;
 
 #[derive(Debug, Error)]
 pub enum ParseError {
+	#[cfg(not(target_arch = "wasm32"))]
 	#[error("{0}")]
 	Fs(FsError),
 	#[error("Hydration Error: {0}")]
@@ -13,6 +15,7 @@ pub enum ParseError {
 	Other(String),
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 impl From<FsError> for ParseError {
 	fn from(e: FsError) -> Self { Self::Fs(e) }
 }

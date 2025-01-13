@@ -1,9 +1,12 @@
+/// for example implementation see crates/sweet-cli/src/test_runners/deno.ts
 pub mod js_runtime {
 	use wasm_bindgen::prelude::*;
 	#[wasm_bindgen]
 	extern "C" {
 		#[wasm_bindgen]
 		/// Get the current working directory, ie `Deno.cwd()`
+		/// just like [`std::process::cwd`], this will be relative to the crate, ie
+		/// cargo test --workspace is different cwd from cargo test -p my_crate
 		pub fn cwd() -> String;
 		#[wasm_bindgen]
 		/// Use this instead of `std::process::exit` which outputs

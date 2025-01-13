@@ -2050,6 +2050,7 @@ checksum = "7da8b5736845d9f2fcb837ea5d9e2628564b3b043a70948a3f0b778838c5fb4f"
 name = "sweet"
 version = "0.3.0-rc.1"
 dependencies = [
+ "sweet_core",
  "sweet_rsx",
  "sweet_test",
 ]
@@ -2065,6 +2066,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "sweet_core"
+version = "0.3.0-rc.1"
+dependencies = [
+ "anyhow",
+ "console_error_panic_hook",
+ "console_log",
+ "forky",
+ "getrandom",
+ "js-sys",
+ "sweet",
+ "thiserror 2.0.11",
+ "tokio",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "web-sys",
+]
+
+[[package]]
 name = "sweet_rsx"
 version = "0.3.0-rc.1"
 dependencies = [
@@ -2075,6 +2094,7 @@ dependencies = [
  "getrandom",
  "js-sys",
  "sweet",
+ "sweet_core",
  "sweet_rsx_macros",
  "thiserror 2.0.11",
  "wasm-bindgen",
@@ -2127,6 +2147,7 @@ dependencies = [
  "pretty_env_logger",
  "rayon",
  "sweet",
+ "sweet_core",
  "sweet_test_macros",
  "thread_local",
  "tokio",

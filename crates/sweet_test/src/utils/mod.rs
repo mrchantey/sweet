@@ -4,6 +4,3 @@ pub use self::error_utils::*;
 pub mod scoped_tls;
 #[allow(unused_imports)]
 pub use self::scoped_tls::*;
-pub mod sleep;
-#[allow(unused_imports)]
-pub use self::sleep::*;

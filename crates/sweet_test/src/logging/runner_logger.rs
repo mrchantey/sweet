@@ -14,23 +14,29 @@ pub struct RunnerLogger {
 	cases: Vec<TestDescAndResult>,
 }
 
+
+fn clear() {
+	#[cfg(target_arch = "wasm32")]
+	web_sys::console::clear();
+	#[cfg(not(target_arch = "wasm32"))]
+	forky::prelude::terminal::clear();
+}
+
 impl RunnerLogger {
 	pub fn start(
 		config: Arc<TestRunnerConfig>,
 		tests: &[&TestDescAndFn],
 	) -> Self {
 		let case_logger = CaseLoggerEnum::new(config.clone(), tests);
+		if !config.quiet && config.watch {
+			clear();
+		}
+		if !config.quiet {
+			sweet_core::log!("\n🤘 sweet as! 🤘\n\n{config}")
+		}
 
 		#[cfg(not(target_arch = "wasm32"))]
 		{
-			use forky::prelude::terminal;
-			if !config.quiet && config.watch {
-				terminal::clear();
-			}
-			if !config.quiet {
-				crate::log!("\n🤘 sweet as! 🤘\n\n{config}")
-			}
-
 			Self {
 				start_time: std::time::Instant::now(),
 				cases: Vec::new(),
@@ -41,13 +47,6 @@ impl RunnerLogger {
 		#[cfg(target_arch = "wasm32")]
 		{
 			use forky::web::*;
-			use web_sys::console;
-			if !config.quiet && config.watch {
-				console::clear();
-			}
-			if !config.quiet {
-				crate::log!("\n🤘 sweet as! 🤘\n\n{config}")
-			}
 			let start_time = performance_now();
 			Self {
 				start_time,
@@ -80,7 +79,7 @@ impl RunnerLogger {
 		let result_count = ResultCount::from_case_results(&self.cases);
 
 		if !self.config.quiet {
-			crate::log_val(&self.case_results(&result_count));
+			sweet_core::log_val(&self.case_results(&result_count));
 		}
 		self.on_results_printed();
 		if !self.config.watch && !result_count.succeeded() {

@@ -43,10 +43,6 @@ pub mod test_runner;
 /// Test suite module
 pub mod test_suite;
 pub mod utils;
-/// logging utils
-pub use logging::log::*;
-/// Sleep utils
-pub use utils::sleep::*;
 
 #[path = "_matchers/mod.rs"]
 /// Matchers used for assertions: `expect(true).to_be_true()`

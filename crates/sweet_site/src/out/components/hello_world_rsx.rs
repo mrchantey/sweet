@@ -11,10 +11,10 @@ impl IntoHtml for HelloWorld {
 }
 
 
-impl HydrateClient for HelloWorld {
-	fn hydrate() -> ParseResult<()> {
-		let html = Self::into_html()?;
+// impl HydrateClient for HelloWorld {
+// 	fn hydrate() -> ParseResult<()> {
+// 		let html = Self::into_html()?;
 
-		Ok(())
-	}
-}
+// 		Ok(())
+// 	}
+// }

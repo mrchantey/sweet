@@ -40,10 +40,6 @@ impl<'a> WalkNodes<'a> {
 	}
 }
 
-fn log_visit(prefix: &str, tokens: impl ToTokens) {
-	println!("🚀 {}: {}", prefix, tokens.into_token_stream().to_string());
-}
-
 impl WalkNodesOutput {
 	fn extend(&mut self, other: WalkNodesOutput) {
 		self.static_format.push_str(&other.static_format);
@@ -62,7 +58,6 @@ where
 		&mut self,
 		doctype: &mut rstml::node::NodeDoctype,
 	) -> bool {
-		log_visit("DOCTYPE", &doctype);
 		let value = &doctype.value.to_token_stream_string();
 		self.output
 			.static_format
@@ -70,7 +65,6 @@ where
 		false
 	}
 	fn visit_text_node(&mut self, node: &mut rstml::node::NodeText) -> bool {
-		log_visit("TEXT", &node);
 		self.output.static_format.push_str(&node.value_string());
 		false
 	}
@@ -78,7 +72,6 @@ where
 		&mut self,
 		node: &mut rstml::node::RawText<OtherC>,
 	) -> bool {
-		log_visit("RAW", &node);
 		self.output.static_format.push_str(&node.to_string_best());
 		false
 	}
@@ -86,7 +79,6 @@ where
 		&mut self,
 		fragment: &mut rstml::node::NodeFragment<C>,
 	) -> bool {
-		log_visit("FRAGMENT", &fragment);
 		let visitor = self.child_output();
 		let child_output = visit_nodes(&mut fragment.children, visitor);
 		self.output.extend(child_output.output);
@@ -97,14 +89,12 @@ where
 		&mut self,
 		comment: &mut rstml::node::NodeComment,
 	) -> bool {
-		log_visit("COMMENT", &comment);
 		self.output
 			.static_format
 			.push_str(&format!("<!-- {} -->", comment.value.value()));
 		false
 	}
 	fn visit_block(&mut self, block: &mut rstml::node::NodeBlock) -> bool {
-		log_visit("BLOCK", &block);
 		self.output.static_format.push_str("{}");
 		self.output.values.push(block.to_token_stream());
 		false
@@ -113,7 +103,6 @@ where
 		&mut self,
 		element: &mut rstml::node::NodeElement<C>,
 	) -> bool {
-		log_visit("ELEMENT", &element);
 		let name = element.name().to_string();
 		self.output.static_format.push_str(&format!("<{}", name));
 		self.output
@@ -158,7 +147,6 @@ where
 		false
 	}
 	fn visit_attribute(&mut self, attribute: &mut NodeAttribute) -> bool {
-		log_visit("ATTRIBUTE", &attribute);
 		// attributes
 		match attribute {
 			NodeAttribute::Block(block) => {

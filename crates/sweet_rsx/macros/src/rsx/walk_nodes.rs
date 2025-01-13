@@ -60,8 +60,10 @@ pub struct WalkNodesOutput {
 }
 
 
+#[allow(unused)]
 fn log_visit(prefix: &str, tokens: impl ToTokens) {
-	println!("🚀 {}: {}", prefix, tokens.into_token_stream().to_string());
+	// crashes rust analyzer?
+	// println!("🚀 {}: {}", prefix, tokens.into_token_stream().to_string());
 }
 
 impl WalkNodesOutput {

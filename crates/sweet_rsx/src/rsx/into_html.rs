@@ -1,9 +1,10 @@
 use super::ParseResult;
 use forky::prelude::*;
-use std::path::Path;
 
 pub trait IntoHtml {
+	#[cfg(not(target_arch = "wasm32"))]
 	fn read_html_file(file: &str) -> ParseResult<String> {
+		use std::path::Path;
 		let path = Path::new(file);
 		let stem = path.file_stem().ok_or_else(|| "No file stem")?;
 

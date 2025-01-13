@@ -89,3 +89,10 @@ watch *command:
 
 expand-rsx:
 	just watch cargo expand -p sweet_rsx --example rsx_macro
+
+
+
+hello-world *args:
+	forky watch 'just _hello-world {{args}}'
+_hello-world *args:
+	cp crates/sweet_rsx/examples/hello_world.html target/hello_world/hello_world.html
