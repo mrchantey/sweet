@@ -11,7 +11,7 @@ pub fn run_libtest_pretty(tests: &[&test::TestDescAndFn]) {
 fn test_main_with_filenames(tests: &[&test::TestDescAndFn]) {
 	let tests = apply_filenames(tests);
 	let tests = tests.iter().collect::<Vec<_>>();
-	println!("\n🤘 sweet as! 🤘\n");
+	println!("\n{}\n", RunnerLogger::SWEET_AS);
 	test::test_main_static(&tests);
 }
 

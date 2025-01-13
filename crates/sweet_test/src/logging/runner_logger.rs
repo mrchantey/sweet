@@ -23,6 +23,8 @@ fn clear() {
 }
 
 impl RunnerLogger {
+	pub const SWEET_AS: &'static str = "🤘 sweet as 🤘";
+
 	pub fn start(
 		config: Arc<TestRunnerConfig>,
 		tests: &[&TestDescAndFn],
@@ -32,7 +34,7 @@ impl RunnerLogger {
 			clear();
 		}
 		if !config.quiet {
-			sweet_core::log!("\n🤘 sweet as! 🤘\n\n{config}")
+			sweet_core::log!("\n{}\n\n{config}", Self::SWEET_AS)
 		}
 
 		#[cfg(not(target_arch = "wasm32"))]
