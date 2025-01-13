@@ -1,10 +1,21 @@
 <button onclick="_sweet.event(0,event)">Click me</button>
 
 <script>
-globalThis._sweet = {
-	uncanny:[],
-	event: (id, event) => {
-		globalThis._sweet.uncanny.push([id, event])
+	globalThis._sweet = {
+		uncanny: [],
+		event: (id, event) => {
+			globalThis._sweet.uncanny.push([id, event])
+		}
 	}
-}
+</script>
+<script type="module">
+	import init from './bindgen.js'
+
+	setTimeout(async () => {
+		await init()
+		console.log('hydrated')
+	}, 2000);
+
+
+
 </script>

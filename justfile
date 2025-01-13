@@ -66,8 +66,8 @@ publish crate *args:
 	cargo publish -p {{crate}} --allow-dirty --no-verify {{args}}
 	sleep 1
 
-build-wasm example *args:
-	cargo build --example {{example}} --target wasm32-unknown-unknown {{args}}
+build-wasm crate example *args:
+	cargo build -p {{crate}} --example {{example}} --target wasm32-unknown-unknown {{args}}
 	wasm-bindgen \
 	--out-dir ./target/wasm \
 	--out-name bindgen \
@@ -75,24 +75,22 @@ build-wasm example *args:
 	--no-typescript \
 	~/.cargo_target/wasm32-unknown-unknown/debug/examples/{{example}}.wasm
 
-test-runner test-binary *args:
-	wasm-bindgen \
-	--out-dir ./target/sweet \
-	--out-name bindgen \
-	--target web \
-	--no-typescript \
-	{{test-binary}}
-	deno --allow-read run.ts {{args}}
-
 watch *command:
 	forky watch --rusty	-- {{command}}
 
 expand-rsx:
 	just watch cargo expand -p sweet_rsx --example rsx_macro
 
-
-
 hello-world *args:
-	forky watch 'just _hello-world {{args}}'
+	just watch 'just _hello-world {{args}}'
+
 _hello-world *args:
+	mkdir -p target/hello_world
 	cp crates/sweet_rsx/examples/hello_world.html target/hello_world/hello_world.html
+	cargo build -p sweet_rsx --example hello_world --target wasm32-unknown-unknown {{args}}
+	wasm-bindgen \
+	--out-dir ./target/hello_world \
+	--out-name bindgen \
+	--target web \
+	~/.cargo_target/wasm32-unknown-unknown/debug/examples/hello_world.wasm
+	forky serve target/hello_world

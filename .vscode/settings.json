@@ -4,6 +4,7 @@
 	"rust-analyzer.files.excludeDirs": [
 		"crates/sweet_rsx/macros",
 		"crates/sweet_test/macros",
+		"crates/sweet-cli"
 	],
 	"deno.enable": true,
 	"search.exclude": {
@@ -12,6 +13,15 @@
 		"**/*.code-search": true,
 		"**/mod.rs": true,
 		"target/**/*": true,
+	},
+	"files.watcherExclude": {
+		"**/.git/objects/**": true,
+		"**/.git/subtree-cache/**": true,
+		"**/.hg/store/**": true,
+		"crates/sweet_rsx/macros":true,
+		"crates/sweet_test/macros":true,
+		"crates/sweet-cli":true,
+
 	},
 	"files.exclude": {
 		"**/.git": true,

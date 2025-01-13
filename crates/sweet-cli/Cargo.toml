@@ -16,9 +16,11 @@ name = "sweet"
 path = "src/main.rs"
 
 [dependencies]
-forky = { workspace = true, features = ["fs"] }
 anyhow.workspace = true
-clap.workspace = true
 sweet = { workspace = true, features = ["test"] }
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+forky = { workspace = true, features = ["fs"] }
+clap.workspace = true
 
 [dev-dependencies]
