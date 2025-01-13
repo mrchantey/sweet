@@ -29,7 +29,7 @@ impl<F> TestFuture<F> {
 	}
 }
 
-impl<F: Future<Output = Result<JsValue, JsValue>>> Future for TestFuture<F> {
+impl<F: Future<Output = Result<(), String>>> Future for TestFuture<F> {
 	type Output = ();
 
 	fn poll(
@@ -46,37 +46,36 @@ impl<F: Future<Output = Result<JsValue, JsValue>>> Future for TestFuture<F> {
 		let result_tx = &self_mut.result_tx;
 		let mut future_poll_output = None;
 
-		// did it panic during this poll
+		// this should only be used if poll::ready!
 		let panic_output = PanicStore::with_scope(desc, || {
 			let mut test = Some(test);
 			js_runtime::panic_to_error(&mut || {
 				let test = test.take().unwrap_throw();
-				future_poll_output = Some(test.poll(cx))
+				let out = test.poll(cx);
+				future_poll_output = Some(match &out {
+					Poll::Ready(_) => Poll::Ready(()),
+					Poll::Pending => Poll::Pending,
+				});
+				match out {
+					Poll::Ready(Err(err)) => Err(err),
+					_ => Ok(()),
+				}
 			})
 		});
 
-		match panic_output {
-			PanicStoreOut::Panicked(test_desc_and_result) => {
-				result_tx
-					.send(test_desc_and_result)
-					.expect("channel was dropped");
-				return Poll::Ready(());
-			}
-			PanicStoreOut::Ok(_) => {
-				// could be pending
-			}
+		// panicked futures will never be ready
+		if panic_output.panicked() {
+			panic_output.send(result_tx, desc);
+			return Poll::Ready(());
 		}
 
 		match future_poll_output {
 			Some(Poll::Pending) => Poll::Pending,
-			_ => {
-				let test_result = TestResult::from_test_result(Ok(()), &desc);
-				result_tx
-					.send(TestDescAndResult::new(desc.clone(), test_result))
-					.expect("channel was dropped");
-
+			Some(Poll::Ready(())) => {
+				panic_output.send(result_tx, desc);
 				Poll::Ready(())
 			}
+			None => Poll::Pending,
 		}
 	}
 }

@@ -1,12 +1,67 @@
 use crate::prelude::*;
+use core::fmt;
+use flume::Sender;
 use std::cell::RefCell;
 use std::panic::PanicHookInfo;
 use std::rc::Rc;
 use test::TestDesc;
+use wasm_bindgen::JsValue;
 
+
+/// A completed test that maybe panicked
 pub enum PanicStoreOut<T> {
 	Panicked(TestDescAndResult),
-	Ok(T),
+	/// maybe returned error
+	NoPanic(T),
+}
+
+impl<T> PanicStoreOut<T> {
+	pub fn panicked(&self) -> bool {
+		match self {
+			PanicStoreOut::Panicked(_) => true,
+			PanicStoreOut::NoPanic(_) => false,
+		}
+	}
+}
+
+impl<T: fmt::Debug> fmt::Debug for PanicStoreOut<T> {
+	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+		match self {
+			PanicStoreOut::Panicked(result) => {
+				write!(f, "Panicked({:?})", result)
+			}
+			PanicStoreOut::NoPanic(result) => {
+				write!(f, "NoPanic({:?})", result)
+			}
+		}
+	}
+}
+
+impl<T> PanicStoreOut<Result<T, JsValue>> {
+	pub fn send(self, result_tx: &Sender<TestDescAndResult>, desc: &TestDesc) {
+		match self {
+			PanicStoreOut::Panicked(result) => {
+				result_tx.send(result).expect("channel was dropped");
+			}
+			PanicStoreOut::NoPanic(Err(err)) => {
+				let test_result = TestResult::from_test_result(
+					Err(err
+						.as_string()
+						.expect("all test errors should be strings")),
+					desc,
+				);
+				result_tx
+					.send(TestDescAndResult::new(desc.clone(), test_result))
+					.expect("channel was dropped");
+			}
+			PanicStoreOut::NoPanic(Ok(_)) => {
+				let test_result = TestResult::from_test_result(Ok(()), desc);
+				result_tx
+					.send(TestDescAndResult::new(desc.clone(), test_result))
+					.expect("channel was dropped");
+			}
+		}
+	}
 }
 
 
@@ -58,7 +113,7 @@ impl PanicStore {
 				(Some(panic_result), _) => PanicStoreOut::Panicked(
 					TestDescAndResult::new(desc.clone(), panic_result),
 				),
-				(None, result) => PanicStoreOut::Ok(result),
+				(None, result) => PanicStoreOut::NoPanic(result),
 			}
 		})
 	}

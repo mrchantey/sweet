@@ -16,9 +16,13 @@ fn it_panics_sync() { panic!("foo") }
 async fn it_passes() {}
 #[sweet::test]
 async fn it_returns_ok() -> Result<(), String> { Ok(()) }
+#[test]
+#[ignore = "it returns error"]
+fn it_returns_err() -> Result<(), String> { Err("foo".to_string()) }
+
 #[sweet::test]
 #[ignore = "it returns error"]
-async fn it_returns_err() -> Result<(), String> { Err("foo".to_string()) }
+async fn it_returns_err_async() -> Result<(), String> { Err("foo".to_string()) }
 
 #[sweet::test]
 #[should_panic]

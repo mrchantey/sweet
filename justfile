@@ -45,6 +45,7 @@ test-all *args:
 	cargo test --workspace -- {{args}}
 	cargo test -p sweet_rsx --lib --target wasm32-unknown-unknown -- {{args}}
 	cargo test -p sweet_test --lib --target wasm32-unknown-unknown -- {{args}}
+	cargo test -p sweet_test --test macros --target wasm32-unknown-unknown -- {{args}}
 
 expand-wasm test *args:
 	just watch 'cargo expand --test {{test}} --target wasm32-unknown-unknown {{args}}'

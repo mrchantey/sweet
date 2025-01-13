@@ -72,8 +72,7 @@ pub async fn run_with_pending() -> Result<(), JsValue> {
 
 	let futs = futures.into_iter().map(|fut| async {
 		TestFuture::new(fut.desc, result_tx.clone(), async move {
-			(fut.fut)().await.ok();
-			Ok(JsValue::NULL)
+			(fut.fut)().await
 		})
 		.await;
 	});
