@@ -84,6 +84,9 @@ impl RunnerLogger {
 		}
 		self.on_results_printed();
 		if !self.config.watch && !result_count.succeeded() {
+			#[cfg(target_arch = "wasm32")]
+			js_runtime::exit(1);
+			#[cfg(not(target_arch = "wasm32"))]
 			std::process::exit(1);
 		}
 	}

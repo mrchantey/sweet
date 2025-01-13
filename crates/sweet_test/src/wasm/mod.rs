@@ -1,3 +1,6 @@
+pub mod js_runtime_extern;
+#[allow(unused_imports)]
+pub use self::js_runtime_extern::*;
 pub mod panic_store;
 #[allow(unused_imports)]
 pub use self::panic_store::*;

@@ -117,7 +117,7 @@ impl TestWasm {
 }
 
 
-fn handle_process(stderr_prefix: &str, child: Child) -> Result<()> {
+fn handle_process(_stderr_prefix: &str, child: Child) -> Result<()> {
 	let output = child.wait_with_output()?;
 
 	let stdout = String::from_utf8_lossy(&output.stdout);
@@ -127,7 +127,7 @@ fn handle_process(stderr_prefix: &str, child: Child) -> Result<()> {
 
 	if !output.status.success() {
 		let stderr = String::from_utf8_lossy(&output.stderr);
-		anyhow::bail!("{stderr_prefix} - {stderr}");
+		anyhow::bail!("{stderr}");
 	}
 	Ok(())
 }

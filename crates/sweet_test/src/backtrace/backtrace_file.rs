@@ -1,4 +1,4 @@
-use crate::libtest::test_err_link;
+use crate::prelude::*;
 use ::test::TestDesc;
 use anyhow::Result;
 use backtrace::BacktraceFrame;
@@ -111,7 +111,7 @@ fn with_sweet_root(path: &Path) -> PathBuf {
 	#[cfg(not(target_arch = "wasm32"))]
 	let root = std::env::var("SWEET_ROOT").ok();
 	#[cfg(target_arch = "wasm32")]
-	let root = wasm_fs::sweet_root();
+	let root = js_runtime::sweet_root();
 
 	if let Some(sweet_root) = root {
 		let mut root = PathBuf::from(sweet_root);
@@ -148,8 +148,8 @@ SWEET_ROOT = { value = "", relative = true }
 "#;
 
 	#[cfg(target_arch = "wasm32")]
-	let file = wasm_fs::read_file(&path.to_string_lossy().to_string())
-		.ok_or_else(|| bail(&wasm_fs::cwd()))?;
+	let file = js_runtime::read_file(&path.to_string_lossy().to_string())
+		.ok_or_else(|| bail(&js_runtime::cwd()))?;
 	#[cfg(not(target_arch = "wasm32"))]
 	let file = ReadFile::to_string(path).map_err(|_| {
 		bail(
@@ -171,35 +171,4 @@ fn line_number_buffer(line_no: usize) -> String {
 	let digits = line_no.len();
 	let len = LINE_BUFFER_LEN.saturating_sub(digits);
 	" ".repeat(len)
-}
-
-
-#[cfg(target_arch = "wasm32")]
-pub mod wasm_fs {
-	use wasm_bindgen::prelude::*;
-	#[wasm_bindgen]
-	extern "C" {
-		pub fn sweet_root() -> Option<String>;
-	}
-	#[wasm_bindgen]
-	extern "C" {
-		pub fn cwd() -> String;
-	}
-	#[wasm_bindgen]
-	extern "C" {
-		pub fn read_file(path: &str) -> Option<String>;
-	}
-}
-
-
-#[cfg(test)]
-#[cfg(target_arch = "wasm32")]
-mod test {
-	use crate::prelude::*;
-
-	#[test]
-	fn works() {
-		expect(wasm_fs::read_file("foobar")).to_be_none();
-		expect(wasm_fs::read_file("Cargo.toml")).to_be_some();
-	}
 }

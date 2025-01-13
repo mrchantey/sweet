@@ -29,12 +29,6 @@ impl<F> TestFuture<F> {
 	}
 }
 
-#[wasm_bindgen]
-extern "C" {
-	#[wasm_bindgen(catch)]
-	fn panic_to_error(f: &mut dyn FnMut()) -> Result<(), JsValue>;
-}
-
 impl<F: Future<Output = Result<JsValue, JsValue>>> Future for TestFuture<F> {
 	type Output = ();
 
@@ -55,7 +49,7 @@ impl<F: Future<Output = Result<JsValue, JsValue>>> Future for TestFuture<F> {
 		// did it panic during this poll
 		let panic_output = PanicStore::with_scope(desc, || {
 			let mut test = Some(test);
-			panic_to_error(&mut || {
+			js_runtime::panic_to_error(&mut || {
 				let test = test.take().unwrap_throw();
 				future_poll_output = Some(test.poll(cx))
 			})
