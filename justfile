@@ -12,7 +12,7 @@ cli *args:
 	cargo run -p sweet-cli -- {{args}}
 
 install-cli *args:
-	cargo install --path ./cli {{args}}
+	cargo install --path crates/sweet-cli {{args}}
 
 run example *args:
 	just watch 'cargo run --example {{example}} {{args}}'

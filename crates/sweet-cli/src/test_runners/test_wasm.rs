@@ -150,12 +150,12 @@ fn deno_runner_path() -> PathBuf {
 }
 
 const INSTALL_DENO: &str = "
-🦖 Sweet uses Deno for WASM tests 🦖
+🦖 Sweet uses Deno for wasm tests 🦖
 
-Installation:
+Install Deno via:
 shell: 				curl -fsSL https://deno.land/install.sh | sh
 powershell: 	irm https://deno.land/install.ps1 | iex
-other: 				https://docs.deno.com/runtime/getting_started/installation/
+website: 			https://docs.deno.com/runtime/getting_started/installation/
 
 ";
 

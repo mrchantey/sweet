@@ -1,6 +1,10 @@
 #![cfg_attr(test, feature(test, custom_test_frameworks))]
 #![cfg_attr(test, test_runner(sweet::test_runner))]
 
+pub mod error;
+// nice and handy for commonly used tasks
+pub use error::*;
+
 pub mod utils;
 pub use utils::log::*;
 pub use utils::sleep::*;
