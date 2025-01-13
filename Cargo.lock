@@ -164,7 +164,7 @@ version = "0.2.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d9b39be18770d11421cdb1b9947a45dd3f37e93092cbf377614828a319d5fee8"
 dependencies = [
- "hermit-abi 0.1.19",
+ "hermit-abi",
  "libc",
  "winapi",
 ]
@@ -982,8 +982,9 @@ dependencies = [
 
 [[package]]
 name = "forky"
-version = "0.2.0-rc.1"
-source = "git+https://github.com/mrchantey/forky#0447f279bde93834536bb23fe5b3751eb5471ea1"
+version = "0.2.1-rc.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3483ea75697b9842839811dfeb6ea2c3ed35a913380dc326f93ca6762992f3ff"
 dependencies = [
  "forky_core",
  "forky_fs",
@@ -992,8 +993,9 @@ dependencies = [
 
 [[package]]
 name = "forky_core"
-version = "0.2.0-rc.1"
-source = "git+https://github.com/mrchantey/forky#0447f279bde93834536bb23fe5b3751eb5471ea1"
+version = "0.2.1-rc.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c3a4e2cf5436c00c52bd766a7eb0919dc1a1e67f7bff5baa1758170796fcab5f"
 dependencies = [
  "anyhow",
  "extend",
@@ -1002,8 +1004,9 @@ dependencies = [
 
 [[package]]
 name = "forky_fs"
-version = "0.2.0-rc.1"
-source = "git+https://github.com/mrchantey/forky#0447f279bde93834536bb23fe5b3751eb5471ea1"
+version = "0.2.1-rc.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "441810d48282ab7def2c9fcad9dc9f6a1a776992f0396ad7d56b6f0b74a6c6c8"
 dependencies = [
  "anyhow",
  "clap",
@@ -1023,8 +1026,9 @@ dependencies = [
 
 [[package]]
 name = "forky_web"
-version = "0.2.0-rc.1"
-source = "git+https://github.com/mrchantey/forky#0447f279bde93834536bb23fe5b3751eb5471ea1"
+version = "0.2.1-rc.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4d63133a575a14a58a1a06f041a48c3236303d32d1db6d92ab7a05976be07312"
 dependencies = [
  "anyhow",
  "console_error_panic_hook",
@@ -1236,12 +1240,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "hermit-abi"
-version = "0.3.9"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d231dfb89cfffdbc30e7fc41579ed6066ad03abda9e567ccafae602b97ec5024"
-
-[[package]]
 name = "hex"
 version = "0.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1348,9 +1346,9 @@ checksum = "bbd2bcb4c963f2ddae06a2efc7e9f3591312473c50c6685e1f298068316e66fe"
 
 [[package]]
 name = "libc"
-version = "0.2.155"
+version = "0.2.169"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "97b3888a4aecf77e811145cadf6eef5901f4782c53886191b2f693f24761847c"
+checksum = "b5aba8db14291edd000dfcc4d620c7ebfb122c613afb886ca8803fa4e128a20a"
 
 [[package]]
 name = "libloading"
@@ -1422,11 +1420,10 @@ dependencies = [
 
 [[package]]
 name = "mio"
-version = "1.0.2"
+version = "1.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "80e04d1dcff3aae0704555fe5fee3bcfaf3d1fdf8a7e521d5b9d2b42acb52cec"
+checksum = "2886843bf800fba2e3377cff24abf6379b4c4d5c6681eaf9ea5b0d15090450bd"
 dependencies = [
- "hermit-abi 0.3.9",
  "libc",
  "log",
  "wasi",
@@ -2066,7 +2063,7 @@ dependencies = [
  "anyhow",
  "clap",
  "forky",
- "sweet",
+ "sweet_test",
 ]
 
 [[package]]

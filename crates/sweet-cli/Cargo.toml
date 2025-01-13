@@ -1,15 +1,15 @@
 [package]
 name = "sweet-cli"
-version = { workspace = true }
-edition = { workspace = true }
-authors = { workspace = true }
-license = { workspace = true }
-repository = { workspace = true }
-readme = "README.md"
-description = "CLI for the Sweet test framework"
-documentation = "https://mrchantey.github.io/forky/docs/sweet/cli"
-categories = ["development-tools::testing"]
-keywords = ["cli", "test", "e2e", "browser", "webdriver"]
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+readme.workspace = true
+description.workspace = true
+documentation.workspace = true
+repository.workspace = true
+categories.workspace = true
+keywords.workspace = true
 
 [[bin]]
 name = "sweet"
@@ -17,7 +17,7 @@ path = "src/main.rs"
 
 [dependencies]
 anyhow.workspace = true
-sweet = { workspace = true, features = ["test"] }
+sweet_test.workspace = true
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 forky = { workspace = true, features = ["fs"] }

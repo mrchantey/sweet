@@ -3,7 +3,7 @@
 <div align="center">
 
   <p>
-    <strong>Declarative full-stack test framework.</strong>
+    <strong>full-stack rust</strong>
   </p>
 
   <p>
@@ -13,27 +13,13 @@
   </p>
 
   <h3>
-    <a href="https://mrchantey.github.io/sweet/docs">Book</a>
-    <span> | </span>
+    <!-- <a href="https://mrchantey.github.io/sweet/docs">Book</a> -->
+    <!-- <span> | </span> -->
     <a href="https://docs.rs/sweet">API Docs</a>
-    <span> | </span>
-    <a href="https://mrchantey.github.io/forky/docs/other/contributing.html">Contributing</a>
+    <!-- <span> | </span> -->
+    <!-- <a href="https://mrchantey.github.io/forky/docs/other/contributing.html">Contributing</a> -->
   </h3>
 
   <sub>made with ❤️‍🔥 by mrchantey</a></sub>
 </div>
-
-## Usage
-
-```rs
-#[sweet::test]
-fn true_is_true() -> Result<()> {
-  expect(true).to_be_true()
-}
-```
-
-## TODO
-- make the crate rustier like [cargo-pretty-test](https://github.com/josecelano/cargo-pretty-test)
-
-
 

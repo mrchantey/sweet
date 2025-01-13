@@ -2,19 +2,14 @@
 name = "sweet_test"
 version.workspace = true
 edition.workspace = true
-authors.workspace = true
 license.workspace = true
+authors.workspace = true
+readme.workspace = true
+description.workspace = true
+documentation.workspace = true
 repository.workspace = true
-readme = "README.md"
-description = "A very pretty test runner for rust"
-documentation = "https://mrchantey.github.io/forky/docs/sweet"
-categories = ["development-tools::testing"]
-keywords = [ # 5 at most
-	"test",
-	"unit",
-	"e2e",
-	"browser",
-]
+categories.workspace = true
+keywords.workspace = true
 
 [features]
 bevy = ["dep:bevy"]
@@ -63,7 +58,7 @@ web-sys.workspace = true
 wasm-bindgen.workspace = true
 wasm-bindgen-futures.workspace = true
 console_error_panic_hook.workspace = true
-getrandom.workspace = true # enable js feature
+getrandom.workspace = true                       # enable js feature
 forky = { workspace = true, features = ["web"] }
 
 [dev-dependencies]

@@ -34,7 +34,7 @@ pub struct TestWasm {
 	// we wont actuallly use this because the args will
 	// be passed to deno, but it provides --help messages
 	#[command(flatten)]
-	runner_args: sweet::prelude::TestRunnerConfig,
+	runner_args: sweet_test::prelude::TestRunnerConfig,
 }
 
 
