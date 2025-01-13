@@ -11,6 +11,7 @@ use std::path::PathBuf;
 pub struct BacktraceFile;
 
 impl BacktraceFile {
+	/// In wasm we dont get a backtrace so instead use the test entrypoint
 	pub fn file_context_from_desc(desc: &TestDesc) -> Result<String> {
 		Self::file_context(
 			Path::new(&desc.source_file),
@@ -19,7 +20,7 @@ impl BacktraceFile {
 		)
 	}
 
-	/// will fall back to desc if no location is found
+	/// Use location of the panic, will fall back to desc if no location is found
 	pub fn file_context_from_panic(
 		info: &PanicHookInfo,
 		desc: &TestDesc,
@@ -107,7 +108,12 @@ impl BacktraceFile {
 }
 /// Prefix the path with $SWEET_ROOT if it exists
 fn with_sweet_root(path: &Path) -> PathBuf {
-	if let Some(sweet_root) = std::env::var("SWEET_ROOT").ok() {
+	#[cfg(not(target_arch = "wasm32"))]
+	let root = std::env::var("SWEET_ROOT").ok();
+	#[cfg(target_arch = "wasm32")]
+	let root = wasm_fs::sweet_root();
+
+	if let Some(sweet_root) = root {
 		let mut root = PathBuf::from(sweet_root);
 		root.push(path);
 		root
@@ -118,20 +124,27 @@ fn with_sweet_root(path: &Path) -> PathBuf {
 
 fn read_file(path: &Path) -> Result<String> {
 	let bail = |cwd: &str| {
+		let sweet_root = std::env::var("SWEET_ROOT");
 		anyhow::anyhow!(
-			"Failed to read file:\ncwd:\t{}\npath:\t{}\n{CONTEXT}",
+			"Failed to read file:\ncwd:\t{}\npath:\t{}\nSWEET_ROOT: {:?}\n{CONTEXT}",
 			cwd,
-			&path.display()
+			&path.display(),
+			sweet_root
 		)
 	};
 
 	const CONTEXT: &str = r#"
 This can happen when working with workspaces and the sweet root has not been set.
-Please ensure the following is configured in `.cargo/config.toml`:
+(This setting is required because rust does not have a CARGO_WORKSPACE_DIR)
+
+Please configure the following:
+
+``` .cargo/config.toml
 
 [env]
 SWEET_ROOT = { value = "", relative = true }
 
+```
 "#;
 
 	#[cfg(target_arch = "wasm32")]
@@ -164,6 +177,10 @@ fn line_number_buffer(line_no: usize) -> String {
 #[cfg(target_arch = "wasm32")]
 pub mod wasm_fs {
 	use wasm_bindgen::prelude::*;
+	#[wasm_bindgen]
+	extern "C" {
+		pub fn sweet_root() -> Option<String>;
+	}
 	#[wasm_bindgen]
 	extern "C" {
 		pub fn cwd() -> String;

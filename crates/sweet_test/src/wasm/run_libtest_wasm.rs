@@ -19,8 +19,6 @@ pub fn run_libtest_wasm(tests: &[&test::TestDescAndFn]) -> Result<()> {
 	let futures = run_wasm_tests_sync(tests, &result_tx);
 	flush_rx(&mut logger, &result_rx);
 
-
-
 	PartialRunnerState {
 		logger,
 		futures,
@@ -41,6 +39,26 @@ fn flush_rx(
 }
 
 
+const NO_PARTIAL_STATE: &str = r#"
+
+Please configure the sweet test runner:
+
+``` Cargo.toml
+[dev-dependencies]
+sweet = { version = "...", features = ["test"] }
+
+```
+
+``` lib.rs, main.rs, example.rs, etc
+
+#![cfg_attr(test, feature(test, custom_test_frameworks))]
+#![cfg_attr(test, test_runner(sweet::test_runner))]
+
+```
+
+"#;
+
+
 /// Pending async functions cannot be collected in the first initial run
 #[wasm_bindgen]
 pub async fn run_with_pending() -> Result<(), JsValue> {
@@ -49,7 +67,7 @@ pub async fn run_with_pending() -> Result<(), JsValue> {
 		futures,
 		result_tx,
 		result_rx,
-	} = PartialRunnerState::take().ok_or("no partial runner state")?;
+	} = PartialRunnerState::take().ok_or(NO_PARTIAL_STATE)?;
 
 
 	let futs = futures.into_iter().map(|fut| async {

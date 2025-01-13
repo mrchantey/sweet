@@ -41,7 +41,7 @@ pub fn collect_nodes(
 		// collected_elements,
 		diagnostics,
 		html_string,
-		dynamic_attributes,
+		// dynamic_attributes,
 		values,
 		..
 	}: WalkNodesOutput,

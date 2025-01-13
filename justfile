@@ -27,12 +27,15 @@ clear-deno:
 test-cli *args:
 	just watch 'cargo test -p sweet-cli --lib -- --watch {{args}}'
 
-test-lib *args:
-	just watch 'cargo test --lib -- --watch {{args}}'
-test test_name *args:
-	just watch 'cargo test --test {{test_name}} -- --watch {{args}}'
-test-wasm test_name *args:
-	just watch 'cargo test --test {{test_name}} --target wasm32-unknown-unknown -- --watch {{args}}'
+test crate test_name *args:
+	just watch 'cargo test -p {{crate}} --test {{test_name}} -- --watch {{args}}'
+test-lib crate *args:
+	just watch 'cargo test -p {{crate}} --lib -- --watch {{args}}'
+
+test-wasm crate test_name *args:
+	just watch 'cargo test -p {{crate}} --test {{test_name}} --target wasm32-unknown-unknown -- --watch {{args}}'
+test-wasm-lib crate *args:
+	just watch 'cargo test -p {{crate}} --lib --target wasm32-unknown-unknown -- --watch {{args}}'
 
 test-all *args:
 	cargo test -p sweet_test --test hello_test -- {{args}}
@@ -40,6 +43,7 @@ test-all *args:
 	cargo test -p sweet_test --test hello_async -- {{args}}
 	cargo test -p sweet_test --test hello_async --target wasm32-unknown-unknown -- {{args}}
 	cargo test --workspace -- {{args}}
+	cargo test -p sweet_rsx --lib --target wasm32-unknown-unknown -- {{args}}
 	cargo test -p sweet_test --lib --target wasm32-unknown-unknown -- {{args}}
 
 expand-wasm test *args:

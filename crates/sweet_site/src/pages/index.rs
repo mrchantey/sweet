@@ -10,9 +10,9 @@ pub struct Index;
 impl IntoRsx for Index {
 	fn into_rsx(self) {
 		let initial_value = 200;
-		rsx! {
-			<h1>Counter</h1>
-			<Counter initial_value/>
-		}
+		// rsx! {
+		// 	<h1>Counter</h1>
+		// 	<Counter initial_value/>
+		// }
 	}
 }

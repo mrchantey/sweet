@@ -3,6 +3,7 @@ use clap::Parser;
 use forky::prelude::ReadFile;
 use std::fs;
 use std::path::PathBuf;
+use std::process::Child;
 use std::process::Command;
 use std::str::FromStr;
 
@@ -45,7 +46,7 @@ impl TestWasm {
 		Ok(())
 	}
 	fn run_wasm_bindgen(&self) -> Result<()> {
-		let status = Command::new("wasm-bindgen")
+		let output = Command::new("wasm-bindgen")
 			.arg("--out-dir")
 			.arg(sweet_target_dir())
 			.arg("--out-name")
@@ -60,11 +61,9 @@ impl TestWasm {
 					.unwrap_or_default()
 					.split_whitespace(),
 			)
-			.status()?;
+			.spawn()?;
 
-		if !status.success() {
-			anyhow::bail!("wasm-bindgen command failed");
-		}
+		handle_process("wasm-bindgen", output)?;
 		Ok(())
 	}
 
@@ -105,19 +104,32 @@ impl TestWasm {
 		// sweet test-wasm binary-path *actual-args
 		// why doesnt it work with three?
 		let args = std::env::args().skip(2).collect::<Vec<_>>();
-		let status = Command::new("deno")
+		let child = Command::new("deno")
 			.arg("--allow-read")
 			.arg("--allow-net")
 			.arg("--allow-env")
 			.arg(deno_runner_path())
 			.args(args)
-			.status()?;
-
-		if !status.success() {
-			anyhow::bail!("deno command failed");
-		}
+			.spawn()?;
+		handle_process("deno", child)?;
 		Ok(())
 	}
+}
+
+
+fn handle_process(stderr_prefix: &str, child: Child) -> Result<()> {
+	let output = child.wait_with_output()?;
+
+	let stdout = String::from_utf8_lossy(&output.stdout);
+	if !stdout.is_empty() {
+		println!("{}", stdout);
+	}
+
+	if !output.status.success() {
+		let stderr = String::from_utf8_lossy(&output.stderr);
+		anyhow::bail!("{stderr_prefix} - {stderr}");
+	}
+	Ok(())
 }
 
 fn workspace_root() -> PathBuf {

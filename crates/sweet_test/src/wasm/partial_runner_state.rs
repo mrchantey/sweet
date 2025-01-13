@@ -9,7 +9,9 @@ thread_local! {
 }
 
 /// wasm needs to exit and re-enter the test runner
-/// in order to execute async tests, so save the partial state
+/// in order to execute async tests, so save the partial state.
+/// Even though [wasm bindgen supports main](https://rustwasm.github.io/wasm-bindgen/reference/attributes/on-rust-exports/main.html)
+/// custom_test_frameworks do not.
 pub struct PartialRunnerState {
 	pub logger: RunnerLogger,
 	pub futures: Vec<TestDescAndFuture>,

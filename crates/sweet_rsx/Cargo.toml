@@ -13,4 +13,20 @@ repository.workspace = true
 thiserror.workspace = true
 anyhow.workspace = true
 sweet_rsx_macros.workspace = true
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 forky = { workspace = true, features = ["fs"] }
+
+#💡 wasm
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+forky = { workspace = true, features = ["web"] }
+console_error_panic_hook.workspace = true
+console_log.workspace = true
+getrandom.workspace = true
+js-sys.workspace = true
+wasm-bindgen.workspace = true
+wasm-bindgen-futures.workspace = true
+web-sys.workspace = true
+
+[dev-dependencies]
+sweet = { workspace = true, features = ["test"] }
