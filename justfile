@@ -82,6 +82,7 @@ expand-rsx:
 	just watch cargo expand -p sweet_rsx --example rsx_macro
 
 hello-world *args:
+	forky serve target/hello_world & \
 	just watch 'just _hello-world {{args}}'
 
 _hello-world *args:
@@ -93,4 +94,3 @@ _hello-world *args:
 	--out-name bindgen \
 	--target web \
 	~/.cargo_target/wasm32-unknown-unknown/debug/examples/hello_world.wasm
-	forky serve target/hello_world

@@ -15,16 +15,33 @@ fn set_target_html(e: &Event, s: &str) {
 }
 
 impl HydrateClient for HelloWorld {
-	fn hydrate() -> ParseResult<Hydrated> {
+	fn hydrate(
+		self,
+		send: flume::Sender<(usize, String)>,
+	) -> ParseResult<Hydrated> {
 		let mut count = 0;
+
 
 		let handle_click = move |e: Event| {
 			count += 1;
-			set_target_html(&e, &format!("you did it {} times!", count));
+			let str = count.to_string();
+			set_target_html(&e, &format!("you did it {str} times!"));
+			send.send((0, str.clone())).unwrap();
+			send.send((1, str)).unwrap();
 		};
 
 		Ok(Hydrated {
 			events: vec![Box::new(handle_click)],
+			blocks: vec![
+				HydratedBlock {
+					node_id: 0,
+					part_index: 1,
+				},
+				HydratedBlock {
+					node_id: 0,
+					part_index: 3,
+				},
+			],
 		})
 	}
 }
@@ -32,7 +49,6 @@ impl HydrateClient for HelloWorld {
 
 
 fn main() -> ParseResult<()> {
-	let hydrated = HelloWorld::hydrate()?;
-	SweetLoader::default().load(hydrated);
+	SweetLoader::default().load(HelloWorld)?;
 	Ok(())
 }

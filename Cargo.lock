@@ -1981,7 +1981,9 @@ name = "sweet_rsx"
 version = "0.3.0-rc.1"
 dependencies = [
  "anyhow",
+ "console_error_panic_hook",
  "console_log",
+ "flume",
  "forky",
  "getrandom",
  "js-sys",
