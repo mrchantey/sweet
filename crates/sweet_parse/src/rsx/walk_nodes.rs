@@ -64,10 +64,9 @@ impl<'a, P: RsxPlugin> WalkNodes<'a, P> {
 pub struct WalkNodesOutput {
 	/// The actual output html
 	pub html: String,
-	/// The event handlers
-	pub rust_events: Vec<TokenStream>,
-	/// Rust blocks blocks
-	pub rust_blocks: Vec<TokenStream>,
+	pub css: String,
+	/// The rust identifiers and blocks
+	pub rust: Vec<TokenStream>,
 	// Additional error and warning messages.
 	pub errors: Vec<TokenStream>,
 	// Collect elements to provide semantic highlight based on element tag.
@@ -80,17 +79,17 @@ pub struct WalkNodesOutput {
 impl WalkNodesOutput {
 	fn extend(&mut self, other: WalkNodesOutput) {
 		let WalkNodesOutput {
-			html: html_string,
-			rust_events,
-			rust_blocks,
+			html,
+			css,
+			rust,
 			errors,
 			collected_elements,
 		} = other;
-		self.html.push_str(&html_string);
-		self.rust_blocks.extend(rust_blocks);
+		self.html.push_str(&html);
+		self.css.push_str(&css);
+		self.rust.extend(rust);
 		self.errors.extend(errors);
 		self.collected_elements.extend(collected_elements);
-		self.rust_events.extend(rust_events);
 	}
 }
 impl<'a, P> syn::visit_mut::VisitMut for WalkNodes<'a, P> {}

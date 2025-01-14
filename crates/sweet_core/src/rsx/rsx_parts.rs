@@ -7,10 +7,22 @@ use std::path::PathBuf;
 /// build the component tree and reassign attributes.
 // #[derive(Debug)]
 pub struct RsxParts {
-	pub events: Vec<HydratedEvent>,
-	// the initial value of blocks
-	pub blocks: Vec<String>,
+	pub rust: Vec<RsxRust>,
 	pub html: PathOrInline,
+	pub css: PathOrInline,
+}
+
+/// The event or the indentifiers/blocks `ToString`.
+pub enum RsxRust {
+	/// ie `<div>{value}</div>`
+	InnerText(String),
+	/// ie `<div {attr_key}=true></div>`
+	AttributeKey(String),
+	/// ie `<div class={class_name}></div>`
+	AttributeValue(String),
+	/// ie `<div onclick={handle_click}></div>`,
+	/// or the shorthand `<div on_click></div>`
+	Event(HydratedEvent),
 }
 
 

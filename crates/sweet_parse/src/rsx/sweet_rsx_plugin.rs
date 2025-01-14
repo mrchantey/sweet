@@ -9,11 +9,25 @@ use rstml::node::NodeElement;
 use rstml::node::NodeName;
 use syn::spanned::Spanned;
 
-#[derive(Default)]
+
+/// The sweet plugin for the rsx! macro.
+#[derive(Debug, Clone)]
 pub struct SweetRsxPlugin {
 	/// every element that directly contains rust code is assigned an incremental id
-	rsx_id_incr: usize,
+	pub rsx_id_incr: usize,
+	/// The placeholder for rust blocks in the html, defaults to `§`
+	pub placeholder: String,
 }
+
+impl Default for SweetRsxPlugin {
+	fn default() -> Self {
+		Self {
+			rsx_id_incr: 0,
+			placeholder: "§".to_string(),
+		}
+	}
+}
+
 
 impl RsxPlugin for SweetRsxPlugin {
 	fn visit_rsx(
@@ -25,13 +39,13 @@ impl RsxPlugin for SweetRsxPlugin {
 		let output = WalkNodes::walk_nodes(self, nodes);
 		let WalkNodesOutput {
 			errors,
-			html: html_string,
-			rust_events,
-			rust_blocks,
-			..
-			// collected_elements,
+			html,
+			rust,
+			css,
+			collected_elements,
 		} = output.clone();
 
+		let _ = collected_elements;
 
 		let errors = rstml_errors
 			.into_iter()
@@ -42,13 +56,11 @@ impl RsxPlugin for SweetRsxPlugin {
 		*expr = syn::parse_quote_spanned! {span=> {
 			#(#errors;)*
 			sweet::prelude::RsxParts {
-				events: vec![#(#rust_events;)*],
-				// the initial value of blocks
-				blocks: vec![#(#rust_blocks;)*],
-				html: PathOrInline::Inline(#html_string),
+				rust: vec![#(#rust,)*],
+				html: PathOrInline::Inline(#html),
+				css: PathOrInline::Inline(#css),
 			}
 		}};
-		// *expr = syn::parse_quote! {"howdy"};
 		Ok(output)
 	}
 
@@ -81,8 +93,9 @@ impl RsxPlugin for SweetRsxPlugin {
 	}
 
 	fn visit_block(&mut self, block: &NodeBlock, output: &mut WalkNodesOutput) {
-		output.rust_blocks.push(block.to_token_stream());
-		output.html.push_str(" __rsx-block__");
+		output.rust.push(block.to_token_stream());
+		output.html.push(' ');
+		output.html.push_str(&self.placeholder);
 	}
 
 	/// Sweet plugin allows for event shorthand:
@@ -107,20 +120,18 @@ impl RsxPlugin for SweetRsxPlugin {
 
 		let boxed = quote::quote! {Box::new(#value)};
 
-		output.rust_events.push(boxed);
+		output.rust.push(boxed);
 		output
 			.html
-			.push_str(&format!(" {}=\"__rsx_event__\"", attr.key));
+			.push_str(&format!(" {}=\"{}\"", attr.key, self.placeholder));
 	}
 }
 
 
-
-// fn string_to_node_name(str: &str) -> NodeName{
-
-// }
-
-
+/// Attributes are rusty if:
+/// - the key is an event (onclick can be shorthand for an ident)
+/// - the value is not a "string" or number, meaning its an ident (or true/false but thats ok)
+/// - the attribute is a block
 fn attribute_is_rusty(a: &NodeAttribute) -> bool {
 	match a {
 		NodeAttribute::Block(_) => true,
@@ -164,7 +175,7 @@ mod test {
 		let (expr, out) = plugin.parse_tokens(mac).unwrap();
 
 		expect(expr.to_token_stream().to_string()).to_contain("(onclick)");
-		expect(out.html).to_be(r#"<div rsx-id="0" onclick="__rsx_event__">the  __rsx-block__th <bold>value</bold>is __rsx-block__</div>"#);
+		expect(out.html).to_be(r#"<div rsx-id="0" onclick="§">the  §th <bold>value</bold>is §</div>"#);
 		// println!("{}", expr.to_token_stream().to_string());
 		// println!("{}", out.html);
 	}

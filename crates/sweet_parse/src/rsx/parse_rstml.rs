@@ -41,7 +41,7 @@ pub fn _join_html_and_rust(
 		errors: diagnostics,
 		html: html_string,
 		// dynamic_attributes,
-		rust_blocks: values,
+		rust: values,
 		..
 	}: WalkNodesOutput,
 	errors: Vec<Diagnostic>,
