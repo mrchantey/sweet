@@ -11,29 +11,31 @@ repository.workspace = true
 categories.workspace = true
 keywords.workspace = true
 
+[features]
+default = ["rsx"]
+rsx = [
+	"dep:syn",
+	"dep:quote",
+	"dep:proc-macro2",
+	"dep:rstml",
+	"dep:prettyplease",
+	"dep:proc-macro2-diagnostics",
+]
 
 [dependencies]
 sweet_core.workspace = true
-sweet_rsx_macros.workspace = true
-forky.workspace = true
+forky = { workspace = true, features = ["fs"] }
+syn = { workspace = true, features = ["visit"], optional = true }
+quote = { workspace = true, optional = true }
+proc-macro2 = { workspace = true, optional = true }
+prettyplease = { version = "0.2", optional = true }
+rstml = { version = "0.12", features = [
+	"rawtext-stable-hack",
+], optional = true }
+proc-macro2-diagnostics = { version = "0.10", optional = true }
 
-thiserror.workspace = true
 anyhow.workspace = true
 
-[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-forky = { workspace = true, features = ["fs"] }
-
-#💡 wasm
-[target.'cfg(target_arch = "wasm32")'.dependencies]
-forky = { workspace = true, features = ["web"] }
-console_log.workspace = true
-flume.workspace = true
-getrandom.workspace = true
-js-sys.workspace = true
-console_error_panic_hook.workspace = true
-wasm-bindgen.workspace = true
-wasm-bindgen-futures.workspace = true
-web-sys.workspace = true
 
 [dev-dependencies]
-sweet = { workspace = true, features = ["test"] }
+sweet = { workspace = true, features = ["test", "rsx", "render"] }

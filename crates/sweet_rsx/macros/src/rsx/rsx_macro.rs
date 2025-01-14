@@ -2,8 +2,8 @@
 // use super::empty_elements;
 // use super::parse_nodes;
 // use super::WalkNodes;
-use sweet_parse::prelude::RsxPlugin;
-use sweet_parse::prelude::SweetRsxPlugin;
+use sweet_rsx::prelude::RsxPlugin;
+use sweet_rsx::prelude::SweetRsxPlugin;
 
 pub struct RsxMacro;
 

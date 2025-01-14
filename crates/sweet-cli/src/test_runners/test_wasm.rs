@@ -34,7 +34,7 @@ pub struct TestWasm {
 	// we wont actuallly use this because the args will
 	// be passed to deno, but it provides --help messages
 	#[command(flatten)]
-	runner_args: sweet_test::prelude::TestRunnerConfig,
+	runner_args: sweet::prelude::TestRunnerConfig,
 }
 
 
@@ -163,7 +163,7 @@ website: 			https://docs.deno.com/runtime/getting_started/installation/
 #[cfg(test)]
 mod test {
 	use crate::prelude::*;
-	use sweet_test::prelude::*;
+	use sweet::prelude::*;
 	use test_wasm::deno_runner_path;
 
 	#[test]

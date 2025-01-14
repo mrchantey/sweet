@@ -2,9 +2,9 @@
 resolver = "2" # Important! wgpu/Bevy needs this!
 members = [
 	"crates/sweet_core",
-	"crates/sweet_parse",
-	"crates/sweet_rsx/macros",
+	"crates/sweet_render",
 	"crates/sweet_rsx",
+	"crates/sweet_rsx/macros",
 	"crates/sweet_server",
 	"crates/sweet_site",
 	"crates/sweet_test/macros",
@@ -34,7 +34,7 @@ keywords = ["full-stack", "browser", "web", "test", "e2e"]
 # dont specify version to allow it to be included as a dev dependency but ignored by cargo publish
 sweet = { path = "" }
 sweet_core = { path = "crates/sweet_core", version = "0.3.0-rc.1" }
-sweet_parse = { path = "crates/sweet_parse", version = "0.3.0-rc.1" }
+sweet_render = { path = "crates/sweet_render", version = "0.3.0-rc.1" }
 sweet_rsx = { path = "crates/sweet_rsx", version = "0.3.0-rc.1" }
 sweet_rsx_macros = { path = "crates/sweet_rsx/macros", version = "0.3.0-rc.1" }
 sweet_server = { path = "crates/sweet_server", version = "0.3.0-rc.1" }
@@ -159,27 +159,29 @@ keywords.workspace = true
 [features]
 default = ["server", "rsx"]
 
+bevy = ["sweet_test?/bevy"]
+render = ["dep:sweet_render"]
+macros = ["dep:sweet_rsx_macros"]
 rsx = ["dep:sweet_rsx"]
 server = ["dep:sweet_server"]
-parse = ["dep:sweet_parse"]
 test = ["dep:sweet_test"]
-bevy = ["sweet_test?/bevy"]
 
 [dependencies]
 sweet_core.workspace = true
 sweet_test = { workspace = true, optional = true }
+sweet_render = { workspace = true, optional = true }
 sweet_rsx = { workspace = true, optional = true }
+sweet_rsx_macros = { workspace = true, optional = true }
 sweet_server = { workspace = true, optional = true }
-sweet_parse = { workspace = true, optional = true }
 
 
 [examples]
 counter = { required_features = ["server"] }
 render_counter = { required_features = ["server"] }
 
-
 [dev-dependencies]
 sweet_test.workspace = true
+sweet_render.workspace = true
 sweet_rsx.workspace = true
+sweet_rsx_macros.workspace = true
 sweet_server.workspace = true
-sweet_parse.workspace = true

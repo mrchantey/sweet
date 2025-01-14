@@ -2,9 +2,9 @@
 	"rust-analyzer.cargo.features": "all",
 	// "rust-analyzer.cargo.target": "wasm32-unknown-unknown",
 	"rust-analyzer.files.excludeDirs": [
-		"crates/sweet_rsx/macros",
-		"crates/sweet_test/macros",
-		"crates/sweet-cli"
+		// "crates/sweet_rsx/macros",
+		// "crates/sweet_test/macros",
+		// "crates/sweet-cli"
 	],
 	"deno.enable": true,
 	"search.exclude": {
@@ -18,9 +18,9 @@
 		"**/.git/objects/**": true,
 		"**/.git/subtree-cache/**": true,
 		"**/.hg/store/**": true,
-		"crates/sweet_rsx/macros":true,
-		"crates/sweet_test/macros":true,
-		"crates/sweet-cli":true,
+		// "crates/sweet_rsx/macros":true,
+		// "crates/sweet_test/macros":true,
+		// "crates/sweet-cli":true,
 
 	},
 	"files.exclude": {

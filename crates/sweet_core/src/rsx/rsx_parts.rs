@@ -1,10 +1,11 @@
 use crate::prelude::*;
 use std::path::PathBuf;
 
-/// Information for a particular rsx! macro.
-/// This is not the final parse step, we need another pass to
-/// build the component tree and reassign attributes.
+/// The rust, html and css extracted from an `rsx!` macro.
+/// Note that the outputted html and css is not final,
+/// it contains a placeholder that is filled in the render step.
 #[derive(Default)]
+
 pub struct RsxParts {
 	pub rust: Vec<RsxRust>,
 	pub html: PathOrInline,

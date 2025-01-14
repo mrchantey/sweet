@@ -25,11 +25,13 @@ pub struct SweetRsxPlugin {
 }
 
 impl SweetRsxPlugin {
+	pub const DEFAULT_PLACEHOLDER: &'static str = "§";
+
 	pub fn new_with_errors() -> Self {
 		Self {
 			include_errors: true,
 			rsx_id_incr: 0,
-			placeholder: "§".to_string(),
+			placeholder: Self::DEFAULT_PLACEHOLDER.to_string(),
 		}
 	}
 
@@ -37,7 +39,7 @@ impl SweetRsxPlugin {
 		Self {
 			include_errors: false,
 			rsx_id_incr: 0,
-			placeholder: "§".to_string(),
+			placeholder: Self::DEFAULT_PLACEHOLDER.to_string(),
 		}
 	}
 }
@@ -202,7 +204,7 @@ mod test {
 		let mut plugin = SweetRsxPlugin::new_no_errors();
 		// raw text nodes are trimmed
 		let mut tokens = quote::quote! {
-			rsx!{<div>"the "{value}"th "<bold>value</bold> is {value}</div>}
+			<div>"the "{value}"th "<bold>value</bold> is {value}</div>
 		};
 		let out = plugin.parse_rsx(&mut tokens).unwrap();
 		expect(out.html)

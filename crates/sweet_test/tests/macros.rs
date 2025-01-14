@@ -2,8 +2,6 @@
 #![cfg_attr(test, feature(test, custom_test_frameworks))]
 #![cfg_attr(test, test_runner(sweet::test_runner))]
 use anyhow::Result;
-use std::time::Duration;
-use sweet::prelude::sleep;
 
 #[test]
 #[ignore]

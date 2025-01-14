@@ -43,7 +43,7 @@ test-all *args:
 	cargo test -p sweet_test --test hello_async -- {{args}}
 	cargo test -p sweet_test --test hello_async --target wasm32-unknown-unknown -- {{args}}
 	cargo test --workspace -- {{args}}
-	cargo test -p sweet_rsx --lib --target wasm32-unknown-unknown -- {{args}}
+	cargo test -p sweet_render --lib --target wasm32-unknown-unknown -- {{args}}
 	cargo test -p sweet_test --lib --target wasm32-unknown-unknown -- {{args}}
 	cargo test -p sweet_test --test macros --target wasm32-unknown-unknown -- {{args}}
 
@@ -54,10 +54,12 @@ expand test *args:
 
 #💡 Publish
 
+# order matters
 publish-all:
 	just publish sweet_core					| true
 	just publish sweet_rsx_macros		| true
 	just publish sweet_rsx					| true
+	just publish sweet_render				| true
 	just publish sweet_server				| true
 	just publish sweet_test_macros	| true
 	just publish sweet_test					| true
@@ -89,8 +91,8 @@ hello-world *args:
 
 _hello-world *args:
 	mkdir -p target/hello_world
-	cp crates/sweet_rsx/examples/hello_world.html target/hello_world/hello_world.html
-	cargo build -p sweet_rsx --example hello_world --target wasm32-unknown-unknown {{args}}
+	cp crates/sweet_render/examples/hello_world.html target/hello_world/hello_world.html
+	cargo build -p sweet_render --example hello_world --target wasm32-unknown-unknown {{args}}
 	wasm-bindgen \
 	--out-dir ./target/hello_world \
 	--out-name bindgen \

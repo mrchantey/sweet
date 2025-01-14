@@ -1,11 +1,13 @@
 #![cfg_attr(test, feature(test, custom_test_frameworks))]
 #![cfg_attr(test, test_runner(sweet::test_runner))]
-pub mod bench;
+#![feature(type_alias_impl_trait)]
+
 pub mod rsx;
-pub mod test_runners;
+#[cfg(target_arch = "wasm32")]
+pub mod sweet_loader;
 
 pub mod prelude {
-	pub use crate::bench::*;
 	pub use crate::rsx::*;
-	pub use crate::test_runners::*;
+	#[cfg(target_arch = "wasm32")]
+	pub use crate::sweet_loader::*;
 }
