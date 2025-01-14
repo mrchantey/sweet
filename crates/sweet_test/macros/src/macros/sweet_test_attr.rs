@@ -3,6 +3,9 @@ use proc_macro2::TokenStream;
 use quote::quote;
 use syn::ItemFn;
 
+
+
+/// The parser for the #[sweet_test] attribute
 pub struct SweetTestAttr;
 
 impl SweetTestAttr {

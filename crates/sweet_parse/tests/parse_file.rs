@@ -6,7 +6,6 @@ mod test {
 	use forky::prelude::FsExt;
 	use forky::prelude::ReadFile;
 	use sweet::prelude::*;
-	use sweet_parse::prelude::*;
 
 	#[test]
 	fn works() {

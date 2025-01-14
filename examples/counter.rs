@@ -1,17 +1,27 @@
 use sweet::prelude::*;
 
-fn main() { Server::default().run(rsx! {<Counter value=21/>}); }
+fn main() {
+	// This example
+
+
+	Server::default().run(());
+	Server::default().run_once(Counter { value: 7 });
+	Server::default().run_once(Footer);
+	// TODO calling these.into_parts() and extending for children
+	Server::default().run_once(rsx! {<Counter />});
+}
 
 struct Counter {
 	value: i32,
 }
 
 
-impl IntoRsx for Counter {
-	fn into_rsx(mut self) -> impl Rsx {
+impl Rsx for Counter {
+	fn into_parts(self) -> RsxParts {
 		rsx! {
 			<div> the value is {self.value} </div>
-			<button onclick={|_| {self.value += 1;}}>Increment</button>
+				<button onclick=|_| {}>Increment</button>
+				// <button onclick={|_| {sweet::prelude::log!("hello world")}}>Increment</button>
 			<Footer/>
 		}
 	}
@@ -20,8 +30,8 @@ impl IntoRsx for Counter {
 
 struct Footer;
 
-impl IntoRsx for Footer {
-	fn into_rsx(self) -> impl Rsx {
+impl Rsx for Footer {
+	fn into_parts(self) -> RsxParts {
 		rsx! {
 			<footer>
 				<div>sweet as!</div>

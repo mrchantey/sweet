@@ -21,6 +21,7 @@ pub mod prelude {
 	pub use sweet_parse::prelude::*;
 	#[cfg(feature = "rsx")]
 	pub use sweet_rsx::prelude::*;
+	#[cfg(feature = "rsx")]
 	pub use sweet_rsx::sweet_rsx_macros::rsx;
 	#[cfg(feature = "server")]
 	pub use sweet_server::prelude::*;

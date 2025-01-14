@@ -1,4 +1,5 @@
 use super::*;
+use proc_macro2::TokenStream;
 use quote::quote;
 use quote::ToTokens;
 use rstml::node::CustomNode;
@@ -8,7 +9,6 @@ use rstml::node::NodeAttribute;
 use rstml::node::NodeBlock;
 use rstml::node::NodeElement;
 use rstml::node::NodeName;
-use syn::Macro;
 
 /// The sweet plugin for the rsx! macro.
 /// Deliberately no default, any implementers of this trait
@@ -44,8 +44,11 @@ impl SweetRsxPlugin {
 
 
 impl RsxPlugin for SweetRsxPlugin {
-	fn visit_rsx(&mut self, mac: &mut Macro) -> syn::Result<WalkNodesOutput> {
-		let (nodes, rstml_errors) = parse_rstml(mac.tokens.clone());
+	fn parse_rsx(
+		&mut self,
+		tokens: &mut TokenStream,
+	) -> syn::Result<WalkNodesOutput> {
+		let (nodes, rstml_errors) = parse_rstml(tokens.clone());
 		let output = WalkNodes::walk_nodes(self, nodes);
 		let WalkNodesOutput {
 			errors,
@@ -67,7 +70,7 @@ impl RsxPlugin for SweetRsxPlugin {
 			Default::default()
 		};
 
-		mac.tokens = syn::parse_quote! {{
+		*tokens = syn::parse_quote! {{
 			#errors
 			sweet::prelude::RsxParts {
 				rust: vec![#(#rust,)*],
@@ -179,11 +182,11 @@ mod test {
 		let mut plugin = SweetRsxPlugin::new_no_errors();
 		// macro with an event and block
 		// raw text nodes are trimmed
-		let mac = quote::quote! {
-			rsx!{<div onclick></div>}
+		let mut tokens = quote::quote! {
+			<div onclick></div>
 		};
 
-		let (tokens, out) = plugin.parse_tokens(mac).unwrap();
+		let out = plugin.parse_rsx(&mut tokens).unwrap();
 		let tokens_str = tokens.to_string();
 		// let tokens_str = prettyplease::unparse(
 		// 	&syn::parse_file(&tokens.to_string()).unwrap(),
@@ -198,10 +201,10 @@ mod test {
 	fn text_blocks() {
 		let mut plugin = SweetRsxPlugin::new_no_errors();
 		// raw text nodes are trimmed
-		let mac = quote::quote! {
+		let mut tokens = quote::quote! {
 			rsx!{<div>"the "{value}"th "<bold>value</bold> is {value}</div>}
 		};
-		let (_expr, out) = plugin.parse_tokens(mac).unwrap();
+		let out = plugin.parse_rsx(&mut tokens).unwrap();
 		expect(out.html)
 			.to_be(r#"<div rsx-id="0">the  §th <bold>value</bold>is §</div>"#);
 	}
@@ -210,10 +213,10 @@ mod test {
 	fn child_component() {
 		let mut plugin = SweetRsxPlugin::new_no_errors();
 		// raw text nodes are trimmed
-		let mac = quote::quote! {
+		let mut tokens = quote::quote! {
 			rsx!{<body><Header>"sweet "<b/>as</b></Header></body>}
 		};
-		let (_expr, out) = plugin.parse_tokens(mac).unwrap();
+		let out = plugin.parse_rsx(&mut tokens).unwrap();
 		expect(out.html).to_be(r#"<body>§§sweet <b>as</>§§</body>"#);
 	}
 }

@@ -2,7 +2,6 @@ use super::RsxFileVisitor;
 use super::RsxFileVisitorOut;
 use super::WalkNodesOutput;
 use proc_macro2::TokenStream;
-use quote::ToTokens;
 use rstml::node::CustomNode;
 use rstml::node::KeyedAttribute;
 use rstml::node::NodeBlock;
@@ -10,9 +9,6 @@ use rstml::node::NodeElement;
 use syn::visit_mut::VisitMut;
 use syn::Expr;
 use syn::File;
-use syn::Macro;
-
-
 
 
 
@@ -28,19 +24,14 @@ pub trait RsxPlugin: Sized {
 		Ok((file, visitor.into()))
 	}
 
+
 	/// entrypoint for inline (macro) parsing.
-	fn parse_tokens(
-		&mut self,
-		tokens: TokenStream,
-	) -> syn::Result<(TokenStream, WalkNodesOutput)> {
-		let mut mac: Macro = syn::parse2(tokens)?;
-		let output = self.visit_rsx(&mut mac)?;
-		Ok((mac.tokens.to_token_stream(), output))
-	}
-
-
 	/// Called when visiting an rsx macro.
-	fn visit_rsx(&mut self, mac: &mut Macro) -> syn::Result<WalkNodesOutput>;
+	/// Mutated in place for efficient file parsing
+	fn parse_rsx(
+		&mut self,
+		tokens: &mut TokenStream,
+	) -> syn::Result<WalkNodesOutput>;
 
 	fn visit_block(&mut self, block: &NodeBlock, output: &mut WalkNodesOutput);
 	fn visit_event(

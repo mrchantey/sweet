@@ -157,6 +157,8 @@ categories.workspace = true
 keywords.workspace = true
 
 [features]
+default = ["server", "rsx"]
+
 rsx = ["dep:sweet_rsx"]
 server = ["dep:sweet_server"]
 parse = ["dep:sweet_parse"]

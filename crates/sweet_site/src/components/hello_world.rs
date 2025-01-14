@@ -3,9 +3,9 @@ use sweet::prelude::*;
 
 pub struct HelloWorld;
 
-impl IntoRsx for HelloWorld {
-	fn into_rsx(self) -> impl Rsx {
-		let planet = "mars";
+impl Rsx for HelloWorld {
+	fn into_parts(self) -> RsxParts {
+		// let planet = "mars";
 		// rsx! {
 		// 	<button
 		// 		onclick={|_|{alert!(format!("hello {}!", planet))}}>
