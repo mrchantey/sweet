@@ -2,6 +2,7 @@
 resolver = "2" # Important! wgpu/Bevy needs this!
 members = [
 	"crates/sweet_core",
+	"crates/sweet_parse",
 	"crates/sweet_rsx/macros",
 	"crates/sweet_rsx",
 	"crates/sweet_site",
@@ -32,6 +33,7 @@ keywords = ["full-stack", "browser", "web", "test", "e2e"]
 # dont specify version to allow it to be included as a dev dependency but ignored by cargo publish
 sweet = { path = "" }
 sweet_core = { path = "crates/sweet_core", version = "0.3.0-rc.1" }
+sweet_parse = { path = "crates/sweet_parse", version = "0.3.0-rc.1" }
 sweet_test = { path = "crates/sweet_test", version = "0.3.0-rc.1" }
 sweet_test_macros = { path = "crates/sweet_test/macros", version = "0.3.0-rc.1" }
 sweet_rsx = { path = "crates/sweet_rsx", version = "0.3.0-rc.1" }

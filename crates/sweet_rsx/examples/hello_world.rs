@@ -1,4 +1,4 @@
-use sweet_rsx::prelude::*;
+use sweet_core::prelude::*;
 
 fn main() -> ParseResult<()> {
 	#[cfg(target_arch = "wasm32")]

@@ -1,5 +1,5 @@
-use super::ParseResult;
 use forky::prelude::*;
+use sweet_core::prelude::*;
 
 pub trait IntoHtml {
 	#[cfg(not(target_arch = "wasm32"))]

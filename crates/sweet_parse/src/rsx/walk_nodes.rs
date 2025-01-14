@@ -18,12 +18,9 @@ pub struct WalkNodes {
 	output: WalkNodesOutput,
 }
 impl WalkNodes {
-	pub fn walk_nodes(
-		empty_elements: HashSet<&'static str>,
-		mut nodes: Vec<Node>,
-	) -> WalkNodesOutput {
+	pub fn walk_nodes(mut nodes: Vec<Node>) -> WalkNodesOutput {
 		let visitor = WalkNodes {
-			empty_elements,
+			empty_elements: empty_elements(),
 			output: WalkNodesOutput::default(),
 		};
 		let output = visit_nodes(&mut nodes, visitor);
@@ -31,25 +28,22 @@ impl WalkNodes {
 	}
 	fn child_output(&self) -> Self {
 		Self {
-			empty_elements: empty_elements(),
+			empty_elements: self.empty_elements.clone(),
 			output: WalkNodesOutput::default(),
 		}
 	}
 }
 
 
-
-
-// mod escape;
 // ⚠️ WHENEVER ADDING VALUES UPDATE EXTEND
 #[derive(Default)]
 pub struct WalkNodesOutput {
 	/// The actual output html
 	pub html_string: String,
+	/// The event handlers
+	pub rust_events: Vec<TokenStream>,
 	/// The blocks
-	pub dynamic_attributes: Vec<TokenStream>,
-	/// The blocks
-	pub values: Vec<TokenStream>,
+	pub rust_blocks: Vec<TokenStream>,
 	// Additional diagnostic messages.
 	pub diagnostics: Vec<TokenStream>,
 	// Collect elements to provide semantic highlight based on element tag.
@@ -69,10 +63,10 @@ fn log_visit(prefix: &str, tokens: impl ToTokens) {
 impl WalkNodesOutput {
 	fn extend(&mut self, other: WalkNodesOutput) {
 		self.html_string.push_str(&other.html_string);
-		self.values.extend(other.values);
+		self.rust_blocks.extend(other.rust_blocks);
 		self.diagnostics.extend(other.diagnostics);
 		self.collected_elements.extend(other.collected_elements);
-		self.dynamic_attributes.extend(other.dynamic_attributes);
+		self.rust_events.extend(other.rust_events);
 	}
 }
 impl syn::visit_mut::VisitMut for WalkNodes {}
@@ -129,7 +123,7 @@ where
 	fn visit_block(&mut self, block: &mut rstml::node::NodeBlock) -> bool {
 		log_visit("BLOCK", &block);
 		self.output.html_string.push_str("{}");
-		self.output.values.push(block.to_token_stream());
+		self.output.rust_blocks.push(block.to_token_stream());
 		false
 	}
 	fn visit_element(
@@ -189,7 +183,7 @@ where
 				// If the nodes parent is an attribute we prefix with whitespace
 				self.output.html_string.push(' ');
 				self.output.html_string.push_str("{}");
-				self.output.values.push(block.to_token_stream());
+				self.output.rust_blocks.push(block.to_token_stream());
 			}
 			NodeAttribute::Attribute(attribute) => {
 				let key_str = attribute.key.to_string();
@@ -202,7 +196,7 @@ where
 						.push_str(&format!(" {}", attribute.key));
 					if let Some(value) = attribute.value() {
 						self.output.html_string.push_str(r#"="{}""#);
-						self.output.values.push(value.to_token_stream());
+						self.output.rust_blocks.push(value.to_token_stream());
 					}
 				}
 			}
@@ -230,7 +224,7 @@ impl WalkNodes {
 		// }
 		// self.output.dynamic_attributes.push(rehydrate);
 		// self.output.values.push(rehydrate.to_token_stream());
-		let index = self.output.dynamic_attributes.len();
+		let index = self.output.rust_events.len();
 		self.output
 			.html_string
 			.push_str(&format!("{}=\"a-{}\"", attr.key, index));
@@ -240,6 +234,6 @@ impl WalkNodes {
 		let rehydrate = quote::quote! {
 			let #ident = #value;
 		};
-		self.output.dynamic_attributes.push(rehydrate);
+		self.output.rust_events.push(rehydrate);
 	}
 }

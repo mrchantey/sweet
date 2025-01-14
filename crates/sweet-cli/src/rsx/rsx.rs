@@ -5,6 +5,13 @@ use std::path::PathBuf;
 
 
 
+
+
+/**
+Welcome to the sweet rsx preprocessor!
+this command will create a mirror of each file in the given directory,
+but with all rsx! macros split into html, css and rust.
+*/
 #[derive(Debug, Parser)]
 pub struct Rsx {
 	// The path to search

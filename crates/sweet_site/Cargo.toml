@@ -13,8 +13,9 @@ keywords.workspace = true
 
 
 [dependencies]
+sweet_core.workspace = true
+sweet_rsx.workspace = true
 forky = { workspace = true, features = ["fs"] }
 anyhow.workspace = true
-sweet_rsx.workspace = true
 
 reactive_graph = { version = "0.1", features = ["effects"] }

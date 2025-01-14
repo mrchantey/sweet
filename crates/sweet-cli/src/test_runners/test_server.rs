@@ -57,7 +57,7 @@ impl TestServer {
 mod test {
 	use crate::prelude::*;
 	use std::time::Instant;
-	use sweet::prelude::*;
+	use sweet_test::prelude::*;
 
 	#[test]
 	fn works() {

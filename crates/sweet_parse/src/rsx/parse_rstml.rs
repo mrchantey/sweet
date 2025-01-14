@@ -1,5 +1,5 @@
 use super::WalkNodesOutput;
-use proc_macro::TokenStream;
+use proc_macro2::TokenStream;
 use proc_macro2_diagnostics::Diagnostic;
 use quote::quote;
 use quote::quote_spanned;
@@ -20,7 +20,7 @@ pub fn empty_elements() -> HashSet<&'static str> {
 }
 
 
-pub fn parse_nodes(tokens: TokenStream) -> (Vec<Node>, Vec<Diagnostic>) {
+pub fn parse_rstml(tokens: TokenStream) -> (Vec<Node>, Vec<Diagnostic>) {
 	let empty_elements = empty_elements();
 	let config = ParserConfig::new()
 		.recover_block(true)
@@ -34,15 +34,14 @@ pub fn parse_nodes(tokens: TokenStream) -> (Vec<Node>, Vec<Diagnostic>) {
 	(nodes, errors)
 }
 
-
-
-pub fn collect_nodes(
+/// Used for testing, this is pretty much the rstml demo.
+pub fn _join_html_and_rust(
 	WalkNodesOutput {
 		// collected_elements,
 		diagnostics,
 		html_string,
 		// dynamic_attributes,
-		values,
+		rust_blocks: values,
 		..
 	}: WalkNodesOutput,
 	errors: Vec<Diagnostic>,

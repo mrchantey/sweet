@@ -163,7 +163,7 @@ website: 			https://docs.deno.com/runtime/getting_started/installation/
 #[cfg(test)]
 mod test {
 	use crate::prelude::*;
-	use sweet::prelude::*;
+	use sweet_test::prelude::*;
 	use test_wasm::deno_runner_path;
 
 	#[test]
