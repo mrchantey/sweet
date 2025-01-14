@@ -20,7 +20,7 @@ mod test {
 
 		expect(out.errors.len()).to_be(0);
 		expect(out.macros.len()).to_be(3);
-		expect(&file_str).to_start_with("use sweet::prelude::*;");
+		expect(&file_str).to_start_with(SweetRsxPlugin::SHEBANG);
 		expect(&file_str).not().to_contain("rsx!");
 	}
 }

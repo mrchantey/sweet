@@ -6,8 +6,8 @@ pub struct Counter {
 }
 
 
-impl Rsx for Counter {
-	fn into_parts(self) -> RsxParts {
+impl Component for Counter {
+	fn render(self) -> impl Rsx {
 		let (value, set_value) = arc_signal(self.initial_value);
 		// rsx! {
 		// 	<div>

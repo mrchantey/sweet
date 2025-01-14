@@ -3,8 +3,8 @@ use sweet::prelude::*;
 
 pub struct HelloWorld;
 
-impl Rsx for HelloWorld {
-	fn into_parts(self) -> RsxParts {
+impl Component for HelloWorld {
+	fn render(self) -> impl Rsx {
 		// let planet = "mars";
 		// rsx! {
 		// 	<button

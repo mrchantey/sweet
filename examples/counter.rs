@@ -4,9 +4,9 @@ fn main() {
 	// This example
 
 
-	Server::default().run(());
-	Server::default().run_once(Counter { value: 7 });
-	Server::default().run_once(Footer);
+	Server::default().run_once(());
+	Server::default().run_once(Counter { value: 7 }.render());
+	Server::default().run_once(Footer.render());
 	// TODO calling these.into_parts() and extending for children
 	Server::default().run_once(rsx! {<Counter />});
 }
@@ -16,8 +16,8 @@ struct Counter {
 }
 
 
-impl Rsx for Counter {
-	fn into_parts(self) -> RsxParts {
+impl Component for Counter {
+	fn render(self) -> impl Rsx {
 		rsx! {
 			<div> the value is {self.value} </div>
 				<button onclick=|_| {}>Increment</button>
@@ -30,8 +30,8 @@ impl Rsx for Counter {
 
 struct Footer;
 
-impl Rsx for Footer {
-	fn into_parts(self) -> RsxParts {
+impl Component for Footer {
+	fn render(self) -> impl Rsx {
 		rsx! {
 			<footer>
 				<div>sweet as!</div>
