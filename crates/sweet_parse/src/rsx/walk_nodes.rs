@@ -1,7 +1,7 @@
 use super::empty_elements;
+use super::RsxPlugin;
 use proc_macro2::TokenStream;
 use quote::ToTokens;
-use rstml::node::KeyedAttribute;
 use rstml::node::Node;
 use rstml::node::NodeAttribute;
 use rstml::node::NodeName;
@@ -10,42 +10,66 @@ use rstml::visitor::visit_nodes;
 use rstml::visitor::Visitor;
 use std::collections::HashSet;
 use syn::spanned::Spanned;
-use syn::Ident;
 
-
-pub struct WalkNodes {
+pub struct WalkNodes<'a, P> {
+	plugin: &'a mut P,
 	empty_elements: HashSet<&'static str>,
 	output: WalkNodesOutput,
 }
-impl WalkNodes {
-	pub fn walk_nodes(mut nodes: Vec<Node>) -> WalkNodesOutput {
-		let visitor = WalkNodes {
+impl<'a, P: RsxPlugin> WalkNodes<'a, P> {
+	pub fn walk_nodes(
+		plugin: &'a mut P,
+		mut nodes: Vec<Node>,
+	) -> WalkNodesOutput {
+		let visitor = Self {
+			plugin,
 			empty_elements: empty_elements(),
 			output: WalkNodesOutput::default(),
 		};
 		let output = visit_nodes(&mut nodes, visitor);
 		output.output
 	}
-	fn child_output(&self) -> Self {
-		Self {
+
+	fn child(&mut self) -> WalkNodes<'_, P> {
+		WalkNodes {
+			plugin: self.plugin,
 			empty_elements: self.empty_elements.clone(),
 			output: WalkNodesOutput::default(),
 		}
 	}
+
+	fn extend_child_output(
+		&mut self,
+		func: impl FnOnce(WalkNodes<'_, P>) -> WalkNodes<'_, P>,
+	) {
+		let child = self.child();
+		let child = func(child);
+		let output = child.output;
+		self.output.extend(output);
+	}
+
+	fn push_error(&mut self, span: impl Spanned, message: &str) {
+		self.output.errors.push(
+			proc_macro2_diagnostics::Diagnostic::spanned(
+				span.span(),
+				proc_macro2_diagnostics::Level::Error,
+				message,
+			)
+			.emit_as_expr_tokens(),
+		);
+	}
 }
 
-
-// ⚠️ WHENEVER ADDING VALUES UPDATE EXTEND
 #[derive(Default)]
 pub struct WalkNodesOutput {
 	/// The actual output html
 	pub html_string: String,
 	/// The event handlers
 	pub rust_events: Vec<TokenStream>,
-	/// The blocks
+	/// Rust blocks blocks
 	pub rust_blocks: Vec<TokenStream>,
-	// Additional diagnostic messages.
-	pub diagnostics: Vec<TokenStream>,
+	// Additional error and warning messages.
+	pub errors: Vec<TokenStream>,
 	// Collect elements to provide semantic highlight based on element tag.
 	// No differences between open tag and closed tag.
 	// Also multiple tags with same name can be present,
@@ -53,25 +77,25 @@ pub struct WalkNodesOutput {
 	pub collected_elements: Vec<NodeName>,
 }
 
-
-#[allow(unused)]
-fn log_visit(prefix: &str, tokens: impl ToTokens) {
-	// crashes rust analyzer?
-	// println!("🚀 {}: {}", prefix, tokens.into_token_stream().to_string());
-}
-
 impl WalkNodesOutput {
 	fn extend(&mut self, other: WalkNodesOutput) {
-		self.html_string.push_str(&other.html_string);
-		self.rust_blocks.extend(other.rust_blocks);
-		self.diagnostics.extend(other.diagnostics);
-		self.collected_elements.extend(other.collected_elements);
-		self.rust_events.extend(other.rust_events);
+		let WalkNodesOutput {
+			html_string,
+			rust_events,
+			rust_blocks,
+			errors,
+			collected_elements,
+		} = other;
+		self.html_string.push_str(&html_string);
+		self.rust_blocks.extend(rust_blocks);
+		self.errors.extend(errors);
+		self.collected_elements.extend(collected_elements);
+		self.rust_events.extend(rust_events);
 	}
 }
-impl syn::visit_mut::VisitMut for WalkNodes {}
+impl<'a, P> syn::visit_mut::VisitMut for WalkNodes<'a, P> {}
 
-impl<C> Visitor<C> for WalkNodes
+impl<'a, P: RsxPlugin, C> Visitor<C> for WalkNodes<'a, P>
 where
 	C: rstml::node::CustomNode + 'static,
 {
@@ -104,9 +128,9 @@ where
 		fragment: &mut rstml::node::NodeFragment<C>,
 	) -> bool {
 		log_visit("FRAGMENT", &fragment);
-		let visitor = self.child_output();
-		let child_output = visit_nodes(&mut fragment.children, visitor);
-		self.output.extend(child_output.output);
+		self.extend_child_output(|child| {
+			visit_nodes(&mut fragment.children, child)
+		});
 		false
 	}
 
@@ -122,8 +146,10 @@ where
 	}
 	fn visit_block(&mut self, block: &mut rstml::node::NodeBlock) -> bool {
 		log_visit("BLOCK", &block);
-		self.output.html_string.push_str("{}");
-		self.output.rust_blocks.push(block.to_token_stream());
+		// we dont visit blocks, they are handled by visit_element
+		// because it needs relative context
+		// self.output.html_string.push_str("{}");
+		// self.output.rust_blocks.push(block.to_token_stream());
 		false
 	}
 	fn visit_element(
@@ -140,10 +166,15 @@ where
 			self.output.collected_elements.push(e.name.clone())
 		}
 
-		let visitor = self.child_output();
-		let attribute_visitor =
-			visit_attributes(element.attributes_mut(), visitor);
-		self.output.extend(attribute_visitor.output);
+		if let Err(err) = self.plugin.visit_element(element, &mut self.output) {
+			self.output.errors.push(err.to_compile_error());
+		}
+
+
+
+		self.extend_child_output(|child| {
+			visit_attributes(element.attributes_mut(), child)
+		});
 
 		self.output.html_string.push('>');
 
@@ -161,42 +192,49 @@ where
 					proc_macro2_diagnostics::Level::Warning,
 					"Element is processed as empty, and cannot have any child",
 				);
-				self.output.diagnostics.push(warning.emit_as_expr_tokens())
+				self.output.errors.push(warning.emit_as_expr_tokens())
 			}
 
 			return false;
 		}
-		// children
+		self.extend_child_output(|child| {
+			visit_nodes(&mut element.children, child)
+		});
 
-		let visitor = self.child_output();
-		let child_output = visit_nodes(&mut element.children, visitor);
-		self.output.extend(child_output.output);
 		self.output.html_string.push_str(&format!("</{}>", name));
 		false
 	}
-	fn visit_attribute(&mut self, attribute: &mut NodeAttribute) -> bool {
-		log_visit("ATTRIBUTE", &attribute);
+	fn visit_attribute(&mut self, attr: &mut NodeAttribute) -> bool {
+		log_visit("ATTRIBUTE", &attr);
 		// attributes
-		match attribute {
+		match attr {
 			NodeAttribute::Block(block) => {
+				self.push_error(
+					block.span(),
+					"block attributes not yet supported",
+				);
 				// log_visit("ATTRIBUTE - BLOCK", block.clone());
 				// If the nodes parent is an attribute we prefix with whitespace
-				self.output.html_string.push(' ');
-				self.output.html_string.push_str("{}");
-				self.output.rust_blocks.push(block.to_token_stream());
+				// self.output.html_string.push(' ');
+				// self.output.html_string.push_str("{}");
+				// self.output.rust_blocks.push(block.to_token_stream());
 			}
-			NodeAttribute::Attribute(attribute) => {
-				let key_str = attribute.key.to_string();
+			NodeAttribute::Attribute(attr) => {
+				let key_str = attr.key.to_string();
 				if key_str.starts_with("on") {
-					self.visit_event(attribute);
+					if let Err(err) =
+						self.plugin.visit_event(attr, &mut self.output)
+					{
+						self.output.errors.push(err.to_compile_error());
+					}
 				} else {
 					// log_visit("ATTRIBUTE - VANILLA", attribute.clone());
-					self.output
-						.html_string
-						.push_str(&format!(" {}", attribute.key));
-					if let Some(value) = attribute.value() {
-						self.output.html_string.push_str(r#"="{}""#);
-						self.output.rust_blocks.push(value.to_token_stream());
+					self.output.html_string.push_str(&format!(" {}", attr.key));
+					if let Some(value) = attr.value() {
+						self.push_error(
+							value.span(),
+							"attribute values not yet supported",
+						);
 					}
 				}
 			}
@@ -205,35 +243,9 @@ where
 	}
 }
 
-impl WalkNodes {
-	fn visit_event(&mut self, attr: &KeyedAttribute) {
-		let Some(value) = attr.value() else {
-			self.output.diagnostics.push(
-				proc_macro2_diagnostics::Diagnostic::spanned(
-					attr.span(),
-					proc_macro2_diagnostics::Level::Error,
-					"Event handler must have a value",
-				)
-				.emit_as_expr_tokens(),
-			);
-			return;
-		};
-		// match value {
-		// 	Expr::Closure(expr_closure) => todo!(),
-		// 	_ => todo!(),
-		// }
-		// self.output.dynamic_attributes.push(rehydrate);
-		// self.output.values.push(rehydrate.to_token_stream());
-		let index = self.output.rust_events.len();
-		self.output
-			.html_string
-			.push_str(&format!("{}=\"a-{}\"", attr.key, index));
 
-		let ident = Ident::new(&format!("a_{}", index), attr.span());
-
-		let rehydrate = quote::quote! {
-			let #ident = #value;
-		};
-		self.output.rust_events.push(rehydrate);
-	}
+#[allow(unused)]
+fn log_visit(prefix: &str, tokens: impl ToTokens) {
+	// crashes rust analyzer?
+	// println!("🚀 {}: {}", prefix, tokens.into_token_stream().to_string());
 }

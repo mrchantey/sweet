@@ -1,5 +1,10 @@
 use super::*;
-
+use quote::ToTokens;
+use rstml::node::CustomNode;
+use rstml::node::KeyedAttribute;
+use rstml::node::KeyedAttributeValue;
+use rstml::node::NodeAttribute;
+use rstml::node::NodeElement;
 
 #[derive(Default)]
 pub struct SweetRsxPlugin {
@@ -10,92 +15,106 @@ pub struct SweetRsxPlugin {
 }
 
 impl RsxPlugin for SweetRsxPlugin {
-	fn parse_rsx(
+	fn visit_rsx(
 		&mut self,
 		expr: &mut syn::Expr,
 	) -> syn::Result<RsxPartsTokens> {
-		let mac = unwrap_macro(expr)?;
+		let mac = macro_or_err(expr)?;
 		let parts = RsxPartsTokens::parse(self, mac.tokens.clone());
 		*expr = parts.expr.clone();
-		*expr = syn::parse_quote! {"howdy"};
+		// *expr = syn::parse_quote! {"howdy"};
 		Ok(parts)
 	}
+
+	fn visit_element<C: CustomNode>(
+		&mut self,
+		el: &mut NodeElement<C>,
+		_output: &mut WalkNodesOutput,
+	) -> syn::Result<()> {
+		let dyn_attrs = el.attributes().iter().any(event_or_block_attribute);
+
+		let dyn_children = el
+			.children
+			.iter()
+			.any(|c| matches!(c, rstml::node::Node::Block(_)));
+
+		if !dyn_attrs && !dyn_children {
+			return Ok(());
+		}
+
+		// assign s-id key
+		// the value assigned at the component builder step
+		el.attributes_mut()
+			.push(NodeAttribute::Attribute(KeyedAttribute {
+				key: syn::parse_quote!(s - id),
+				possible_value: KeyedAttributeValue::None,
+			}));
+		Ok(())
+	}
+
+	/// Sweet plugin allows for event shorthand:
+	/// ```
+	/// let on_click = |e|{}
+	/// rsx!{<div on_click/>}
+	/// ```
+	fn visit_event(
+		&mut self,
+		attr: &KeyedAttribute,
+		output: &mut WalkNodesOutput,
+	) -> syn::Result<()> {
+		let value = match attr.value() {
+			Some(value) => value.clone(),
+			// we allow functions with the same name of the event here
+			None => {
+				// this way we keep the span?
+				let key = &attr.key.to_token_stream();
+				syn::parse_quote! {#key}
+			} // None => syn::parse_str::<syn::Expr>(&attr.key.to_string())?,
+		};
+
+		let boxed = quote::quote! {Box::new(#value)};
+
+		let index = output.rust_events.len();
+		output.rust_events.push(boxed);
+		// leading space
+		output.html_string.push_str(&format!(
+			" {}=\"_sweet.event({},event)\"",
+			attr.key, index
+		));
+
+		Ok(())
+	}
 }
-// fn parse_item(&mut self, item: &mut Item) -> syn::Result<()> {
-// 	if let Item::Impl(impl_block) = item {
-// 		let Some(into_rsx_func) = try_get_into_rsx(impl_block) else {
-// 			return Ok(());
-// 		};
-// 		*item = parse_into_rsx_func(plugin, into_rsx_func)?
-// 	}
-// 	Ok(())
-// }
 
-// fn parse_file(&mut self, file: &mut File) -> syn::Result<()> {
-// 	for item in &mut file.items {
-// 		self.parse_item(item)?;
-// 	}
-// 	Ok(())
+// fn string_to_node_name(str: &str) -> NodeName{
+
 // }
 
 
-// fn parse_into_rsx_func(
-// 	plugin: &impl RsxPlugin,
-// 	into_rsx_func: &ImplItemFn,
-// ) -> syn::Result<Item> {
-// 	let mut block = into_rsx_func.block.clone();
-// 	RsxVisitor::file_rsx_to_parts(plugin, &mut block);
-// 	let rust = hydrate_impl.iter().map(|output| &output.rust);
-// 	let ident = &into_rsx_func.sig.ident;
-
-// 	let hydrate_client_impl = syn::parse_quote! {
-// 		impl sweet::prelude::HydrateClient for #ident {
-// 			fn hydrate(&self) {
-// 				#(#rust)*
-// 			}
-// 		}
-// 	};
-
-// 	Ok(hydrate_client_impl)
-// }
-
-
-// /// Try to extract the `into_rsx` function from an `IntoRsx` impl block
-// fn try_get_into_rsx(impl_block: &ItemImpl) -> Option<&ImplItemFn> {
-// 	if !is_into_rsx_impl(impl_block) {
-// 		return None;
-// 	}
-// 	for impl_item in &impl_block.items {
-// 		if let ImplItem::Fn(method) = impl_item {
-// 			if method.sig.ident == "into_rsx" {
-// 				return Some(method);
-// 			}
-// 		}
-// 	}
-// 	None
-// }
-
-// /// Check if the impl is an implementation of `IntoRsx`
-// fn is_into_rsx_impl(impl_block: &ItemImpl) -> bool {
-// 	match impl_block.trait_.as_ref() {
-// 		Some((_, path, _)) => path
-// 			.segments
-// 			.last()
-// 			.map(|segment| segment.ident == "IntoRsx")
-// 			.unwrap_or(false),
-// 		None => false,
-// 	}
-// }
-
+fn event_or_block_attribute(a: &NodeAttribute) -> bool { true }
 
 #[cfg(test)]
 mod test {
 	// use crate::prelude::*;
-	// use sweet::prelude::*;
+	use super::RsxPlugin;
+	use super::*;
+	use quote::ToTokens;
+	use sweet::prelude::*;
+
 
 	#[test]
 	fn works() {
+		let mut plugin = SweetRsxPlugin::default();
+		// macro with an event and block
+		let value = 1;
+		let mac = quote::quote! {
+			rsx!{<div onclick>the {value}th value is {value}</div>}
+		};
 
-		// expect(true).to_be_false();
+		let out = plugin.parse_tokens(mac).unwrap();
+
+		expect(out.expr.to_token_stream().to_string()).to_contain("(onclick)");
+		println!("{}", out.expr.to_token_stream().to_string());
+		println!("{}", out.html);
 	}
 }

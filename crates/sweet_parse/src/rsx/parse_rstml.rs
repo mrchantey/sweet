@@ -38,7 +38,7 @@ pub fn parse_rstml(tokens: TokenStream) -> (Vec<Node>, Vec<Diagnostic>) {
 pub fn _join_html_and_rust(
 	WalkNodesOutput {
 		// collected_elements,
-		diagnostics,
+		errors: diagnostics,
 		html_string,
 		// dynamic_attributes,
 		rust_blocks: values,

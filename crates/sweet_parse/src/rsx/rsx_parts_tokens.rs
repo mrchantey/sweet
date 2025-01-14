@@ -3,6 +3,7 @@ use super::RsxPlugin;
 use super::WalkNodes;
 use proc_macro2::TokenStream;
 use proc_macro2_diagnostics::Diagnostic;
+use syn::spanned::Spanned;
 use syn::Expr;
 
 #[derive(Debug)]
@@ -22,29 +23,43 @@ pub struct RsxPartsTokens {
 	pub rsx_plugin_errors: Vec<syn::Error>,
 }
 
+#[cfg(test)]
+impl Default for RsxPartsTokens {
+	fn default() -> Self {
+		Self {
+			html: String::new(),
+			css: String::new(),
+			expr: syn::parse_quote!({}),
+			rstml_errors: Vec::new(),
+			node_walk_errors: Vec::new(),
+			rsx_plugin_errors: Vec::new(),
+		}
+	}
+}
+
 impl RsxPartsTokens {
 	/// Passed in the contents of an rsx! macro.
-	pub fn parse(_plugin: &mut impl RsxPlugin, tokens: TokenStream) -> Self {
+	pub fn parse(plugin: &mut impl RsxPlugin, tokens: TokenStream) -> Self {
+		let span = tokens.span();
 		let (nodes, errors) = parse_rstml(tokens);
 
-		let output = WalkNodes::walk_nodes(nodes);
+		let output = WalkNodes::walk_nodes(plugin, nodes);
 
 		let blocks = output.rust_blocks;
 		let events = output.rust_events;
 
 		// TODO this should be parsed into the hydrate step
-		let expr = syn::parse_quote! {{
-			#(#blocks)*
-			#(#events)*
-		}
-		};
+		let expr = syn::parse_quote_spanned! {span=> sweet::prelude::Hydrated {
+			events:	vec![#(#events),*],
+			blocks: vec![#(#blocks),*]
+		}};
 
 		Self {
 			html: output.html_string,
 			css: String::new(), //todo
 			expr,
 			rstml_errors: errors,
-			node_walk_errors: output.diagnostics,
+			node_walk_errors: output.errors,
 			rsx_plugin_errors: Vec::new(),
 		}
 	}

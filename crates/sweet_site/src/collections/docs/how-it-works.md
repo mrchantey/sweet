@@ -4,6 +4,8 @@ title: How it works
 ---
 
 
+
+
 The interactivity layer is a very lightweight layer over the leptos `reactive_graph` signals crate.
 
 The hydration strategy is loosely borrowed from quik. Html serialization and lazy event patching allow for html-rust splitting and zero pre-hydration events missed.
