@@ -10,13 +10,13 @@ use syn::ExprMacro;
 pub struct RsxFileVisitor<'a, P> {
 	plugin: &'a mut P,
 	/// The rsx macros found in the function
-	macros: Vec<RsxPartsTokens>,
+	macros: Vec<WalkNodesOutput>,
 	/// Errors that occurred while parsing the rsx macro
 	errors: Vec<syn::Error>,
 }
 
 pub struct RsxFileVisitorOut {
-	pub macros: Vec<RsxPartsTokens>,
+	pub macros: Vec<WalkNodesOutput>,
 	pub errors: Vec<syn::Error>,
 }
 

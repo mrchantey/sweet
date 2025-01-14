@@ -2,10 +2,14 @@ use crate::prelude::*;
 use std::path::PathBuf;
 
 
-/// All information required to hydrate an rsx! macro.
-#[derive(Debug)]
+/// Information for a particular rsx! macro.
+/// This is not the final parse step, we need another pass to
+/// build the component tree and reassign attributes.
+// #[derive(Debug)]
 pub struct RsxParts {
-	pub hydrate_item: Hydrated,
+	pub events: Vec<HydratedEvent>,
+	// the initial value of blocks
+	pub blocks: Vec<String>,
 	pub html: PathOrInline,
 }
 

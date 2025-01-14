@@ -2,4 +2,5 @@ rustc-ice*
 target
 tests/assert.rs
 tests/expect.rs
+index.html
 # crates/sweet_site/src/out

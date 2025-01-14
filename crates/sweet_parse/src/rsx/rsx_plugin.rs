@@ -1,10 +1,10 @@
 use super::RsxFileVisitor;
 use super::RsxFileVisitorOut;
-use super::RsxPartsTokens;
 use super::WalkNodesOutput;
 use proc_macro2::TokenStream;
 use rstml::node::CustomNode;
 use rstml::node::KeyedAttribute;
+use rstml::node::NodeBlock;
 use rstml::node::NodeElement;
 use syn::visit_mut::VisitMut;
 use syn::Expr;
@@ -17,24 +17,22 @@ pub trait RsxPlugin: Sized {
 	/// Called when visiting an rsx [Expr::Macro],
 	/// passed as an [Expr] so that the macro can be replaced.
 	/// see [macro_or_err] for an easy map.
-	fn visit_rsx(&mut self, item: &mut Expr) -> syn::Result<RsxPartsTokens>;
+	fn visit_rsx(&mut self, item: &mut Expr) -> syn::Result<WalkNodesOutput>;
 
+	fn visit_block(&mut self, block: &NodeBlock, output: &mut WalkNodesOutput);
 	fn visit_event(
 		&mut self,
 		item: &KeyedAttribute,
 		output: &mut WalkNodesOutput,
-	) -> syn::Result<()>;
+	);
 
-	/// Opportunity to mutate an element before attributes and children are visited.
+	/// Opportunity to view children, useful for text node block encoding
 	#[allow(unused_variables)]
 	fn visit_element<C: CustomNode>(
 		&mut self,
-		el: &mut NodeElement<C>,
+		el: &NodeElement<C>,
 		output: &mut WalkNodesOutput,
-	) -> syn::Result<()> {
-		Ok(())
-	}
-
+	);
 
 	/// specify the identifier that will be parsed
 	fn macro_ident() -> &'static str { "rsx" }
@@ -58,9 +56,10 @@ pub trait RsxPlugin: Sized {
 	fn parse_tokens(
 		&mut self,
 		tokens: TokenStream,
-	) -> syn::Result<RsxPartsTokens> {
+	) -> syn::Result<(Expr, WalkNodesOutput)> {
 		let mut expr: Expr = syn::parse2(tokens)?;
-		self.visit_rsx(&mut expr)
+		let output = self.visit_rsx(&mut expr)?;
+		Ok((expr, output))
 	}
 }
 

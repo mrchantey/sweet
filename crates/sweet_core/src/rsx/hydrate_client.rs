@@ -25,6 +25,7 @@ pub struct HydratedBlock {
 	/// The index of the part in the node
 	/// ie for `hello {name}` the part index would be 1
 	pub part_index: usize,
+	pub initial_value: String,
 }
 
 

@@ -39,7 +39,7 @@ pub fn _join_html_and_rust(
 	WalkNodesOutput {
 		// collected_elements,
 		errors: diagnostics,
-		html_string,
+		html: html_string,
 		// dynamic_attributes,
 		rust_blocks: values,
 		..

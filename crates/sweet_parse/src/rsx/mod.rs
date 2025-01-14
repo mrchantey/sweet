@@ -4,9 +4,6 @@ pub use self::parse_rstml::*;
 pub mod rsx_file_visitor;
 #[allow(unused_imports)]
 pub use self::rsx_file_visitor::*;
-pub mod rsx_parts_tokens;
-#[allow(unused_imports)]
-pub use self::rsx_parts_tokens::*;
 pub mod rsx_plugin;
 #[allow(unused_imports)]
 pub use self::rsx_plugin::*;
