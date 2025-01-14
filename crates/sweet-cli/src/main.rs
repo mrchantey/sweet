@@ -16,7 +16,7 @@ struct Cli {
 #[derive(Subcommand)]
 enum Commands {
 	BenchAssert(BenchAssert),
-	Rsx(Rsx),
+	Rsx(RsxCommand),
 	TestServer(TestServer),
 	TestWasm(TestWasm),
 }

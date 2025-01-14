@@ -1,5 +1,5 @@
 use reactive_graph::signal::arc_signal;
-use sweet_rsx::prelude::*;
+use sweet::prelude::*;
 
 pub struct Counter {
 	initial_value: i32,
@@ -7,7 +7,7 @@ pub struct Counter {
 
 
 impl IntoRsx for Counter {
-	fn into_rsx(self) {
+	fn into_rsx(self) -> impl Rsx {
 		let (value, set_value) = arc_signal(self.initial_value);
 		// rsx! {
 		// 	<div>

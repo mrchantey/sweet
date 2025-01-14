@@ -13,7 +13,7 @@ this command will create a mirror of each file in the given directory,
 but with all rsx! macros split into html, css and rust.
 */
 #[derive(Debug, Parser)]
-pub struct Rsx {
+pub struct RsxCommand {
 	// The path to search
 	path: PathBuf,
 	/// Output to stdout instead of out dir
@@ -25,7 +25,7 @@ pub struct Rsx {
 	out_dir: String,
 }
 
-impl Rsx {
+impl RsxCommand {
 	pub fn run(self) -> Result<()> {
 		self.for_each_file()?;
 		Ok(())

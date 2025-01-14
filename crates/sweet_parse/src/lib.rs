@@ -2,9 +2,13 @@
 #![cfg_attr(test, test_runner(sweet::test_runner))]
 
 
-pub mod rsx;
-
+#[cfg(feature = "rsx")]
+pub mod parse_rsx;
+pub mod render;
 
 pub mod prelude {
-	pub use crate::rsx::*;
+	#[cfg(feature = "rsx")]
+	pub use crate::parse_rsx::*;
+	pub use crate::render::*;
 }
+

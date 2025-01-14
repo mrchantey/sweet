@@ -1,5 +1,4 @@
-use sweet_rsx::rsx::IntoHtml;
-use sweet_site::pages::Index;
+use sweet::prelude::*;
 
 pub fn main() {
 	let html = Index::into_html().unwrap();

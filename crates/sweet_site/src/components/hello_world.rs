@@ -1,12 +1,10 @@
-use sweet_rsx::prelude::*;
-
-
+use sweet::prelude::*;
 
 
 pub struct HelloWorld;
 
 impl IntoRsx for HelloWorld {
-	fn into_rsx(self) {
+	fn into_rsx(self) -> impl Rsx {
 		let planet = "mars";
 		// rsx! {
 		// 	<button

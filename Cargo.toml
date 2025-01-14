@@ -5,6 +5,7 @@ members = [
 	"crates/sweet_parse",
 	"crates/sweet_rsx/macros",
 	"crates/sweet_rsx",
+	"crates/sweet_server",
 	"crates/sweet_site",
 	"crates/sweet_test/macros",
 	"crates/sweet_test",
@@ -34,10 +35,11 @@ keywords = ["full-stack", "browser", "web", "test", "e2e"]
 sweet = { path = "" }
 sweet_core = { path = "crates/sweet_core", version = "0.3.0-rc.1" }
 sweet_parse = { path = "crates/sweet_parse", version = "0.3.0-rc.1" }
-sweet_test = { path = "crates/sweet_test", version = "0.3.0-rc.1" }
-sweet_test_macros = { path = "crates/sweet_test/macros", version = "0.3.0-rc.1" }
 sweet_rsx = { path = "crates/sweet_rsx", version = "0.3.0-rc.1" }
 sweet_rsx_macros = { path = "crates/sweet_rsx/macros", version = "0.3.0-rc.1" }
+sweet_server = { path = "crates/sweet_server", version = "0.3.0-rc.1" }
+sweet_test = { path = "crates/sweet_test", version = "0.3.0-rc.1" }
+sweet_test_macros = { path = "crates/sweet_test/macros", version = "0.3.0-rc.1" }
 # forky = { version = "0.2.0-rc.2", path = "../forky/crates/forky" }
 # forky = { version = "0.2.1-rc.1", git = "https://github.com/mrchantey/forky" }
 # forky = { path = "../forky" }
@@ -156,6 +158,8 @@ keywords.workspace = true
 
 [features]
 rsx = ["dep:sweet_rsx"]
+server = ["dep:sweet_server"]
+parse = ["dep:sweet_parse"]
 test = ["dep:sweet_test"]
 bevy = ["sweet_test?/bevy"]
 
@@ -163,3 +167,17 @@ bevy = ["sweet_test?/bevy"]
 sweet_core.workspace = true
 sweet_test = { workspace = true, optional = true }
 sweet_rsx = { workspace = true, optional = true }
+sweet_server = { workspace = true, optional = true }
+sweet_parse = { workspace = true, optional = true }
+
+
+[examples]
+counter = { required_features = ["server"] }
+render_counter = { required_features = ["server"] }
+
+
+[dev-dependencies]
+sweet_test.workspace = true
+sweet_rsx.workspace = true
+sweet_server.workspace = true
+sweet_parse.workspace = true

@@ -2,22 +2,45 @@ use super::RsxFileVisitor;
 use super::RsxFileVisitorOut;
 use super::WalkNodesOutput;
 use proc_macro2::TokenStream;
+use quote::ToTokens;
 use rstml::node::CustomNode;
 use rstml::node::KeyedAttribute;
 use rstml::node::NodeBlock;
 use rstml::node::NodeElement;
 use syn::visit_mut::VisitMut;
 use syn::Expr;
+use syn::File;
+use syn::Macro;
 
 
 
 
 
 pub trait RsxPlugin: Sized {
-	/// Called when visiting an rsx [Expr::Macro],
-	/// passed as an [Expr] so that the macro can be replaced.
-	/// see [macro_or_err] for an easy map.
-	fn visit_rsx(&mut self, item: &mut Expr) -> syn::Result<WalkNodesOutput>;
+	// entrypoint for file (preprosessor) parsing
+	fn parse_file(
+		&mut self,
+		file: &str,
+	) -> syn::Result<(File, RsxFileVisitorOut)> {
+		let mut file = syn::parse_file(file)?;
+		let mut visitor = RsxFileVisitor::new(self);
+		visitor.visit_file_mut(&mut file);
+		Ok((file, visitor.into()))
+	}
+
+	/// entrypoint for inline (macro) parsing.
+	fn parse_tokens(
+		&mut self,
+		tokens: TokenStream,
+	) -> syn::Result<(TokenStream, WalkNodesOutput)> {
+		let mut mac: Macro = syn::parse2(tokens)?;
+		let output = self.visit_rsx(&mut mac)?;
+		Ok((mac.tokens.to_token_stream(), output))
+	}
+
+
+	/// Called when visiting an rsx macro.
+	fn visit_rsx(&mut self, mac: &mut Macro) -> syn::Result<WalkNodesOutput>;
 
 	fn visit_block(&mut self, block: &NodeBlock, output: &mut WalkNodesOutput);
 	fn visit_event(
@@ -42,24 +65,6 @@ pub trait RsxPlugin: Sized {
 		path.segments
 			.last()
 			.map_or(false, |seg| seg.ident == Self::macro_ident())
-	}
-
-	// entrypoint for file (preprosessor) parsing
-	fn parse_file(&mut self, file: &str) -> syn::Result<RsxFileVisitorOut> {
-		let mut file = syn::parse_file(file)?;
-		let mut visitor = RsxFileVisitor::new(self);
-		visitor.visit_file_mut(&mut file);
-		Ok(visitor.into())
-	}
-
-	/// entrypoint for inline (macro) parsing.
-	fn parse_tokens(
-		&mut self,
-		tokens: TokenStream,
-	) -> syn::Result<(Expr, WalkNodesOutput)> {
-		let mut expr: Expr = syn::parse2(tokens)?;
-		let output = self.visit_rsx(&mut expr)?;
-		Ok((expr, output))
 	}
 }
 

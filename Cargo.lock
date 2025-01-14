@@ -2052,7 +2052,9 @@ name = "sweet"
 version = "0.3.0-rc.1"
 dependencies = [
  "sweet_core",
+ "sweet_parse",
  "sweet_rsx",
+ "sweet_server",
  "sweet_test",
 ]
 
@@ -2091,6 +2093,8 @@ name = "sweet_parse"
 version = "0.3.0-rc.1"
 dependencies = [
  "anyhow",
+ "forky",
+ "prettyplease",
  "proc-macro2",
  "proc-macro2-diagnostics",
  "quote",
@@ -2129,7 +2133,21 @@ dependencies = [
  "proc-macro2-diagnostics",
  "quote",
  "rstml",
+ "sweet_parse",
  "syn",
+]
+
+[[package]]
+name = "sweet_server"
+version = "0.3.0-rc.1"
+dependencies = [
+ "anyhow",
+ "flume",
+ "forky",
+ "sweet",
+ "sweet_core",
+ "thiserror 2.0.11",
+ "tokio",
 ]
 
 [[package]]
@@ -2139,8 +2157,7 @@ dependencies = [
  "anyhow",
  "forky",
  "reactive_graph",
- "sweet_core",
- "sweet_rsx",
+ "sweet",
 ]
 
 [[package]]

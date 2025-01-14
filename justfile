@@ -58,6 +58,7 @@ publish-all:
 	just publish sweet_core					| true
 	just publish sweet_rsx_macros		| true
 	just publish sweet_rsx					| true
+	just publish sweet_server				| true
 	just publish sweet_test_macros	| true
 	just publish sweet_test					| true
 	just publish sweet 							| true

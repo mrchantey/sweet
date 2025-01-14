@@ -1,4 +1,5 @@
 use super::*;
+use quote::quote;
 use quote::ToTokens;
 use rstml::node::CustomNode;
 use rstml::node::KeyedAttribute;
@@ -7,21 +8,34 @@ use rstml::node::NodeAttribute;
 use rstml::node::NodeBlock;
 use rstml::node::NodeElement;
 use rstml::node::NodeName;
-use syn::spanned::Spanned;
-
+use syn::Macro;
 
 /// The sweet plugin for the rsx! macro.
+/// Deliberately no default, any implementers of this trait
+/// should decide whether to include errors. For example a macro
+/// should but a preprocessor usually should not.
 #[derive(Debug, Clone)]
 pub struct SweetRsxPlugin {
+	/// usually we include errors for macros but not files.
+	pub include_errors: bool,
 	/// every element that directly contains rust code is assigned an incremental id
 	pub rsx_id_incr: usize,
 	/// The placeholder for rust blocks in the html, defaults to `§`
 	pub placeholder: String,
 }
 
-impl Default for SweetRsxPlugin {
-	fn default() -> Self {
+impl SweetRsxPlugin {
+	pub fn new_with_errors() -> Self {
 		Self {
+			include_errors: true,
+			rsx_id_incr: 0,
+			placeholder: "§".to_string(),
+		}
+	}
+
+	pub fn new_no_errors() -> Self {
+		Self {
+			include_errors: false,
 			rsx_id_incr: 0,
 			placeholder: "§".to_string(),
 		}
@@ -30,11 +44,7 @@ impl Default for SweetRsxPlugin {
 
 
 impl RsxPlugin for SweetRsxPlugin {
-	fn visit_rsx(
-		&mut self,
-		expr: &mut syn::Expr,
-	) -> syn::Result<WalkNodesOutput> {
-		let mac = macro_or_err(expr)?;
+	fn visit_rsx(&mut self, mac: &mut Macro) -> syn::Result<WalkNodesOutput> {
 		let (nodes, rstml_errors) = parse_rstml(mac.tokens.clone());
 		let output = WalkNodes::walk_nodes(self, nodes);
 		let WalkNodesOutput {
@@ -47,18 +57,22 @@ impl RsxPlugin for SweetRsxPlugin {
 
 		let _ = collected_elements;
 
-		let errors = rstml_errors
-			.into_iter()
-			.map(|e| e.emit_as_expr_tokens())
-			.chain(errors);
+		let errors = if self.include_errors {
+			let errs = rstml_errors
+				.into_iter()
+				.map(|e| e.emit_as_expr_tokens())
+				.chain(errors);
+			quote::quote! {#(#errs;)*}
+		} else {
+			Default::default()
+		};
 
-		let span = mac.tokens.span();
-		*expr = syn::parse_quote_spanned! {span=> {
-			#(#errors;)*
+		mac.tokens = syn::parse_quote! {{
+			#errors
 			sweet::prelude::RsxParts {
 				rust: vec![#(#rust,)*],
-				html: PathOrInline::Inline(#html),
-				css: PathOrInline::Inline(#css),
+				html: PathOrInline::Inline(#html.to_string()),
+				css: PathOrInline::Inline(#css.to_string()),
 			}
 		}};
 		Ok(output)
@@ -93,7 +107,9 @@ impl RsxPlugin for SweetRsxPlugin {
 	}
 
 	fn visit_block(&mut self, block: &NodeBlock, output: &mut WalkNodesOutput) {
-		output.rust.push(block.to_token_stream());
+		output.rust.push(
+			quote! {sweet::prelude::RsxRust::InnerText(#block.to_string())},
+		);
 		output.html.push(' ');
 		output.html.push_str(&self.placeholder);
 	}
@@ -118,9 +134,9 @@ impl RsxPlugin for SweetRsxPlugin {
 			} // None => syn::parse_str::<syn::Expr>(&attr.key.to_string())?,
 		};
 
-		let boxed = quote::quote! {Box::new(#value)};
-
-		output.rust.push(boxed);
+		output
+			.rust
+			.push(quote::quote! {RsxRust::Event(Box::new(#value))});
 		output
 			.html
 			.push_str(&format!(" {}=\"{}\"", attr.key, self.placeholder));
@@ -156,27 +172,48 @@ fn attribute_is_rusty(a: &NodeAttribute) -> bool {
 
 #[cfg(test)]
 mod test {
-	// use crate::prelude::*;
-	use super::RsxPlugin;
-	use super::*;
-	use quote::ToTokens;
 	use sweet::prelude::*;
 
-
 	#[test]
-	fn works() {
-		let mut plugin = SweetRsxPlugin::default();
+	fn events() {
+		let mut plugin = SweetRsxPlugin::new_no_errors();
 		// macro with an event and block
 		// raw text nodes are trimmed
 		let mac = quote::quote! {
-			rsx!{<div onclick>"the "{value}"th "<bold>value</bold> is {value}</div>}
+			rsx!{<div onclick></div>}
 		};
 
-		let (expr, out) = plugin.parse_tokens(mac).unwrap();
+		let (tokens, out) = plugin.parse_tokens(mac).unwrap();
+		let tokens_str = tokens.to_string();
+		// let tokens_str = prettyplease::unparse(
+		// 	&syn::parse_file(&tokens.to_string()).unwrap(),
+		// );
+		// println!("{}", tokens_str);
 
-		expect(expr.to_token_stream().to_string()).to_contain("(onclick)");
-		expect(out.html).to_be(r#"<div rsx-id="0" onclick="§">the  §th <bold>value</bold>is §</div>"#);
-		// println!("{}", expr.to_token_stream().to_string());
-		// println!("{}", out.html);
+		expect(&tokens_str).to_contain("(onclick)");
+		expect(&tokens_str).not().to_start_with("rsx!");
+		expect(&out.html).to_be(r#"<div rsx-id="0" onclick="§"></div>"#);
+	}
+	#[test]
+	fn text_blocks() {
+		let mut plugin = SweetRsxPlugin::new_no_errors();
+		// raw text nodes are trimmed
+		let mac = quote::quote! {
+			rsx!{<div>"the "{value}"th "<bold>value</bold> is {value}</div>}
+		};
+		let (_expr, out) = plugin.parse_tokens(mac).unwrap();
+		expect(out.html)
+			.to_be(r#"<div rsx-id="0">the  §th <bold>value</bold>is §</div>"#);
+	}
+	#[test]
+	#[ignore]
+	fn child_component() {
+		let mut plugin = SweetRsxPlugin::new_no_errors();
+		// raw text nodes are trimmed
+		let mac = quote::quote! {
+			rsx!{<body><Header>"sweet "<b/>as</b></Header></body>}
+		};
+		let (_expr, out) = plugin.parse_tokens(mac).unwrap();
+		expect(out.html).to_be(r#"<body>§§sweet <b>as</>§§</body>"#);
 	}
 }

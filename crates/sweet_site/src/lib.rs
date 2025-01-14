@@ -1,11 +1,13 @@
 #![allow(unused)]
 
 pub mod components;
-pub mod out;
+#[cfg(feature = "render")]
+pub mod render;
 pub mod pages;
 
 pub mod prelude {
 	pub use crate::components::*;
-	pub use crate::out::*;
+	#[cfg(feature = "render")]
+	pub use crate::render::*;
 	pub use crate::pages::*;
 }

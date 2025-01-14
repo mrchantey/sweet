@@ -1,14 +1,11 @@
 pub use super::super::components::counter;
-pub use sweet_rsx::rsx;
-use sweet_rsx::rsx::IntoRsx;
-
-
+use sweet::prelude::*;
 
 pub struct Index;
 
 // maybe like IntoRoute or something
 impl IntoRsx for Index {
-	fn into_rsx(self) {
+	fn into_rsx(self) -> impl Rsx {
 		let initial_value = 200;
 		// rsx! {
 		// 	<h1>Counter</h1>
