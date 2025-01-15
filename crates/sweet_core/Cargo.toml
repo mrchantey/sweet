@@ -12,10 +12,18 @@ categories.workspace = true
 keywords.workspace = true
 
 
+[features]
+serde = ["dep:serde"]
+
+
 [dependencies]
 thiserror.workspace = true
 anyhow.workspace = true
 flume.workspace = true
+html-escape = "0.2.13"
+
+
+serde = { workspace = true, optional = true }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 forky = { workspace = true, features = ["fs"] }

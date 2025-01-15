@@ -47,42 +47,40 @@ impl SweetRenderPlugin {
 
 		let _ = css;
 
-		let mut html = html.load()?;
-		let placeholder_offsets = html
-			.match_indices(&self.placeholder)
-			.map(|(i, _)| i)
-			.collect::<Vec<_>>();
+		let html_in = html.load()?;
 
-		let mut rust = rust.into_iter();
+		// for <div>$<div> this is len_2
+		let mut static_html = html_in.split(&self.placeholder);
+		let Some(first_static) = static_html.next() else {
+			// empty
+			return Ok(html_in);
+		};
+		let mut html_out = first_static.to_string();
 
+		// let placeholder_offsets = html_in
+		// 	.match_indices(&self.placeholder)
+		// 	.map(|(i, _)| i)
+		// 	.collect::<Vec<_>>();
 
-
-		let mut incr_offset = 0;
-
-		for index in placeholder_offsets.into_iter() {
-			let adjusted_index = index + incr_offset;
-
-			let next = rust.next().ok_or_else(|| {
-				ParseError::Hydration(format!(
-					"found a placeholder but no matching rust block"
-				))
-			})?;
-			let replacement = match next {
+		// assumes same number of symbols as rust parts
+		for (next_rust, next_static) in rust.into_iter().zip(static_html) {
+			let replacement = match next_rust {
 				RsxRust::DynNodeId => {
-					let out = format!("data-sid=\"{}\"", self.current_node);
 					self.current_node += 1;
+					let out = format!("data-sid=\"{}\"", self.current_node);
 					out
 				}
-				RsxRust::InnerText(s) => {
+				RsxRust::InnerText(_s) => {
+					// resolve
 					todo!()
 				}
-				RsxRust::AttributeKey(s) => {
+				RsxRust::AttributeKey(_s) => {
 					todo!()
 				}
-				RsxRust::AttributeValue(s) => {
+				RsxRust::AttributeValue(_s) => {
 					todo!()
 				}
-				RsxRust::Event(e) => {
+				RsxRust::Event(_e) => {
 					format!("_sweet.event({},event)", self.current_node)
 				}
 				RsxRust::ChildComponent(c) => {
@@ -90,13 +88,10 @@ impl SweetRenderPlugin {
 					todo!("render child, join child html")
 				}
 			};
-			html.replace_range(
-				adjusted_index..adjusted_index + 1,
-				&replacement,
-			);
-			incr_offset += replacement.len();
+			html_out.push_str(&replacement);
+			html_out.push_str(next_static);
 		}
-		Ok(html)
+		Ok(html_out)
 	}
 }
 
@@ -117,8 +112,8 @@ mod test {
 			</div>
 		};
 
-		// let rendered = SweetRenderPlugin::default().render(rsx).unwrap();
-		// println!("html: '{}'", rendered);
+		let rendered = SweetRenderPlugin::default().render(rsx).unwrap();
+		println!("html: '{}'", rendered);
 
 		// expect(true).to_be_false();
 	}
