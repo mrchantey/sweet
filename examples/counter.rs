@@ -8,7 +8,7 @@ fn main() {
 	Server::default().run_once(Counter { value: 7 }.render());
 	Server::default().run_once(Footer.render());
 	// TODO calling these.into_parts() and extending for children
-	Server::default().run_once(rsx! {<Counter />});
+	Server::default().run_once(rsx! {<Counter value=3 />});
 }
 
 struct Counter {

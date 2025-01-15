@@ -9,9 +9,10 @@ fn main() {
     Server::default()
         .run_once(
             sweet::noop! {
-                { sweet::prelude::RsxParts { rust : vec![], html :
-                PathOrInline::Inline("<Counter></Counter>".to_string()), css :
-                PathOrInline::Inline("".to_string()), } }
+                { use sweet::prelude:: *; RsxParts { rust :
+                std::collections::VecDeque::from([RsxRust::Component(Counter { value : 3,
+                } .into_parts()),]), html : PathOrInline::Inline(HtmlPartial { nodes :
+                vec![Node::Component(Vec::from([]))], }), } }
             },
         );
 }
@@ -21,12 +22,16 @@ struct Counter {
 impl Component for Counter {
     fn render(self) -> impl Rsx {
         sweet::noop! {
-            { sweet::prelude::RsxParts { rust : vec![sweet::prelude::RsxRust::DynNodeId,
-            sweet::prelude::RsxRust::InnerText({ self.value } .to_string()),
-            sweet::prelude::RsxRust::DynNodeId, RsxRust::Event(Box::new(| _ | {})),],
-            html :
-            PathOrInline::Inline("<div §> the value is §</div><button § onclick=\"§\">Increment</button><Footer></Footer>"
-            .to_string()), css : PathOrInline::Inline("".to_string()), } }
+            { use sweet::prelude:: *; RsxParts { rust :
+            std::collections::VecDeque::from([RsxRust::InnerText({ self.value }
+            .to_string()), RsxRust::Event(Box::new(| _ | {})), RsxRust::Component(Footer
+            {} .into_parts()),]), html : PathOrInline::Inline(HtmlPartial { nodes :
+            vec![Node::Element(Element { tag : "div".to_string(), attributes : vec![],
+            children : vec![Node::Text(" the value is ".to_string()), Node::TextBlock],
+            self_closing : false, }), Node::Element(Element { tag : "button".to_string(),
+            attributes : vec![Attribute::BlockValue { key : "onclick".to_string() }],
+            children : vec![Node::Text("Increment".to_string())], self_closing : false,
+            }), Node::Component(Vec::from([]))], }), } }
         }
     }
 }
@@ -34,9 +39,12 @@ struct Footer;
 impl Component for Footer {
     fn render(self) -> impl Rsx {
         sweet::noop! {
-            { sweet::prelude::RsxParts { rust : vec![], html :
-            PathOrInline::Inline("<footer><div>sweet as!</div></footer>".to_string()),
-            css : PathOrInline::Inline("".to_string()), } }
+            { use sweet::prelude:: *; RsxParts { rust :
+            std::collections::VecDeque::from([]), html : PathOrInline::Inline(HtmlPartial
+            { nodes : vec![Node::Element(Element { tag : "footer".to_string(), attributes
+            : vec![], children : vec![Node::Element(Element { tag : "div".to_string(),
+            attributes : vec![], children : vec![Node::Text("sweet as!".to_string())],
+            self_closing : false, })], self_closing : false, })], }), } }
         }
     }
 }

@@ -10,6 +10,6 @@ mod test {
 		let parts: RsxParts = rsx! {<div> the value is {3} </div>};
 		let parts_str = format!("{:?}", parts);
 
-		expect(parts_str).to_be("RsxParts { rust.len: 2, html: Inline(\"<div §> the value is §</div>\"), css: Inline(\"\") }");
+		expect(parts_str).to_be("RsxParts { rust: [InnerText], html: Inline(HtmlPartial { nodes: [Element(Element { tag: \"div\", attributes: [], children: [Text(\" the value is \"), TextBlock], self_closing: false })] }) }");
 	}
 }

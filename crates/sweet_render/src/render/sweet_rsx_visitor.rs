@@ -12,7 +12,7 @@ use sweet_core::rsx::Node;
 #[derive(Default)]
 pub struct SweetRsxVisitor {
 	pub current_rust: usize,
-	pub current_element: usize,
+	pub num_dyn_elements: usize,
 }
 
 impl RsxVisitor for SweetRsxVisitor {
@@ -28,11 +28,11 @@ impl RsxVisitor for SweetRsxVisitor {
 		if !element.contains_blocks() {
 			return Ok(());
 		}
-		self.current_element += 1;
 		element.attributes.push(Attribute::KeyValue {
 			key: "data-sweet-id".to_string(),
-			value: self.current_element.to_string(),
+			value: self.num_dyn_elements.to_string(),
 		});
+		self.num_dyn_elements += 1;
 		let encoded_block_positions =
 			encode_text_block_positions(&element.children);
 
@@ -56,8 +56,11 @@ impl RsxVisitor for SweetRsxVisitor {
 		key: &mut String,
 		value: &mut String,
 	) -> ParseResult<()> {
-		*value =
-			format!("{}=\"_sweet.event({},event)\"", key, self.current_element);
+		*value = format!(
+			"{}=\"_sweet.event({},event)\"",
+			key,
+			self.num_dyn_elements - 1
+		);
 		Ok(())
 	}
 }

@@ -11,7 +11,7 @@ mod test {
 	fn works() {
 		let file = include_str!("../../../examples/counter.rs");
 
-		let (file, out) = RsxParser::new_no_errors().parse_file(file).unwrap();
+		let (file, out) = RsxParser::default().parse_file(file).unwrap();
 		let file_str = prettyplease::unparse(&file);
 
 		let path = FsExt::workspace_root().join("examples/counter_parsed.rs");

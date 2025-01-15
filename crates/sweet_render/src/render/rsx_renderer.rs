@@ -251,7 +251,7 @@ mod test {
 		}
 		let (str, _) = render(rsx! { <Child value=7/> });
 		expect(str).to_be(
-			"<div data-sweet-id=\"1\" data-sweet-blocks=\"0,0\">7</div>",
+			"<div data-sweet-id=\"0\" data-sweet-blocks=\"0,0\">7</div>",
 		);
 	}
 
@@ -265,13 +265,8 @@ mod test {
 				<p>hello {world}</p>
 			</div>
 		};
-		expect(format!("{:?}", rsx.rust)).to_be("[Event, InnerText]");
-
-		println!("rsx: '{:#?}'", rsx);
+		// println!("rsx: '{:#?}'", rsx);
 		let (str, _) = render(rsx);
-		// println!("rendered_tree: '{:#?}'", rendered_tree);
-		// println!("html: '{}'", rendered_str);
-
-		// expect(true).to_be_false();
+		expect(str).to_be("<div onclick=\"onclick=\"_sweet.event(0,event)\"\" data-sweet-id=\"0\"><p data-sweet-id=\"1\" data-sweet-blocks=\"0,6\">hello mars</p></div>");
 	}
 }

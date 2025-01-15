@@ -2,11 +2,11 @@ use sweet::prelude::rsx;
 use sweet::prelude::Rsx;
 use sweet::prelude::RsxParts;
 
-
-struct Component {
+/// its my component
+struct MyComponent {
 	value: u32,
 }
-impl Rsx for Component {
+impl Rsx for MyComponent {
 	fn into_parts(self) -> RsxParts {
 		rsx! {
 			<div>{self.value}</div>
@@ -21,7 +21,7 @@ fn main() {
 	let _foo = rsx! {
 		<div onclick>
 			<p>hello</p>
-			<Component value=7/>
+			<MyComponent value=7/>
 		</div>
 	};
 
