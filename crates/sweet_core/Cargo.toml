@@ -13,7 +13,8 @@ keywords.workspace = true
 
 
 [features]
-serde = ["dep:serde"]
+quote = ["dep:quote", "dep:proc-macro2"]
+serde = ["dep:serde", "dep:bincode"]
 
 
 [dependencies]
@@ -22,7 +23,9 @@ anyhow.workspace = true
 flume.workspace = true
 html-escape = "0.2.13"
 
-
+bincode = { version = "1", optional = true }
+quote = { workspace = true, optional = true }
+proc-macro2 = { workspace = true, optional = true }
 serde = { workspace = true, optional = true }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]

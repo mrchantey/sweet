@@ -13,7 +13,7 @@ keywords.workspace = true
 
 
 [dependencies]
-sweet_core.workspace = true
+sweet_core = { workspace = true, features = ["serde"] }
 forky.workspace = true
 
 thiserror.workspace = true
@@ -35,4 +35,4 @@ wasm-bindgen-futures.workspace = true
 web-sys.workspace = true
 
 [dev-dependencies]
-sweet = { workspace = true, features = ["test","render"] }
+sweet = { workspace = true, features = ["test", "render"] }

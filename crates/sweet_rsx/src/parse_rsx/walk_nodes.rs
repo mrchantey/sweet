@@ -1,70 +1,24 @@
-use super::empty_elements;
-use super::RsxPlugin;
+use super::self_closing_elements;
 use proc_macro2::TokenStream;
+use proc_macro2_diagnostics::Diagnostic;
+use proc_macro2_diagnostics::Level;
+use quote::quote;
 use quote::ToTokens;
 use rstml::node::Node;
 use rstml::node::NodeAttribute;
+use rstml::node::NodeElement;
+use rstml::node::NodeFragment;
 use rstml::node::NodeName;
-use rstml::visitor::visit_attributes;
-use rstml::visitor::visit_nodes;
-use rstml::visitor::Visitor;
 use std::collections::HashSet;
+use sweet_core::rsx::HtmlPartial;
 use syn::spanned::Spanned;
+use syn::Ident;
+use syn::LitStr;
 
-pub struct WalkNodes<'a, P> {
-	plugin: &'a mut P,
-	empty_elements: HashSet<&'static str>,
-	output: WalkNodesOutput,
-}
-impl<'a, P: RsxPlugin> WalkNodes<'a, P> {
-	pub fn walk_nodes(
-		plugin: &'a mut P,
-		mut nodes: Vec<Node>,
-	) -> WalkNodesOutput {
-		let visitor = Self {
-			plugin,
-			empty_elements: empty_elements(),
-			output: WalkNodesOutput::default(),
-		};
-		let output = visit_nodes(&mut nodes, visitor);
-		output.output
-	}
-
-	fn child(&mut self) -> WalkNodes<'_, P> {
-		WalkNodes {
-			plugin: self.plugin,
-			empty_elements: self.empty_elements.clone(),
-			output: WalkNodesOutput::default(),
-		}
-	}
-
-	fn extend_child_output(
-		&mut self,
-		func: impl FnOnce(WalkNodes<'_, P>) -> WalkNodes<'_, P>,
-	) {
-		let child = self.child();
-		let child = func(child);
-		let output = child.output;
-		self.output.extend(output);
-	}
-
-	fn push_error(&mut self, span: impl Spanned, message: &str) {
-		self.output.errors.push(
-			proc_macro2_diagnostics::Diagnostic::spanned(
-				span.span(),
-				proc_macro2_diagnostics::Level::Error,
-				message,
-			)
-			.emit_as_expr_tokens(),
-		);
-	}
-}
-
-#[derive(Debug, Default, Clone)]
+#[derive(Debug, Clone)]
 pub struct WalkNodesOutput {
 	/// The actual output html
-	pub html: String,
-	pub css: String,
+	pub html: HtmlPartial,
 	/// The rust identifiers and blocks
 	pub rust: Vec<TokenStream>,
 	// Additional error and warning messages.
@@ -74,168 +28,179 @@ pub struct WalkNodesOutput {
 	// Also multiple tags with same name can be present,
 	// because we need to mark each of them.
 	pub collected_elements: Vec<NodeName>,
+	self_closing_elements: HashSet<&'static str>,
 }
+
+impl Default for WalkNodesOutput {
+	fn default() -> Self {
+		Self {
+			html: HtmlPartial::default(),
+			rust: Vec::new(),
+			errors: Vec::new(),
+			collected_elements: Vec::new(),
+			self_closing_elements: self_closing_elements(),
+		}
+	}
+}
+
+
+type HtmlNode = sweet_core::rsx::Node;
+type HtmlElement = sweet_core::rsx::Element;
+type HtmlAttribute = sweet_core::rsx::Attribute;
 
 impl WalkNodesOutput {
 	fn extend(&mut self, other: WalkNodesOutput) {
 		let WalkNodesOutput {
 			html,
-			css,
 			rust,
 			errors,
 			collected_elements,
+			self_closing_elements,
 		} = other;
-		self.html.push_str(&html);
-		self.css.push_str(&css);
+		self.html.extend(html);
 		self.rust.extend(rust);
 		self.errors.extend(errors);
 		self.collected_elements.extend(collected_elements);
+		let _ = self_closing_elements; // identical
 	}
-}
-impl<'a, P> syn::visit_mut::VisitMut for WalkNodes<'a, P> {}
-
-impl<'a, P: RsxPlugin, C> Visitor<C> for WalkNodes<'a, P>
-where
-	C: rstml::node::CustomNode + 'static,
-{
-	fn visit_doctype(
-		&mut self,
-		doctype: &mut rstml::node::NodeDoctype,
-	) -> bool {
-		log_visit("DOCTYPE", &doctype);
-		let value = &doctype.value.to_token_stream_string();
-		self.output.html.push_str(&format!("<!DOCTYPE {}>", value));
-		false
-	}
-	fn visit_text_node(&mut self, node: &mut rstml::node::NodeText) -> bool {
-		log_visit("TEXT", &node);
-		self.output.html.push_str(&node.value_string());
-		false
-	}
-	fn visit_raw_node<OtherC: rstml::node::CustomNode>(
-		&mut self,
-		node: &mut rstml::node::RawText<OtherC>,
-	) -> bool {
-		log_visit("RAW", &node);
-		self.output.html.push_str(&node.to_string_best());
-		false
-	}
-	fn visit_fragment(
-		&mut self,
-		fragment: &mut rstml::node::NodeFragment<C>,
-	) -> bool {
-		log_visit("FRAGMENT", &fragment);
-		self.push_error(
-			fragment.span(),
-			"recursive text-block-fragment combining not yet supported",
+	fn push_error(&mut self, span: impl Spanned, message: &str) {
+		self.errors.push(
+			Diagnostic::spanned(span.span(), Level::Error, message)
+				.emit_as_expr_tokens(),
 		);
-		self.extend_child_output(|child| {
-			visit_nodes(&mut fragment.children, child)
-		});
-		false
 	}
 
-	fn visit_comment(
-		&mut self,
-		comment: &mut rstml::node::NodeComment,
-	) -> bool {
-		log_visit("COMMENT", &comment);
-		self.output
-			.html
-			.push_str(&format!("<!-- {} -->", comment.value.value()));
-		false
+
+	#[must_use]
+	/// the number of actual html nodes will likely be different
+	/// due to fragments, blocks etc
+	pub fn visit_nodes(&mut self, nodes: Vec<Node>) -> Vec<HtmlNode> {
+		nodes
+			.into_iter()
+			.flat_map(|node| self.visit_node(node))
+			.collect()
 	}
-	fn visit_block(&mut self, block: &mut rstml::node::NodeBlock) -> bool {
-		log_visit("BLOCK", &block);
-		self.plugin.visit_block(block, &mut self.output);
-		false
-	}
-	fn visit_element(
-		&mut self,
-		element: &mut rstml::node::NodeElement<C>,
-	) -> bool {
-		log_visit("ELEMENT", &element);
-		let name = element.name().to_string();
-		self.output.html.push_str(&format!("<{}", name));
-		self.output
-			.collected_elements
-			.push(element.open_tag.name.clone());
-		if let Some(e) = &element.close_tag {
-			self.output.collected_elements.push(e.name.clone())
-		}
 
-		self.plugin.visit_element(element, &mut self.output);
-
-		self.extend_child_output(|child| {
-			visit_attributes(element.attributes_mut(), child)
-		});
-
-		self.output.html.push('>');
-
-		// Ignore childs of special Empty elements
-		if self
-			.empty_elements
-			.contains(element.open_tag.name.to_string().as_str())
-		{
-			self.output
-				.html
-				.push_str(&format!("/</{}>", element.open_tag.name));
-			if !element.children.is_empty() {
-				let warning = proc_macro2_diagnostics::Diagnostic::spanned(
-					element.open_tag.name.span(),
-					proc_macro2_diagnostics::Level::Warning,
-					"Element is processed as empty, and cannot have any child",
-				);
-				self.output.errors.push(warning.emit_as_expr_tokens())
+	/// visit node does not add html to self, giving caller
+	/// a decision. Vec is returned to handle fragments
+	#[must_use]
+	fn visit_node(&mut self, node: Node) -> Vec<HtmlNode> {
+		match node {
+			Node::Doctype(_) => vec![HtmlNode::Doctype],
+			Node::Text(text) => {
+				vec![HtmlNode::Text(text.value_string())]
 			}
+			Node::RawText(raw) => {
+				vec![HtmlNode::Text(raw.to_string_best())]
+			}
+			Node::Fragment(NodeFragment { children, .. }) => {
+				self.visit_nodes(children)
+			}
+			Node::Comment(comment) => {
+				vec![HtmlNode::Comment(comment.value.value())]
+			}
+			Node::Block(block) => {
+				self.rust
+					.push(quote! {RsxRust::InnerText(#block.to_string())});
+				vec![HtmlNode::TextBlock]
+			}
+			Node::Element(el) => {
+				self.check_self_closing_children(&el);
+				let NodeElement {
+					open_tag,
+					children,
+					close_tag,
+				} = el;
 
-			return false;
+				self.collected_elements.push(open_tag.name.clone());
+				let self_closing = close_tag.is_none();
+				if let Some(close_tag) = close_tag {
+					self.collected_elements.push(close_tag.name.clone());
+				}
+				let tag = open_tag.name.to_string();
+				let is_component = tag.starts_with(|c: char| c.is_uppercase());
+				let attributes = open_tag
+					.attributes
+					.into_iter()
+					.map(|attr| self.visit_attribute(attr))
+					.collect();
+
+				let children = self.visit_nodes(children);
+
+				let el = HtmlElement {
+					tag: tag.clone(),
+					attributes,
+					children,
+					self_closing,
+				};
+
+				if is_component {
+					let ident = syn::Ident::new(&tag, tag.span());
+					self.rust.push(
+						quote! { RsxRust::Component(#ident.into_parts()) },
+					);
+					vec![HtmlNode::Component(el)]
+				} else {
+					vec![HtmlNode::Element(el)]
+				}
+			}
+			Node::Custom(_) => unimplemented!("Custom nodes not yet supported"),
 		}
-		self.extend_child_output(|child| {
-			visit_nodes(&mut element.children, child)
-		});
-
-		self.output.html.push_str(&format!("</{}>", name));
-		false
 	}
-	fn visit_attribute(&mut self, attr: &mut NodeAttribute) -> bool {
-		log_visit("ATTRIBUTE", &attr);
-		// attributes
+
+	fn check_self_closing_children<C>(&mut self, element: &NodeElement<C>) {
+		if element.children.is_empty()
+			|| self
+				.self_closing_elements
+				.contains(element.open_tag.name.to_string().as_str())
+		{
+			return;
+		}
+		let warning = Diagnostic::spanned(
+			element.open_tag.name.span(),
+			Level::Warning,
+			"Element is processed as empty, and cannot have any child",
+		);
+		self.errors.push(warning.emit_as_expr_tokens());
+	}
+
+	fn visit_attribute(&mut self, attr: NodeAttribute) -> HtmlAttribute {
 		match attr {
 			NodeAttribute::Block(block) => {
-				self.push_error(
-					block.span(),
-					"block attributes not yet supported",
-				);
-				// log_visit("ATTRIBUTE - BLOCK", block.clone());
-				// If the nodes parent is an attribute we prefix with whitespace
-				// self.output.html_string.push(' ');
-				// self.output.html_string.push_str("{}");
-				// self.output.rust_blocks.push(block.to_token_stream());
+				self.rust.push(block.to_token_stream());
+				HtmlAttribute::Block
 			}
 			NodeAttribute::Attribute(attr) => {
-				let key_str = attr.key.to_string();
-				if key_str.starts_with("on") {
-					self.plugin.visit_event(attr, &mut self.output);
-				} else {
-					// log_visit("ATTRIBUTE - VANILLA", attribute.clone());
-					self.output.html.push_str(&format!(" {}", attr.key));
-					if let Some(value) = attr.value() {
-						self.push_error(
-							value.span(),
-							"attribute values not yet supported",
-						);
+				let key = attr.key.to_string();
+
+				if key.starts_with("on") {
+					let tokens = if let Some(value) = attr.value() {
+						value.to_token_stream()
+					} else {
+						// default to a function called onclick
+						Ident::new(&key, key.span()).to_token_stream()
+					};
+					self.rust.push(quote! {RsxRust::Event(Box::new(#tokens))});
+					HtmlAttribute::BlockValue { key }
+				} else if let Some(value) = attr.value() {
+					match value {
+						// only literals (string, number, bool) are not rusty
+						syn::Expr::Lit(expr_lit) => {
+							let value =
+								expr_lit.lit.to_token_stream().to_string();
+							HtmlAttribute::KeyValue { key, value }
+						}
+						tokens => {
+							self.rust.push(
+								quote! {RsxRust::AttributeValue(#tokens.to_string())},
+							);
+							HtmlAttribute::BlockValue { key }
+						}
 					}
+				} else {
+					HtmlAttribute::Key { key }
 				}
 			}
 		}
-		false
 	}
-}
-
-
-#[allow(unused)]
-fn log_visit(prefix: &str, tokens: impl ToTokens) {
-	// crashes rust analyzer?
-	// println!("🚀 {}: {}", prefix, tokens.into_token_stream().to_string());
 }

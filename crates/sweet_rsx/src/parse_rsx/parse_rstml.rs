@@ -1,4 +1,3 @@
-use super::WalkNodesOutput;
 use proc_macro2::TokenStream;
 use proc_macro2_diagnostics::Diagnostic;
 use quote::quote;
@@ -10,7 +9,8 @@ use rstml::ParserConfig;
 use std::collections::HashSet;
 use syn::spanned::Spanned;
 
-pub fn empty_elements() -> HashSet<&'static str> {
+/// elements that are self-closing
+pub fn self_closing_elements() -> HashSet<&'static str> {
 	[
 		"area", "base", "br", "col", "embed", "hr", "img", "input", "link",
 		"meta", "param", "source", "track", "wbr",
@@ -21,7 +21,7 @@ pub fn empty_elements() -> HashSet<&'static str> {
 
 
 pub fn parse_rstml(tokens: TokenStream) -> (Vec<Node>, Vec<Diagnostic>) {
-	let empty_elements = empty_elements();
+	let empty_elements = self_closing_elements();
 	let config = ParserConfig::new()
 		.recover_block(true)
 		.always_self_closed_elements(empty_elements)
@@ -32,38 +32,6 @@ pub fn parse_rstml(tokens: TokenStream) -> (Vec<Node>, Vec<Diagnostic>) {
 	let (nodes, errors) = parser.parse_recoverable(tokens).split_vec();
 
 	(nodes, errors)
-}
-
-/// Used for testing, this is pretty much the rstml demo.
-pub fn _join_html_and_rust(
-	WalkNodesOutput {
-		// collected_elements,
-		errors: diagnostics,
-		html: html_string,
-		// dynamic_attributes,
-		rust: values,
-		..
-	}: WalkNodesOutput,
-	errors: Vec<Diagnostic>,
-) -> TokenStream {
-	// let docs = generate_tags_docs(&collected_elements);
-	let errors = errors
-		.into_iter()
-		.map(|e| e.emit_as_expr_tokens())
-		.chain(diagnostics);
-	quote! {
-		// {
-		// 	#(#dynamic_attributes),*
-		// }
-		{
-			// Make sure that "compile_error!(..);"  can be used in this context.
-			#(#errors;)*
-			// Make sure that "enum x{};" and "let _x = crate::element;"  can be used in this context
-			// #(#docs;)*
-			format!(#html_string, #(#values),*)
-		}
-	}
-	.into()
 }
 
 pub fn _generate_tags_docs(

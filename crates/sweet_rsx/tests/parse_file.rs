@@ -11,8 +11,7 @@ mod test {
 	fn works() {
 		let file = include_str!("../../../examples/counter.rs");
 
-		let (file, out) =
-			SweetRsxPlugin::new_no_errors().parse_file(file).unwrap();
+		let (file, out) = RsxParser::new_no_errors().parse_file(file).unwrap();
 		let file_str = prettyplease::unparse(&file);
 
 		let path = FsExt::workspace_root().join("examples/counter_parsed.rs");
@@ -20,7 +19,7 @@ mod test {
 
 		expect(out.errors.len()).to_be(0);
 		expect(out.macros.len()).to_be(3);
-		expect(&file_str).to_start_with(SweetRsxPlugin::SHEBANG);
+		expect(&file_str).to_start_with(RsxParser::SHEBANG);
 		expect(&file_str).not().to_contain("rsx!");
 	}
 }

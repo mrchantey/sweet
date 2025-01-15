@@ -11,9 +11,17 @@ pub enum ParseError {
 	Fs(FsError),
 	#[error("Hydration Error: {0}")]
 	Hydration(String),
+	#[error("Serde Error: {0}")]
+	Serde(String),
 	#[error("Parse Error: {0}")]
 	Other(String),
 }
+impl ParseError {
+	pub fn hydration(e: impl ToString) -> Self {
+		Self::Hydration(e.to_string())
+	}
+}
+
 
 #[cfg(not(target_arch = "wasm32"))]
 impl From<FsError> for ParseError {
@@ -28,4 +36,10 @@ impl From<String> for ParseError {
 }
 impl From<&str> for ParseError {
 	fn from(e: &str) -> Self { Self::Other(e.to_string()) }
+}
+
+
+#[cfg(feature = "serde")]
+impl From<bincode::Error> for ParseError {
+	fn from(e: bincode::Error) -> Self { Self::Serde(e.to_string()) }
 }

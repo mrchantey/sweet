@@ -1,6 +1,9 @@
 pub mod html_partial;
 #[allow(unused_imports)]
 pub use self::html_partial::*;
+pub mod html_partial_quote;
+#[allow(unused_imports)]
+pub use self::html_partial_quote::*;
 pub mod hydrate;
 #[allow(unused_imports)]
 pub use self::hydrate::*;

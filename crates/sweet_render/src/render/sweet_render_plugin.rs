@@ -3,7 +3,7 @@ use sweet_core::prelude::*;
 
 
 
-/// The `SweetRenderPlugin` is the second part to the `SweetRsxPlugin`.
+/// The `SweetRenderPlugin` is the second part to the `RsxParser`.
 ///
 /// It makes a few transformations:
 /// - collect the html templates for all children
@@ -18,20 +18,14 @@ use sweet_core::prelude::*;
 ///
 pub struct SweetRenderPlugin {
 	pub current_node: usize,
-	pub placeholder: String,
 }
 impl Default for SweetRenderPlugin {
-	fn default() -> Self {
-		Self {
-			current_node: 0,
-			placeholder: RsxParts::default_placeholder(),
-		}
-	}
+	fn default() -> Self { Self { current_node: 0 } }
 }
 
 impl RenderPlugin for SweetRenderPlugin {
 	fn render(mut self, rsx: impl Rsx) -> ParseResult<String> {
-		let html = self.render_recursive(rsx)?;
+		let html = self.visit_rsx(rsx)?;
 		Ok(html)
 	}
 }
@@ -42,56 +36,143 @@ impl SweetRenderPlugin {
 	///
 	/// Breadth-first traversal of children,
 	/// incrementing id
-	fn render_recursive(&mut self, rsx: impl Rsx) -> ParseResult<String> {
-		let RsxParts { rust, html, css } = rsx.into_parts();
+	fn visit_rsx(&mut self, rsx: impl Rsx) -> ParseResult<String> {
+		let RsxParts { mut rust, html } = rsx.into_parts();
+		let html = html.load()?;
+		self.visit_nodes(&mut rust, html.nodes)
+	}
 
-		let _ = css;
-
-		let html_in = html.load()?;
-
-		// for <div>$<div> this is len_2
-		let mut static_html = html_in.split(&self.placeholder);
-		let Some(first_static) = static_html.next() else {
-			// empty
-			return Ok(html_in);
-		};
-		let mut html_out = first_static.to_string();
-
-		// let placeholder_offsets = html_in
-		// 	.match_indices(&self.placeholder)
-		// 	.map(|(i, _)| i)
-		// 	.collect::<Vec<_>>();
-
-		// assumes same number of symbols as rust parts
-		for (next_rust, next_static) in rust.into_iter().zip(static_html) {
-			let replacement = match next_rust {
-				RsxRust::DynNodeId => {
-					self.current_node += 1;
-					let out = format!("data-sid=\"{}\"", self.current_node);
-					out
-				}
-				RsxRust::InnerText(_s) => {
-					// resolve
-					todo!()
-				}
-				RsxRust::AttributeKey(_s) => {
-					todo!()
-				}
-				RsxRust::AttributeValue(_s) => {
-					todo!()
-				}
-				RsxRust::Event(_e) => {
-					format!("_sweet.event({},event)", self.current_node)
-				}
-				RsxRust::ChildComponent(c) => {
-					self.render_recursive(c)?;
-					todo!("render child, join child html")
-				}
-			};
-			html_out.push_str(&replacement);
-			html_out.push_str(next_static);
+	fn visit_nodes(
+		&mut self,
+		rust: &mut Vec<RsxRust>,
+		nodes: Vec<Node>,
+	) -> ParseResult<String> {
+		let mut out = String::new();
+		for node in nodes {
+			out.push_str(&self.visit_node(rust, node)?);
 		}
-		Ok(html_out)
+		Ok(out)
+	}
+
+	fn visit_node(
+		&mut self,
+		rust: &mut Vec<RsxRust>,
+		node: Node,
+	) -> ParseResult<String> {
+		match node {
+			Node::Doctype => Ok("<!DOCTYPE html>".to_string()),
+			Node::Comment(val) => Ok(format!("<!-- {} -->", val)),
+			Node::Text(val) => Ok(val),
+			Node::Element(Element {
+				tag,
+				attributes,
+				children,
+				self_closing,
+			}) => {
+				let mut str = self.visit_element_open(
+					rust,
+					&tag,
+					attributes,
+					self_closing,
+				)?;
+				str.push_str(&self.visit_nodes(rust, children)?);
+				str.push_str(&self.visit_element_close(&tag, self_closing)?);
+				Ok(str)
+			}
+			Node::TextBlock => {
+				if let Some(RsxRust::InnerText(val)) = rust.pop() {
+					Ok(val)
+				} else {
+					Err(ParseError::hydration("expected text block"))
+				}
+			}
+			Node::Component(element) => self.visit_component(rust, element),
+		}
+	}
+
+	fn visit_component(
+		&mut self,
+		rust: &mut Vec<RsxRust>,
+		Element {
+			tag,
+			attributes,
+			children,
+			self_closing,
+		}: Element,
+	) -> ParseResult<String> {
+		if let Some(RsxRust::Component(component)) = rust.pop() {
+			let mut str =
+				self.visit_element_open(rust, &tag, attributes, self_closing)?;
+			str.push_str(&self.visit_rsx(component)?);
+			// TODO This is incorrect, children should be passed to the component
+			str.push_str(&self.visit_nodes(rust, children)?);
+			str.push_str(&self.visit_element_close(&tag, self_closing)?);
+			Ok(str)
+		} else {
+			Err(ParseError::hydration("expected component"))
+		}
+	}
+
+	fn visit_element_open(
+		&mut self,
+		rust: &mut Vec<RsxRust>,
+		tag: &str,
+		attributes: Vec<Attribute>,
+		self_closing: bool,
+	) -> ParseResult<String> {
+		let mut out = String::new();
+		out.push_str(&format!("<{}", tag));
+		for attribute in attributes {
+			out.push(' ');
+			out.push_str(&self.visit_attribute(rust, attribute)?);
+		}
+		if self_closing {
+			out.push_str("/>");
+		} else {
+			out.push('>');
+		}
+		Ok(out)
+	}
+
+
+	fn visit_element_close(
+		&mut self,
+		tag: &str,
+		self_closing: bool,
+	) -> ParseResult<String> {
+		if self_closing {
+			Ok("".to_string())
+		} else {
+			Ok(format!("</{}>", tag))
+		}
+	}
+
+
+	fn visit_attribute(
+		&mut self,
+		rust: &mut Vec<RsxRust>,
+		attribute: Attribute,
+	) -> ParseResult<String> {
+		match attribute {
+			Attribute::Key { key } => Ok(key),
+			Attribute::KeyValue { key, value } => {
+				Ok(format!("{}=\"{}\"", key, value))
+			}
+			Attribute::BlockValue { key } => {
+				if let Some(RsxRust::AttributeValue(val)) = rust.pop() {
+					Ok(format!("{}=\"{}\"", key, val))
+				} else {
+					Err(ParseError::hydration("expected attribute value"))
+				}
+			}
+			Attribute::Block => {
+				if let Some(RsxRust::AttributeKey(key)) = rust.pop() {
+					Ok(key)
+				} else {
+					Err(ParseError::hydration("expected attribute key"))
+				}
+			}
+		}
 	}
 }
 
@@ -104,13 +185,15 @@ mod test {
 
 	#[test]
 	fn works() {
-		let onclick = |_| {};
+		// let onclick = |_| {};
 		let world = "mars";
 		let rsx = rsx! {
-			<div onclick>
-				// <p>hello {world}</p>
+			<div>
+				<p>hello {world}</p>
 			</div>
 		};
+
+		println!("rsx: '{:?}'", rsx);
 
 		let rendered = SweetRenderPlugin::default().render(rsx).unwrap();
 		println!("html: '{}'", rendered);
