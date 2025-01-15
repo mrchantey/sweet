@@ -1,15 +1,16 @@
 [workspace]
 resolver = "2" # Important! wgpu/Bevy needs this!
 members = [
-	"crates/sweet_core",
-	"crates/sweet_render",
-	"crates/sweet_rsx",
-	"crates/sweet_rsx/macros",
-	"crates/sweet_server",
-	"crates/sweet_site",
-	"crates/sweet_test/macros",
-	"crates/sweet_test",
-	"crates/sweet-cli",
+	# "crates/sweet_core",
+	# "crates/sweet_leptos",
+	# "crates/sweet_render",
+	# "crates/sweet_rsx",
+	# "crates/sweet_rsx/macros",
+	# "crates/sweet_server",
+	# "crates/sweet_site",
+	# "crates/sweet_test/macros",
+	# "crates/sweet_test",
+	# "crates/sweet-cli",
 ]
 
 [workspace.package]
@@ -34,6 +35,7 @@ keywords = ["full-stack", "browser", "web", "test", "e2e"]
 # dont specify version to allow it to be included as a dev dependency but ignored by cargo publish
 sweet = { path = "" }
 sweet_core = { path = "crates/sweet_core", version = "0.3.0-rc.2" }
+sweet_leptos = { path = "crates/sweet_leptos", version = "0.3.0-rc.2" }
 sweet_render = { path = "crates/sweet_render", version = "0.3.0-rc.2" }
 sweet_rsx = { path = "crates/sweet_rsx", version = "0.3.0-rc.2" }
 sweet_rsx_macros = { path = "crates/sweet_rsx/macros", version = "0.3.0-rc.2" }
@@ -60,23 +62,24 @@ strum_macros = "0.26"
 bevy = { version = "0.15", default-features = false }
 
 #💡 io ###
-clap = { version = "4.2.2", features = ["derive"] }
-colorize = "0.1.0"
-glob = "0.3.1"
+clap = { version = "4.2", features = ["derive"] }
+colorize = "0.1"
+glob = "0.3"
 serde = { version = "1", features = ["derive"] }
 
 #💡 async
-futures = "0.3.28"
-futures-util = "0.3.28"
+futures = "0.3"
+futures-util = "0.3"
 tokio = { version = "1.42", features = [
 	"macros",
 	"rt",
 	"rt-multi-thread",
 	"time",
 ] }
-flume = "0.11.1"
+once_cell = "1.20"
+flume = "0.11"
 # tokio-stream = "0.1.14"
-rayon = "1.7.0"
+rayon = "1.7"
 
 #💡 math
 # only cos some dep requires it and we need to enable js feature
@@ -183,8 +186,25 @@ counter = { required_features = ["server"] }
 render_counter = { required_features = ["server"] }
 
 [dev-dependencies]
+forky.workspace = true
 sweet_test.workspace = true
 sweet_render.workspace = true
 sweet_rsx.workspace = true
 sweet_rsx_macros.workspace = true
+
+once_cell.workspace = true
+flume.workspace = true
+
+
+[target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
 sweet_server.workspace = true
+forky = { workspace = true, features = ["fs"] }
+
+[target.'cfg(target_arch = "wasm32")'.dev-dependencies]
+console_error_panic_hook.workspace = true
+console_log.workspace = true
+getrandom.workspace = true
+js-sys.workspace = true
+wasm-bindgen.workspace = true
+wasm-bindgen-futures.workspace = true
+web-sys.workspace = true

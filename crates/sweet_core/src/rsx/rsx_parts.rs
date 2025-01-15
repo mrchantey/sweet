@@ -55,6 +55,7 @@ impl<T: serde::Serialize + serde::de::DeserializeOwned> PathOrInline<T> {
 
 	pub fn load(self) -> ParseResult<T> {
 		match self {
+			#[allow(unused)]
 			PathOrInline::Path(path) => {
 				#[cfg(not(target_arch = "wasm32"))]
 				{

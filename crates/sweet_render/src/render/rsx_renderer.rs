@@ -3,6 +3,8 @@ use std::collections::VecDeque;
 use sweet_core::prelude::*;
 
 
+pub type DefaultRsxRenderer = RsxRenderer<'static, SweetRsxVisitor>;
+
 
 /// The `SweetRenderPlugin` is the second part to the `RsxParser`.
 ///
@@ -24,10 +26,16 @@ pub struct RsxRenderer<'a, V> {
 	/// are discarded (used by the sweet loader)
 	rust: VecDeque<RsxRust>,
 }
+impl<'a, V: RsxVisitor + Default> RsxRenderer<'a, V> {
+	pub fn render(rsx: impl Rsx) -> ParseResult<(String, HtmlPartial)> {
+		let mut visitor = V::default();
+		RsxRenderer::render_with_visitor(&mut visitor, rsx)
+	}
+}
 
 impl<'a, V: RsxVisitor> RsxRenderer<'a, V> {
 	/// Render [RsxParts] into a html string, returning the modified html partial
-	pub fn render(
+	pub fn render_with_visitor(
 		visitor: &'a mut V,
 		rsx: impl Rsx,
 	) -> ParseResult<(String, HtmlPartial)> {
@@ -95,7 +103,7 @@ impl<'a, V: RsxVisitor> RsxRenderer<'a, V> {
 				// render 'passed in' children first
 				let mut str = self.render_nodes(children)?;
 				let (component_children_str, component_children) =
-					RsxRenderer::render(self.visitor, component)?;
+					RsxRenderer::render_with_visitor(self.visitor, component)?;
 				str.push_str(&component_children_str);
 				children.extend(component_children.nodes);
 				Ok(str)
@@ -137,6 +145,7 @@ impl<'a, V: RsxVisitor> RsxRenderer<'a, V> {
 		match attribute {
 			Attribute::Key { key } => Ok(key.clone()),
 			Attribute::KeyValue { key, value } => {
+				// string literals are already quoted
 				Ok(format!("{}=\"{}\"", key, value))
 			}
 			Attribute::BlockValue { key } => {
@@ -193,7 +202,7 @@ mod test {
 
 	fn render(rsx: impl Rsx) -> (String, HtmlPartial) {
 		let mut visitor = SweetRsxVisitor::default();
-		RsxRenderer::render(&mut visitor, rsx).unwrap()
+		RsxRenderer::render_with_visitor(&mut visitor, rsx).unwrap()
 	}
 
 	#[test]
@@ -216,8 +225,17 @@ mod test {
 
 	#[test]
 	fn element() {
-		let (str, _) = render(rsx! { <div></div> });
-		expect(str).to_be("<div></div>");
+		let key = "key";
+		let food = "pizza";
+		let (str, _) = render(rsx! { <div
+		name="pete"
+		age=9
+		favorite_food={food}
+		>
+		
+		</div> 
+	});
+		expect(str).to_be("<div name=\"pete\" age=\"9\" favorite_food=\"pizza\" data-sweet-id=\"0\"></div>");
 	}
 	#[test]
 	fn element_self_closing() {
@@ -257,7 +275,7 @@ mod test {
 
 
 	#[test]
-	fn nexted() {
+	fn nested() {
 		let onclick = |_| {};
 		let world = "mars";
 		let rsx = rsx! {
@@ -267,6 +285,6 @@ mod test {
 		};
 		// println!("rsx: '{:#?}'", rsx);
 		let (str, _) = render(rsx);
-		expect(str).to_be("<div onclick=\"onclick=\"_sweet.event(0,event)\"\" data-sweet-id=\"0\"><p data-sweet-id=\"1\" data-sweet-blocks=\"0,6\">hello mars</p></div>");
+		expect(str).to_be("<div onclick=\"_sweet.event(0,event)\" data-sweet-id=\"0\"><p data-sweet-id=\"1\" data-sweet-blocks=\"0,6\">hello mars</p></div>");
 	}
 }

@@ -53,12 +53,11 @@ impl RsxVisitor for SweetRsxVisitor {
 
 	fn visit_event_attribute(
 		&mut self,
-		key: &mut String,
+		_key: &mut String,
 		value: &mut String,
 	) -> ParseResult<()> {
 		*value = format!(
-			"{}=\"_sweet.event({},event)\"",
-			key,
+			"_sweet.event({},event)",
 			self.num_dyn_elements - 1
 		);
 		Ok(())

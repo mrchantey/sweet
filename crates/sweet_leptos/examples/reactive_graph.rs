@@ -1,9 +1,19 @@
-fn main() {
-	use reactive_graph::computed::ArcMemo;
-	use reactive_graph::effect::Effect;
-	use reactive_graph::prelude::Read;
-	use reactive_graph::prelude::Set;
-	use reactive_graph::signal::ArcRwSignal;
+use reactive_graph::computed::ArcMemo;
+use reactive_graph::effect::Effect;
+use reactive_graph::owner::Owner;
+use reactive_graph::prelude::Set;
+use reactive_graph::prelude::*;
+use reactive_graph::signal::ArcRwSignal;
+use any_spawner::Executor;
+
+
+#[tokio::main]
+async fn main() {
+	let _ = Executor::init_tokio();
+	let owner = Owner::new();
+	owner.set();
+	Executor::tick().await;
+
 
 	let count = ArcRwSignal::new(1);
 	let double_count = ArcMemo::new({

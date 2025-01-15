@@ -22,9 +22,20 @@ On initialization all of these events will be played back in order, and `_sweet`
 pub struct SweetLoader;
 
 impl SweetLoader {
-	pub fn load(self, page: impl HydrateClient) -> ParseResult<()> {
+	pub fn load(self, rsx: impl Rsx) -> ParseResult<()> {
 		console_error_panic_hook::set_once();
 
+		let rsx = rsx.into_parts();
+		for item in rsx.rust.into_iter(){
+			match item{
+					RsxRust::DynNodeId => todo!(),
+					RsxRust::InnerText(_) => todo!(),
+					RsxRust::AttributeKey(_) => todo!(),
+					RsxRust::AttributeValue(_) => todo!(),
+					RsxRust::Event(fn_mut) => todo!(),
+					RsxRust::Component(rsx_parts) => todo!(),
+			}
+		}
 		// let (send, recv) = flume::unbounded();
 		// let Hydrated { events, blocks } = page.hydrate(send)?;
 		// self.handle_events(events)?;

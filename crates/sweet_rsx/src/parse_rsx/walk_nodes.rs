@@ -184,8 +184,10 @@ impl WalkNodesOutput {
 					match value {
 						// only literals (string, number, bool) are not rusty
 						syn::Expr::Lit(expr_lit) => {
-							let value =
-								expr_lit.lit.to_token_stream().to_string();
+							let value = match &expr_lit.lit {
+								syn::Lit::Str(s) => s.value(),
+								other => other.to_token_stream().to_string(),
+							};
 							HtmlAttribute::KeyValue { key, value }
 						}
 						tokens => {

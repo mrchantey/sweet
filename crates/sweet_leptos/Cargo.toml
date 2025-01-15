@@ -1,5 +1,5 @@
 [package]
-name = "sweet_core"
+name = "sweet_leptos"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -12,27 +12,14 @@ categories.workspace = true
 keywords.workspace = true
 
 
-[features]
-quote = ["dep:quote", "dep:proc-macro2"]
-serde = ["dep:serde", "dep:bincode"]
-
-
 [dependencies]
+reactive_graph = { version = "0.1", features = ["effects"] }
 thiserror.workspace = true
 anyhow.workspace = true
-flume.workspace = true
-strum.workspace = true
-strum_macros.workspace = true
-
-bincode = { version = "1", optional = true }
-quote = { workspace = true, optional = true }
-proc-macro2 = { workspace = true, optional = true }
-serde = { workspace = true, optional = true }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-forky = { workspace = true, features = ["fs"] }
 tokio.workspace = true
-
+any_spawner = { version = "0.2", features = ["futures-executor", "tokio"] }
 #💡 wasm
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 forky = { workspace = true, features = ["web"] }
