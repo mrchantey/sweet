@@ -17,8 +17,15 @@ pub enum ParseError {
 	Other(String),
 }
 impl ParseError {
-	pub fn hydration(e: impl ToString) -> Self {
-		Self::Hydration(e.to_string())
+	pub fn hydration(
+		expected: impl AsRef<str>,
+		receieved: impl AsRef<str>,
+	) -> Self {
+		Self::Hydration(format!(
+			"Expected: {}\nReceieved: {}",
+			expected.as_ref(),
+			receieved.as_ref()
+		))
 	}
 }
 

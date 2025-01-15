@@ -49,10 +49,12 @@ forky = { version = "0.2.1-rc.1" }
 #💡 utility
 log = "0.4"
 pretty_env_logger = "0.4"
-anyhow = "1.0"
+anyhow = "1"
 thiserror = "2"
-backtrace = "0.3.66"
-extend = "1.1.2"
+backtrace = "0.3"
+extend = "1"
+strum = "0.26"
+strum_macros = "0.26"
 
 #💡 game
 bevy = { version = "0.15", default-features = false }

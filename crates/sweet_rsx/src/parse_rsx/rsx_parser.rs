@@ -76,9 +76,10 @@ impl RsxParser {
 		};
 
 		*tokens = syn::parse_quote! {{
+			use sweet::prelude::*;
 			#errors
-			sweet::prelude::RsxParts {
-				rust: vec![#(#rust,)*],
+			RsxParts {
+				rust: std::collections::VecDeque::from([#(#rust,)*]),
 				html: PathOrInline::Inline(#html),
 			}
 		}};

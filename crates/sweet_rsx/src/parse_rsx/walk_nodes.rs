@@ -150,7 +150,7 @@ impl WalkNodesOutput {
 
 	fn check_self_closing_children<C>(&mut self, element: &NodeElement<C>) {
 		if element.children.is_empty()
-			|| self
+			|| !self
 				.self_closing_elements
 				.contains(element.open_tag.name.to_string().as_str())
 		{

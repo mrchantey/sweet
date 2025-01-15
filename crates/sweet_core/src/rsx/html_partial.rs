@@ -97,9 +97,9 @@ pub enum Node {
 	Element(Element),
 	/// may have been Text or RawText
 	Text(String),
-	/// contents is reconciled by renderer
+	/// a rust block, contents is reconciled by renderer
 	TextBlock,
-	/// contents is reconciled by renderer
+	/// an rust value that implements [Rsx] contents is reconciled by renderer
 	Component(Element),
 }
 

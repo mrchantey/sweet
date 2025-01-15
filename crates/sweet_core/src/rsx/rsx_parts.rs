@@ -1,5 +1,7 @@
 use crate::prelude::*;
+use std::collections::VecDeque;
 use std::path::PathBuf;
+use strum_macros::AsRefStr;
 
 /// The rust, html and css extracted from an `rsx!` macro.
 /// Note that the outputted html and css is not final,
@@ -11,13 +13,26 @@ use std::path::PathBuf;
 pub struct RsxParts {
 	/// The rust blocks extracted from the rsx! macro,
 	/// collected via Depth First Search traversal.
-	pub rust: Vec<RsxRust>,
+	pub rust: VecDeque<RsxRust>,
 	pub html: PathOrInline<HtmlPartial>,
 }
 
 impl RsxParts {}
 
+impl std::fmt::Debug for RsxParts {
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		f.debug_struct("RsxParts")
+			.field(
+				"rust",
+				&self.rust.iter().map(|r| r.as_ref()).collect::<Vec<_>>(),
+			)
+			.field("html", &self.html)
+			.finish()
+	}
+}
+
 /// The event or the indentifiers/blocks `ToString`.
+#[derive(AsRefStr)]
 pub enum RsxRust {
 	/// Any element containing rust needs a node id
 	DynNodeId,
@@ -33,15 +48,6 @@ pub enum RsxRust {
 	Event(HydratedEvent),
 	/// ie `<div><Counter/></div>`
 	Component(RsxParts),
-}
-
-impl std::fmt::Debug for RsxParts {
-	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-		f.debug_struct("RsxParts")
-			.field("rust.len", &self.rust.len())
-			.field("html", &self.html)
-			.finish()
-	}
 }
 
 /// Either provide data in a file or stored as a string,
