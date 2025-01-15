@@ -1,4 +1,5 @@
 use crate::prelude::*;
+use forky::prelude::ReadFile;
 use std::path::PathBuf;
 
 /// The rust, html and css extracted from an `rsx!` macro.
@@ -12,8 +13,18 @@ pub struct RsxParts {
 	pub css: PathOrInline,
 }
 
+impl RsxParts {
+	pub const DEFAULT_PLACEHOLDER: &'static str = "§";
+	pub fn default_placeholder() -> String {
+		Self::DEFAULT_PLACEHOLDER.to_string()
+	}
+}
+
 /// The event or the indentifiers/blocks `ToString`.
 pub enum RsxRust {
+	/// Used internally for reconciling this
+	/// element's other blocks, ie `<div data-sid="0"></div>`
+	DynNodeId,
 	/// ie `<div>{value}</div>`
 	InnerText(String),
 	/// ie `<div {attr_key}=true></div>`
@@ -30,7 +41,7 @@ pub enum RsxRust {
 impl std::fmt::Debug for RsxParts {
 	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
 		f.debug_struct("RsxParts")
-			.field("rust count", &self.rust.len())
+			.field("rust.len", &self.rust.len())
 			.field("html", &self.html)
 			.field("css", &self.css)
 			.finish()
@@ -44,6 +55,18 @@ impl std::fmt::Debug for RsxParts {
 pub enum PathOrInline {
 	Path(PathBuf),
 	Inline(String),
+}
+
+impl PathOrInline {
+	pub fn load(self) -> ParseResult<String> {
+		match self {
+			PathOrInline::Path(path) => {
+				let html = ReadFile::to_string(path)?;
+				Ok(html)
+			}
+			PathOrInline::Inline(html) => Ok(html),
+		}
+	}
 }
 
 impl Default for PathOrInline {

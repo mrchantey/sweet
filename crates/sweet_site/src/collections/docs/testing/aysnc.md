@@ -16,4 +16,4 @@ These tests are run in the `wasm_bindgen_test` runner and cannot be accessed by 
 
 ## `#[sweet::test]` (native,wasm)
 
-The sweet test macro works differently from tokio in that it employs a shared async runtime which results in faster startup times. For 99% of cases `#[sweet::test]` is the way to go, but if you do have two tests mutating the same static resources.
+This macro will run any test, be it native, wasm, sync or async.

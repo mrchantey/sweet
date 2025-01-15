@@ -42,11 +42,11 @@ fn main_wasm() -> ParseResult<()> {
 			Ok(Hydrated {
 				events: vec![Box::new(handle_click)],
 				blocks: vec![
-					HydratedBlock {
+					HydratedTextBlock {
 						node_id: 0,
 						part_index: 1,
 					},
-					HydratedBlock {
+					HydratedTextBlock {
 						node_id: 0,
 						part_index: 3,
 					},

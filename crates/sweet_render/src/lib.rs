@@ -2,12 +2,12 @@
 #![cfg_attr(test, test_runner(sweet::test_runner))]
 #![feature(type_alias_impl_trait)]
 
-pub mod rsx;
+pub mod render;
 #[cfg(target_arch = "wasm32")]
 pub mod sweet_loader;
 
 pub mod prelude {
-	pub use crate::rsx::*;
+	pub use crate::render::*;
 	#[cfg(target_arch = "wasm32")]
 	pub use crate::sweet_loader::*;
 }

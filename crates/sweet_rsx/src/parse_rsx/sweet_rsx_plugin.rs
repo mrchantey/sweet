@@ -9,6 +9,7 @@ use rstml::node::NodeAttribute;
 use rstml::node::NodeBlock;
 use rstml::node::NodeElement;
 use rstml::node::NodeName;
+use sweet_core::prelude::*;
 
 /// The sweet plugin for the rsx! macro.
 /// Deliberately no default, any implementers of this trait
@@ -18,28 +19,22 @@ use rstml::node::NodeName;
 pub struct SweetRsxPlugin {
 	/// usually we include errors for macros but not files.
 	pub include_errors: bool,
-	/// every element that directly contains rust code is assigned an incremental id
-	pub rsx_id_incr: usize,
 	/// The placeholder for rust blocks in the html, defaults to `§`
 	pub placeholder: String,
 }
 
 impl SweetRsxPlugin {
-	pub const DEFAULT_PLACEHOLDER: &'static str = "§";
-
 	pub fn new_with_errors() -> Self {
 		Self {
 			include_errors: true,
-			rsx_id_incr: 0,
-			placeholder: Self::DEFAULT_PLACEHOLDER.to_string(),
+			placeholder: RsxParts::default_placeholder(),
 		}
 	}
 
 	pub fn new_no_errors() -> Self {
 		Self {
 			include_errors: false,
-			rsx_id_incr: 0,
-			placeholder: Self::DEFAULT_PLACEHOLDER.to_string(),
+			placeholder: RsxParts::default_placeholder(),
 		}
 	}
 }
@@ -98,10 +93,11 @@ impl RsxPlugin for SweetRsxPlugin {
 		}
 
 		// assign s-id key
-		// the value assigned at the component builder step
-		let id = self.rsx_id_incr;
-		self.rsx_id_incr += 1;
-		output.html.push_str(&format!(" rsx-id=\"{}\"", id));
+		output
+			.rust
+			.push(quote! {sweet::prelude::RsxRust::DynNodeId});
+		output.html.push(' ');
+		output.html.push_str(&self.placeholder);
 
 		// if dyn_children {
 		// 	let encoded = encode_text_block_positions(&el.children);

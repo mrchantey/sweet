@@ -55,7 +55,9 @@ pub trait RsxPlugin: Sized {
 		output: &mut WalkNodesOutput,
 	);
 
-	/// specify the identifier that will be parsed
+	/// specify the identifier that will be parsed, this is compared
+	/// against the last part of a macro call,
+	/// ie `sweet::prelude::rsx!` would be `rsx`
 	fn macro_ident() -> &'static str { "rsx" }
 
 	/// Check if a path matches the macro, by default only the last segment is checked

@@ -4,13 +4,33 @@ title: How it works
 ---
 
 
-
+```mermaid
+graph TD
+  subgraph Sweet
+    A2[rust, html, css]
+    A2 --> P2[rsx parser]
+    P2 --> C2[rust]
+    P2 --> D2[html]
+    P2 --> E2[css]
+    C2 --> R2
+    D2 --> R2
+    E2 --> R2
+    R2[render]
+    R2 --> H[html, wasm]
+  end
+  subgraph Traditional
+    A1[rust, html, css] --> B1[render]
+    B1 --> C1[html, wasm]
+  end
+```
 
 The interactivity layer is a very lightweight layer over the leptos `reactive_graph` signals crate.
 
 The hydration strategy is loosely borrowed from quik. Html serialization and lazy event patching allow for html-rust splitting and zero pre-hydration events missed.
 
 The opinions on client-server relationship, routing are very astro, as is the integrations layer for crates like axum, leptos or bevy. 
+
+
 
 ## The Preprocessor
 

@@ -9,17 +9,21 @@ pub type HydratedEvent = Box<dyn FnMut(web_sys::Event)>;
 pub type HydratedEvent = Box<dyn FnMut(())>;
 
 
+pub enum HydratedRsxRust {
+	Event(HydratedEvent),
+	Block(HydratedTextBlock),
+}
+
 /// Collection of all events and blocks to be bound
 /// The vecs are a flattened version of all componennts in the tree,
 /// active or otherwise
 pub struct Hydrated {
-	pub events: Vec<HydratedEvent>,
-	pub blocks: Vec<HydratedBlock>,
+	pub rust: Vec<HydratedRsxRust>,
 }
 
 /// Description of the position of a block in an rsx tree
 #[derive(Debug, Clone)]
-pub struct HydratedBlock {
+pub struct HydratedTextBlock {
 	/// The assigned incremental id, not html id
 	pub node_id: usize,
 	/// The index of the part in the node
@@ -38,8 +42,8 @@ pub trait HydrateClient {
 impl std::fmt::Debug for Hydrated {
 	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
 		f.debug_struct("Hydrated")
-			.field("events", &self.events.len())
-			.field("blocks", &self.blocks)
+			.field("rust.len", &self.rust.len())
+			// .field("blocks", &self.blocks)
 			.finish()
 	}
 }
