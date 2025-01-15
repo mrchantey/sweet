@@ -9,7 +9,7 @@ pub struct LiveBlock {
 	pub parts: Vec<String>,
 }
 impl LiveBlock {
-	pub fn new(block: &HydratedBlock) -> ParseResult<Self> {
+	pub fn new(block: &HydratedTextBlock) -> ParseResult<Self> {
 		let document = web_sys::window().unwrap().document().unwrap();
 		let el = document
 			.query_selector(&format!("[data-sid=\"{}\"]", block.node_id))

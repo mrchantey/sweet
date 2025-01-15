@@ -79,7 +79,7 @@ mod test {
 		let msg = err.backtrace_str().unwrap();
 		let lines = msg.lines().collect::<Vec<_>>();
 
-		expect(lines[BacktraceFile::LINE_CONTEXT_SIZE])
+		expect(lines[BacktraceLocation::LINE_CONTEXT_SIZE])
 			.to_contain("let err = SweetError::new");
 	}
 	#[test]

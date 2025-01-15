@@ -89,7 +89,7 @@ typed-builder = "0.18"
 #💡wasm
 console_log = "1.0"
 js-sys = "0.3.63"
-wasm-bindgen = "0.2.99"
+wasm-bindgen = "=0.2.99"
 wasm-bindgen-futures = "0.4.36"
 console_error_panic_hook = "0.1.7"
 

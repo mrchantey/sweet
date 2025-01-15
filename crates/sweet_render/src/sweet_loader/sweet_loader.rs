@@ -25,17 +25,17 @@ impl SweetLoader {
 	pub fn load(self, page: impl HydrateClient) -> ParseResult<()> {
 		console_error_panic_hook::set_once();
 
-		let (send, recv) = flume::unbounded();
-		let Hydrated { events, blocks } = page.hydrate(send)?;
-		self.handle_events(events)?;
-		self.handle_blocks(blocks, recv)?;
+		// let (send, recv) = flume::unbounded();
+		// let Hydrated { events, blocks } = page.hydrate(send)?;
+		// self.handle_events(events)?;
+		// self.handle_blocks(blocks, recv)?;
 		Ok(())
 	}
 
 
 	pub fn handle_blocks(
 		&self,
-		blocks: Vec<HydratedBlock>,
+		blocks: Vec<HydratedTextBlock>,
 		recv: flume::Receiver<(usize, String)>,
 	) -> ParseResult<()> {
 		let mut live_blocks = Vec::<Option<LiveBlock>>::new();

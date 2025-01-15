@@ -43,6 +43,7 @@ impl TestRunner for TestRunnerRayon {
 		let tls_desc2 = tls_desc.clone();
 		let result_tx2 = result_tx.clone();
 		std::panic::set_hook(Box::new(move |info| {
+
 			if let Some(desc) = tls_desc2.get() {
 				if let Some(desc) = desc.take() {
 					let result = TestResult::from_panic(info, &desc);

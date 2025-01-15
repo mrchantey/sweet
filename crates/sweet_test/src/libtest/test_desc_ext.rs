@@ -104,9 +104,10 @@ impl TestDescExt {
 	pub fn best_effort_full_err(desc: &TestDesc, err: &str) -> String {
 		let loc = TestDescExt::error_location(&desc);
 
+		let cwd_root = BacktraceLocation::cwd_root();
 		// we dont get backtrace in wasm so just point to test start
-		let backtrace =
-			test_err_link(desc.source_file, desc.start_line, desc.start_col);
+		let backtrace = BacktraceLocation::from_test_desc(desc)
+			.stack_line_string(&cwd_root);
 
 		test_err_full_format(&loc, err, &backtrace)
 	}
@@ -143,19 +144,4 @@ pub fn test_err_full_format(
 ///
 pub fn test_err_location(file_stem: &str, test_name: &str) -> String {
 	format!("\n● {} > {}", file_stem, test_name).red().bold()
-}
-
-/// for a given error `it failed!` format like so:
-///
-/// ```ignore
-/// it failed!
-///
-/// at path/to/file_name.rs:1:2
-/// ```
-pub fn test_err_link(file: &str, line: usize, col: usize) -> String {
-	let prefix = String::from("at").faint();
-	let file_loc = String::from(file).cyan();
-	let line_loc = String::from(format!(":{}:{}", line, col)).faint();
-
-	format!("\n{} {}{}\n", prefix, file_loc, line_loc)
 }

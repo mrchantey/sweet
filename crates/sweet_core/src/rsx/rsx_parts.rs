@@ -1,5 +1,4 @@
 use crate::prelude::*;
-use forky::prelude::ReadFile;
 use std::path::PathBuf;
 
 /// The rust, html and css extracted from an `rsx!` macro.
@@ -61,7 +60,14 @@ impl PathOrInline {
 	pub fn load(self) -> ParseResult<String> {
 		match self {
 			PathOrInline::Path(path) => {
-				let html = ReadFile::to_string(path)?;
+				#[cfg(not(target_arch = "wasm32"))]
+				let html = forky::prelude::ReadFile::to_string(path)?;
+				#[cfg(target_arch = "wasm32")]
+				let html = String::new();
+				#[cfg(target_arch = "wasm32")]
+				todo!(
+					"js_runtime from sweet_core, allow for no refresh reload"
+				);
 				Ok(html)
 			}
 			PathOrInline::Inline(html) => Ok(html),
