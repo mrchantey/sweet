@@ -103,7 +103,10 @@ impl BacktraceLocation {
 	/// # Errors
 	/// This function will return an error if the file cannot be read
 	pub fn file_context(&self) -> Result<String> {
-		let file = read_file(&self.cwd_path)?;
+		let cwd_root = Self::cwd_root();
+		let abs_path = cwd_root.join(&self.cwd_path);
+
+		let file = read_file(&abs_path)?;
 		let lines: Vec<&str> = file.split("\n").collect();
 		//line number is one-indexed
 		let start = usize::max(
@@ -138,8 +141,6 @@ impl BacktraceLocation {
 				output.push_str_line(String::from("^").red().as_str());
 			}
 		}
-
-		let cwd_root = Self::cwd_root();
 
 		let mut stack_locations = vec![self.stack_line_string(&cwd_root)];
 
@@ -215,7 +216,8 @@ impl BacktraceLocation {
 }
 
 
-
+/// Read a file either from fs or wasm runtime,
+/// printing helpful error if couldnt read
 fn read_file(path: &Path) -> Result<String> {
 	let bail = |cwd: &str| {
 		let sweet_root = std::env::var("SWEET_ROOT");

@@ -21,8 +21,7 @@ impl RsxParts {
 
 /// The event or the indentifiers/blocks `ToString`.
 pub enum RsxRust {
-	/// Used internally for reconciling this
-	/// element's other blocks, ie `<div data-sid="0"></div>`
+	/// Any element containing rust needs a node id
 	DynNodeId,
 	/// ie `<div>{value}</div>`
 	InnerText(String),

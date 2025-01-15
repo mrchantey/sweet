@@ -24,3 +24,7 @@ anyhow.workspace = true
 
 rstml = { version = "0.12", features = ["rawtext-stable-hack"] }
 proc-macro2-diagnostics = "0.10"
+
+
+[dev-dependencies]
+sweet = { workspace = true, features = ["test"] }

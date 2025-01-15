@@ -21,9 +21,11 @@ struct Counter {
 impl Component for Counter {
     fn render(self) -> impl Rsx {
         sweet::noop! {
-            { sweet::prelude::RsxParts { rust : vec![sweet::prelude::RsxRust::InnerText({
-            self.value } .to_string()), RsxRust::Event(Box::new(| _ | {})),], html :
-            PathOrInline::Inline("<div rsx-id=\"0\"> the value is  §</div><button rsx-id=\"1\" onclick=\"§\">Increment</button><Footer></Footer>"
+            { sweet::prelude::RsxParts { rust : vec![sweet::prelude::RsxRust::DynNodeId,
+            sweet::prelude::RsxRust::InnerText({ self.value } .to_string()),
+            sweet::prelude::RsxRust::DynNodeId, RsxRust::Event(Box::new(| _ | {})),],
+            html :
+            PathOrInline::Inline("<div §> the value is §</div><button § onclick=\"§\">Increment</button><Footer></Footer>"
             .to_string()), css : PathOrInline::Inline("".to_string()), } }
         }
     }

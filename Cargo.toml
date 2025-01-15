@@ -13,7 +13,7 @@ members = [
 ]
 
 [workspace.package]
-version = "0.3.0-rc.1"
+version = "0.3.0-rc.2"
 edition = "2021"
 license = "MIT OR Apache-2.0"
 authors = ["Peter Hayman <peteyhayman@gmail.com>"]
@@ -33,13 +33,13 @@ keywords = ["full-stack", "browser", "web", "test", "e2e"]
 [workspace.dependencies]
 # dont specify version to allow it to be included as a dev dependency but ignored by cargo publish
 sweet = { path = "" }
-sweet_core = { path = "crates/sweet_core", version = "0.3.0-rc.1" }
-sweet_render = { path = "crates/sweet_render", version = "0.3.0-rc.1" }
-sweet_rsx = { path = "crates/sweet_rsx", version = "0.3.0-rc.1" }
-sweet_rsx_macros = { path = "crates/sweet_rsx/macros", version = "0.3.0-rc.1" }
-sweet_server = { path = "crates/sweet_server", version = "0.3.0-rc.1" }
-sweet_test = { path = "crates/sweet_test", version = "0.3.0-rc.1" }
-sweet_test_macros = { path = "crates/sweet_test/macros", version = "0.3.0-rc.1" }
+sweet_core = { path = "crates/sweet_core", version = "0.3.0-rc.2" }
+sweet_render = { path = "crates/sweet_render", version = "0.3.0-rc.2" }
+sweet_rsx = { path = "crates/sweet_rsx", version = "0.3.0-rc.2" }
+sweet_rsx_macros = { path = "crates/sweet_rsx/macros", version = "0.3.0-rc.2" }
+sweet_server = { path = "crates/sweet_server", version = "0.3.0-rc.2" }
+sweet_test = { path = "crates/sweet_test", version = "0.3.0-rc.2" }
+sweet_test_macros = { path = "crates/sweet_test/macros", version = "0.3.0-rc.2" }
 # forky = { version = "0.2.0-rc.2", path = "../forky/crates/forky" }
 # forky = { version = "0.2.1-rc.1", git = "https://github.com/mrchantey/forky" }
 # forky = { path = "../forky" }

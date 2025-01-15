@@ -2070,7 +2070,7 @@ checksum = "7da8b5736845d9f2fcb837ea5d9e2628564b3b043a70948a3f0b778838c5fb4f"
 
 [[package]]
 name = "sweet"
-version = "0.3.0-rc.1"
+version = "0.3.0-rc.2"
 dependencies = [
  "sweet_core",
  "sweet_render",
@@ -2082,7 +2082,7 @@ dependencies = [
 
 [[package]]
 name = "sweet-cli"
-version = "0.3.0-rc.1"
+version = "0.3.0-rc.2"
 dependencies = [
  "anyhow",
  "clap",
@@ -2092,7 +2092,7 @@ dependencies = [
 
 [[package]]
 name = "sweet_core"
-version = "0.3.0-rc.1"
+version = "0.3.0-rc.2"
 dependencies = [
  "anyhow",
  "console_error_panic_hook",
@@ -2111,7 +2111,7 @@ dependencies = [
 
 [[package]]
 name = "sweet_render"
-version = "0.3.0-rc.1"
+version = "0.3.0-rc.2"
 dependencies = [
  "anyhow",
  "console_error_panic_hook",
@@ -2130,7 +2130,7 @@ dependencies = [
 
 [[package]]
 name = "sweet_rsx"
-version = "0.3.0-rc.1"
+version = "0.3.0-rc.2"
 dependencies = [
  "anyhow",
  "forky",
@@ -2146,20 +2146,21 @@ dependencies = [
 
 [[package]]
 name = "sweet_rsx_macros"
-version = "0.3.0-rc.1"
+version = "0.3.0-rc.2"
 dependencies = [
  "anyhow",
  "proc-macro2",
  "proc-macro2-diagnostics",
  "quote",
  "rstml",
+ "sweet",
  "sweet_rsx",
  "syn",
 ]
 
 [[package]]
 name = "sweet_server"
-version = "0.3.0-rc.1"
+version = "0.3.0-rc.2"
 dependencies = [
  "anyhow",
  "flume",
@@ -2172,7 +2173,7 @@ dependencies = [
 
 [[package]]
 name = "sweet_site"
-version = "0.3.0-rc.1"
+version = "0.3.0-rc.2"
 dependencies = [
  "anyhow",
  "forky",
@@ -2182,7 +2183,7 @@ dependencies = [
 
 [[package]]
 name = "sweet_test"
-version = "0.3.0-rc.1"
+version = "0.3.0-rc.2"
 dependencies = [
  "anyhow",
  "backtrace",
@@ -2214,7 +2215,7 @@ dependencies = [
 
 [[package]]
 name = "sweet_test_macros"
-version = "0.3.0-rc.1"
+version = "0.3.0-rc.2"
 dependencies = [
  "anyhow",
  "proc-macro2",

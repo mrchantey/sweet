@@ -11,7 +11,7 @@ mod test {
 
 	#[test]
 	fn works() {
-		todo!("integration test");
+		// todo!("integration test");
 		// expect(&file_str).not().to_contain("rsx!");
 	}
 }

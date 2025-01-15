@@ -111,7 +111,7 @@ impl RsxPlugin for SweetRsxPlugin {
 		output.rust.push(
 			quote! {sweet::prelude::RsxRust::InnerText(#block.to_string())},
 		);
-		output.html.push(' ');
+		// node blocks should not have a preceeding space
 		output.html.push_str(&self.placeholder);
 	}
 
@@ -193,18 +193,17 @@ mod test {
 
 		expect(&tokens_str).to_contain("(onclick)");
 		expect(&tokens_str).not().to_start_with("rsx!");
-		expect(&out.html).to_be(r#"<div rsx-id="0" onclick="§"></div>"#);
+		expect(&out.html).to_be(r#"<div § onclick="§"></div>"#);
 	}
 	#[test]
 	fn text_blocks() {
 		let mut plugin = SweetRsxPlugin::new_no_errors();
-		// raw text nodes are trimmed
+		// raw text nodes `is` are trimmed
 		let mut tokens = quote::quote! {
 			<div>"the "{value}"th "<bold>value</bold> is {value}</div>
 		};
 		let out = plugin.parse_rsx(&mut tokens).unwrap();
-		expect(out.html)
-			.to_be(r#"<div rsx-id="0">the  §th <bold>value</bold>is §</div>"#);
+		expect(out.html).to_be(r#"<div §>the §th <bold>value</bold>is§</div>"#);
 	}
 	#[test]
 	#[ignore]
