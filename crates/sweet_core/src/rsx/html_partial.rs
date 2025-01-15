@@ -100,18 +100,22 @@ pub enum Node {
 	/// a rust block, contents is reconciled by renderer
 	TextBlock,
 	/// an rust value that implements [Rsx] contents is reconciled by renderer
-	Component(Element),
+	/// The children here are the 'children' of the component
+	Component(Vec<Node>),
 }
 
 impl Node {
 	pub fn to_string_placeholder(&self) -> String {
+
 		match self {
 			Node::Doctype => "<!DOCTYPE html>".to_string(),
 			Node::Comment(s) => format!("<!--{}-->", s),
 			Node::Element(e) => e.to_string_placeholder(),
 			Node::Text(s) => s.clone(),
 			Node::TextBlock => HtmlPartial::PLACEHOLDER.to_string(),
-			Node::Component(e) => e.to_string_placeholder(),
+			Node::Component(c) => {
+				c.iter().map(|c| c.to_string_placeholder()).collect()
+			}
 		}
 	}
 }

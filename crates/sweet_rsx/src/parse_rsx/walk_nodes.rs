@@ -13,7 +13,6 @@ use std::collections::HashSet;
 use sweet_core::rsx::HtmlPartial;
 use syn::spanned::Spanned;
 use syn::Ident;
-use syn::LitStr;
 
 #[derive(Debug, Clone)]
 pub struct WalkNodesOutput {
@@ -49,28 +48,6 @@ type HtmlElement = sweet_core::rsx::Element;
 type HtmlAttribute = sweet_core::rsx::Attribute;
 
 impl WalkNodesOutput {
-	fn extend(&mut self, other: WalkNodesOutput) {
-		let WalkNodesOutput {
-			html,
-			rust,
-			errors,
-			collected_elements,
-			self_closing_elements,
-		} = other;
-		self.html.extend(html);
-		self.rust.extend(rust);
-		self.errors.extend(errors);
-		self.collected_elements.extend(collected_elements);
-		let _ = self_closing_elements; // identical
-	}
-	fn push_error(&mut self, span: impl Spanned, message: &str) {
-		self.errors.push(
-			Diagnostic::spanned(span.span(), Level::Error, message)
-				.emit_as_expr_tokens(),
-		);
-	}
-
-
 	#[must_use]
 	/// the number of actual html nodes will likely be different
 	/// due to fragments, blocks etc
@@ -118,30 +95,51 @@ impl WalkNodesOutput {
 					self.collected_elements.push(close_tag.name.clone());
 				}
 				let tag = open_tag.name.to_string();
+
+
 				let is_component = tag.starts_with(|c: char| c.is_uppercase());
-				let attributes = open_tag
-					.attributes
-					.into_iter()
-					.map(|attr| self.visit_attribute(attr))
-					.collect();
-
-				let children = self.visit_nodes(children);
-
-				let el = HtmlElement {
-					tag: tag.clone(),
-					attributes,
-					children,
-					self_closing,
-				};
-
 				if is_component {
+					let props =
+						open_tag.attributes.into_iter().map(
+							|attr| match attr {
+								NodeAttribute::Block(node_block) => {
+									quote! {#node_block}
+								}
+								NodeAttribute::Attribute(attr) => {
+									if let Some(value) = attr.value() {
+										let key = &attr.key;
+										quote! {#key: #value}
+									} else {
+										let key = attr.key;
+										quote! {#key: true}
+									}
+								}
+							},
+						);
 					let ident = syn::Ident::new(&tag, tag.span());
-					self.rust.push(
-						quote! { RsxRust::Component(#ident.into_parts()) },
-					);
-					vec![HtmlNode::Component(el)]
+
+					self.rust.push(quote! { RsxRust::Component(
+							#ident{
+								#(#props,)*
+							}
+							.into_parts()
+						)
+					});
+					let children = self.visit_nodes(children);
+					vec![HtmlNode::Component(children)]
 				} else {
-					vec![HtmlNode::Element(el)]
+					let attributes = open_tag
+						.attributes
+						.into_iter()
+						.map(|attr| self.visit_attribute(attr))
+						.collect();
+					let children = self.visit_nodes(children);
+					vec![HtmlNode::Element(HtmlElement {
+						tag: tag.clone(),
+						attributes,
+						children,
+						self_closing,
+					})]
 				}
 			}
 			Node::Custom(_) => unimplemented!("Custom nodes not yet supported"),

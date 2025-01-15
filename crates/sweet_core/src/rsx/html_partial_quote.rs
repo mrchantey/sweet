@@ -42,7 +42,7 @@ impl ToTokens for Node {
 			Node::Element(e) => quote!(Node::Element(#e)),
 			Node::Text(s) => quote!(Node::Text(#s.to_string())),
 			Node::TextBlock => quote!(Node::TextBlock),
-			Node::Component(e) => quote!(Node::Component(#e)),
+			Node::Component(c) => quote!(Node::Component(Vec::from([#(#c,)*]))),
 		}
 		.to_tokens(tokens);
 	}

@@ -14,10 +14,10 @@ cli *args:
 install-cli *args:
 	cargo install --path crates/sweet-cli {{args}}
 
-run example *args:
-	just watch 'cargo run --example {{example}} {{args}}'
-run-wasm example *args:
-	just watch 'cargo run --example {{example}} --target wasm32-unknown-unknown {{args}}'
+run crate example *args:
+	just watch 'cargo run -p {{crate}} --example {{example}} {{args}}'
+run-wasm crate example *args:
+	just watch 'cargo run -p {{crate}} --example {{example}} --target wasm32-unknown-unknown {{args}}'
 
 clear-deno:
 	rm -rf ./target/sweet/deno.ts

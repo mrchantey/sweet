@@ -6,10 +6,7 @@ use strum_macros::AsRefStr;
 /// The rust, html and css extracted from an `rsx!` macro.
 /// Note that the outputted html and css is not final,
 /// it contains a placeholder that is filled in the render step.
-#[derive(Default)]
-
-
-
+#[derive(Debug, Default)]
 pub struct RsxParts {
 	/// The rust blocks extracted from the rsx! macro,
 	/// collected via Depth First Search traversal.
@@ -18,18 +15,6 @@ pub struct RsxParts {
 }
 
 impl RsxParts {}
-
-impl std::fmt::Debug for RsxParts {
-	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-		f.debug_struct("RsxParts")
-			.field(
-				"rust",
-				&self.rust.iter().map(|r| r.as_ref()).collect::<Vec<_>>(),
-			)
-			.field("html", &self.html)
-			.finish()
-	}
-}
 
 /// The event or the indentifiers/blocks `ToString`.
 #[derive(AsRefStr)]
@@ -48,6 +33,12 @@ pub enum RsxRust {
 	Event(HydratedEvent),
 	/// ie `<div><Counter/></div>`
 	Component(RsxParts),
+}
+
+impl std::fmt::Debug for RsxRust {
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		f.debug_struct(self.as_ref()).finish()
+	}
 }
 
 /// Either provide data in a file or stored as a string,

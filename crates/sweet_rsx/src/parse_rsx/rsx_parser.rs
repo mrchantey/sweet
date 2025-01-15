@@ -101,3 +101,19 @@ pub fn macro_or_err(expr: &Expr) -> syn::Result<&syn::Macro> {
 		Err(syn::Error::new_spanned(expr, "expected macro"))
 	}
 }
+#[cfg(test)]
+mod test {
+	use sweet::prelude::*;
+
+	#[test]
+	fn event_order() {
+		let onclick = |_| {};
+		let world = "mars";
+		let rsx = rsx! {
+			<div onclick>
+				<p>hello {world}</p>
+			</div>
+		};
+		expect(format!("{:?}", rsx.rust)).to_be("[Event, InnerText]");
+	}
+}

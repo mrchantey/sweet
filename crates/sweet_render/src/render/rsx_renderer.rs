@@ -82,25 +82,25 @@ impl<'a, V: RsxVisitor> RsxRenderer<'a, V> {
 					Err(ParseError::hydration("expected text block", "block"))
 				}
 			}
-			Node::Component(el) => self.render_component(el),
+			Node::Component(children) => self.render_component(children),
 		}
 	}
 	/// 1.
-	fn render_component(&mut self, el: &mut Element) -> ParseResult<String> {
-		if let RsxRust::Component(component) = self.get_rust()? {
-			//1. render open tag
-			let mut str = self.render_element_open(el)?;
-			// 2. render direct children 'passed in' by component parent
-			str.push_str(&self.render_nodes(&mut el.children)?);
-			// 3. render component children
-			let (component_children_str, component_children) =
-				RsxRenderer::render(self.visitor, component)?;
-			str.push_str(&component_children_str);
-			el.children.extend(component_children.nodes);
-			str.push_str(&self.render_element_close(el)?);
-			Ok(str)
-		} else {
-			Err(ParseError::hydration("Component", &el.tag))
+	fn render_component(
+		&mut self,
+		children: &mut Vec<Node>,
+	) -> ParseResult<String> {
+		match self.get_rust()? {
+			RsxRust::Component(component) => {
+				// render 'passed in' children first
+				let mut str = self.render_nodes(children)?;
+				let (component_children_str, component_children) =
+					RsxRenderer::render(self.visitor, component)?;
+				str.push_str(&component_children_str);
+				children.extend(component_children.nodes);
+				Ok(str)
+			}
+			other => Err(ParseError::hydration("Component", &other)),
 		}
 	}
 
@@ -190,8 +190,74 @@ mod test {
 	use crate::render::SweetRsxVisitor;
 	use sweet::prelude::*;
 
+
+	fn render(rsx: impl Rsx) -> (String, HtmlPartial) {
+		let mut visitor = SweetRsxVisitor::default();
+		RsxRenderer::render(&mut visitor, rsx).unwrap()
+	}
+
 	#[test]
-	fn works() {
+	fn doctype() {
+		let (str, _) = render(rsx! { <!DOCTYPE html> });
+		expect(str).to_be("<!DOCTYPE html>");
+	}
+
+	#[test]
+	fn comment() {
+		let (str, _) = render(rsx! { <!-- "hello" --> });
+		expect(str).to_be("<!-- hello -->");
+	}
+
+	#[test]
+	fn text() {
+		let (str, _) = render(rsx! { "hello" });
+		expect(str).to_be("hello");
+	}
+
+	#[test]
+	fn element() {
+		let (str, _) = render(rsx! { <div></div> });
+		expect(str).to_be("<div></div>");
+	}
+	#[test]
+	fn element_self_closing() {
+		let (str, _) = render(rsx! { <br/> });
+		expect(str).to_be("<br/>");
+	}
+	#[test]
+	fn element_children() {
+		let (str, _) = render(rsx! { <div>hello</div> });
+		expect(str).to_be("<div>hello</div>");
+	}
+
+	#[test]
+	fn text_block() {
+		let value = "hello";
+		let (str, _) = render(rsx! { {value} });
+		expect(str).to_be("hello");
+	}
+
+	#[test]
+	fn component() {
+		struct Child {
+			value: u32,
+		}
+		impl Rsx for Child {
+			fn into_parts(self) -> RsxParts {
+				rsx! {
+					<div>{self.value}</div>
+				}
+			}
+		}
+		let (str, _) = render(rsx! { <Child value=7/> });
+		expect(str).to_be(
+			"<div data-sweet-id=\"1\" data-sweet-blocks=\"0,0\">7</div>",
+		);
+	}
+
+
+	#[test]
+	fn nexted() {
 		let onclick = |_| {};
 		let world = "mars";
 		let rsx = rsx! {
@@ -199,14 +265,12 @@ mod test {
 				<p>hello {world}</p>
 			</div>
 		};
+		expect(format!("{:?}", rsx.rust)).to_be("[Event, InnerText]");
 
 		println!("rsx: '{:#?}'", rsx);
-
-		let mut visitor = SweetRsxVisitor::default();
-		let (rendered_str, rendered_tree) =
-			RsxRenderer::render(&mut visitor, rsx).unwrap();
-			println!("rendered_tree: '{:#?}'", rendered_tree);
-			println!("html: '{}'", rendered_str);
+		let (str, _) = render(rsx);
+		// println!("rendered_tree: '{:#?}'", rendered_tree);
+		// println!("html: '{}'", rendered_str);
 
 		// expect(true).to_be_false();
 	}
