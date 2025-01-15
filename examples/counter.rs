@@ -1,20 +1,19 @@
+#![allow(unused)]
 use sweet::prelude::*;
 
 fn main() {
 	// This example
 
-
-	Server::default().run_once(());
-	Server::default().run_once(Counter { value: 7 }.render());
-	Server::default().run_once(Footer.render());
-	// TODO calling these.into_parts() and extending for children
-	Server::default().run_once(rsx! {<Counter value=3 />});
+	// Server::default().run_once(());
+	// Server::default().run_once(Counter { value: 7 }.render());
+	// Server::default().run_once(Footer.render());
+	// // TODO calling these.into_parts() and extending for children
+	// Server::default().run_once(rsx! {<Counter value=3 />});
 }
 
 struct Counter {
 	value: i32,
 }
-
 
 impl Component for Counter {
 	fn render(self) -> impl Rsx {

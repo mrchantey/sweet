@@ -1,6 +1,3 @@
-pub mod render_plugin;
-#[allow(unused_imports)]
-pub use self::render_plugin::*;
 pub mod rsx_renderer;
 #[allow(unused_imports)]
 pub use self::rsx_renderer::*;

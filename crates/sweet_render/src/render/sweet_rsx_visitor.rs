@@ -56,10 +56,7 @@ impl RsxVisitor for SweetRsxVisitor {
 		_key: &mut String,
 		value: &mut String,
 	) -> ParseResult<()> {
-		*value = format!(
-			"_sweet.event({},event)",
-			self.num_dyn_elements - 1
-		);
+		*value = format!("_sweet.event({},event)", self.num_dyn_elements - 1);
 		Ok(())
 	}
 }

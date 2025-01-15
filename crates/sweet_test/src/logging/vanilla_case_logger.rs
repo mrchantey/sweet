@@ -3,12 +3,12 @@ use anyhow::Result;
 use colorize::*;
 
 
-/// Log cases in the default test style 🤮
+/// Log cases in the default unordered and unclickable test style 🤮
 #[derive(Debug, Default)]
 pub struct VanillaCaseLogger;
 
 impl CaseLogger for VanillaCaseLogger {
-	fn on_result(&mut self, result: &TestDescAndResult) -> Result<()> {
+	fn on_result(&mut self, result: &mut TestDescAndResult) -> Result<()> {
 		let status = match &result.result {
 			TestResult::Pass => "ok".green(),
 			TestResult::Fail(msg) => {

@@ -1,5 +1,6 @@
 use crate::prelude::*;
 use anyhow::Result;
+use colorize::AnsiColor;
 use std::collections::HashMap;
 use test::TestDescAndFn;
 
@@ -44,8 +45,8 @@ impl FileResult {
 		}
 	}
 
-	/// increments the counter and returns true if completed
-	pub fn push(&mut self, result: TestResult) {
+	/// pushes the result and logs if complete
+	pub fn push_and_maybe_log(&mut self, result: TestResult) {
 		self.results.push(result);
 		if self.results.len() != self.total {
 			return;
@@ -81,7 +82,17 @@ impl FileLogger {
 
 
 impl CaseLogger for FileLogger {
-	fn on_result(&mut self, result: &TestDescAndResult) -> Result<()> {
+	fn on_result(&mut self, result: &mut TestDescAndResult) -> Result<()> {
+		if let TestResult::Fail(val) = &mut result.result {
+			*val = format!(
+				"\ttest::{} \n\n{}",
+				TestDescExt::short_name(&result.desc).bold(),
+				val
+			);
+		}
+
+
+
 		let Some(counter) = self.test_counters.get_mut(result.desc.source_file)
 		else {
 			anyhow::bail!(
@@ -89,7 +100,7 @@ impl CaseLogger for FileLogger {
 				result.desc.source_file
 			)
 		};
-		counter.push(result.result.clone());
+		counter.push_and_maybe_log(result.result.clone());
 		Ok(())
 	}
 

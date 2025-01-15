@@ -38,18 +38,21 @@ impl CaseLoggerEnum {
 }
 
 impl CaseLogger for CaseLoggerEnum {
-	fn on_result(&mut self, result: &TestDescAndResult) -> Result<()> {
+	fn on_result(&mut self, result: &mut TestDescAndResult) -> Result<()> {
 		self.as_mut().on_result(result)
 	}
 	fn end_str(&mut self) -> Option<String> { self.as_mut().end_str() }
 }
 
+/// This trait is how you can customize sweet to look how you want
 pub trait CaseLogger {
-	fn on_result(&mut self, result: &TestDescAndResult) -> Result<()>;
+	/// here you can mutate the output of failing results
+	fn on_result(&mut self, result: &mut TestDescAndResult) -> Result<()>;
 	fn end_str(&mut self) -> Option<String> { None }
 }
 
-/// format a file string in a pretty jest style
+/// format a file string in a pretty jest style,
+/// where the stem is bold and the dir is faint
 pub fn pretty_file_path(file: &str) -> String {
 	let file = Path::new(file);
 

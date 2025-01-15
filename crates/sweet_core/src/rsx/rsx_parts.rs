@@ -24,8 +24,8 @@ pub enum RsxRust {
 	/// **rust**
 	/// ie `<div>{value}</div>`
 	InnerText(String),
-	/// ie `<div {attr_key}=true></div>`
-	AttributeKey(String),
+	/// ie `<div {attr_block}></div>`
+	AttributeBlock(String),
 	/// ie `<div class={class_name}></div>`
 	AttributeValue(String),
 	/// ie `<div onclick={handle_click}></div>`,

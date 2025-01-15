@@ -3,8 +3,6 @@ use sweet_core::prelude::*;
 use wasm_bindgen::prelude::Closure;
 use wasm_bindgen::JsCast;
 use web_sys::Event;
-use web_sys::HtmlElement;
-
 
 /**
 The sweet loader is the core of sweet_rsx, responsible for gluing together the hydrated events and blocks with
@@ -26,14 +24,14 @@ impl SweetLoader {
 		console_error_panic_hook::set_once();
 
 		let rsx = rsx.into_parts();
-		for item in rsx.rust.into_iter(){
-			match item{
-					RsxRust::DynNodeId => todo!(),
-					RsxRust::InnerText(_) => todo!(),
-					RsxRust::AttributeKey(_) => todo!(),
-					RsxRust::AttributeValue(_) => todo!(),
-					RsxRust::Event(fn_mut) => todo!(),
-					RsxRust::Component(rsx_parts) => todo!(),
+		for item in rsx.rust.into_iter() {
+			match item {
+				RsxRust::DynNodeId => todo!(),
+				RsxRust::InnerText(_) => todo!(),
+				RsxRust::AttributeBlock(_) => todo!(),
+				RsxRust::AttributeValue(_) => todo!(),
+				RsxRust::Event(fn_mut) => todo!(),
+				RsxRust::Component(rsx_parts) => todo!(),
 			}
 		}
 		// let (send, recv) = flume::unbounded();

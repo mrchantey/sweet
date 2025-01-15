@@ -8,8 +8,8 @@ members = [
 	# "crates/sweet_rsx/macros",
 	# "crates/sweet_server",
 	# "crates/sweet_site",
-	# "crates/sweet_test/macros",
-	# "crates/sweet_test",
+	"crates/sweet_test/macros",
+	"crates/sweet_test",
 	# "crates/sweet-cli",
 ]
 
@@ -163,13 +163,13 @@ categories.workspace = true
 keywords.workspace = true
 
 [features]
-default = ["server", "rsx", "macros", "render"]
+default = ["rsx", "macros", "render"]
 
-bevy = ["sweet_test?/bevy"]
 render = ["dep:sweet_render"]
 macros = ["dep:sweet_rsx_macros"]
 rsx = ["dep:sweet_rsx"]
 server = ["dep:sweet_server"]
+bevy = ["sweet_test?/bevy"]
 test = ["dep:sweet_test"]
 
 [dependencies]
@@ -187,14 +187,10 @@ render_counter = { required_features = ["server"] }
 
 [dev-dependencies]
 forky.workspace = true
-sweet_test.workspace = true
-sweet_render.workspace = true
-sweet_rsx.workspace = true
-sweet_rsx_macros.workspace = true
 
+# basic reactivity
 once_cell.workspace = true
 flume.workspace = true
-
 
 [target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
 sweet_server.workspace = true

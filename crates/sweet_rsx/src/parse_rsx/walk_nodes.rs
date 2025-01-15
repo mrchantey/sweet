@@ -165,7 +165,7 @@ impl WalkNodesOutput {
 	fn visit_attribute(&mut self, attr: NodeAttribute) -> HtmlAttribute {
 		match attr {
 			NodeAttribute::Block(block) => {
-				self.rust.push(block.to_token_stream());
+				self.rust.push(quote!{RsxRust::AttributeBlock(#block.to_string())});
 				HtmlAttribute::Block
 			}
 			NodeAttribute::Attribute(attr) => {

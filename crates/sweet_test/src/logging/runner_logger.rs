@@ -58,9 +58,9 @@ impl RunnerLogger {
 			}
 		}
 	}
-	pub fn on_result(&mut self, result: TestDescAndResult) -> Result<()> {
+	pub fn on_result(&mut self,mut result: TestDescAndResult) -> Result<()> {
 		if !self.config.quiet {
-			self.case_logger.on_result(&result)?;
+			self.case_logger.on_result(&mut result)?;
 		}
 		self.cases.push(result);
 		Ok(())

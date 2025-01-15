@@ -1,7 +1,9 @@
 pub mod html_partial;
 #[allow(unused_imports)]
 pub use self::html_partial::*;
+#[cfg(feature = "quote")]
 pub mod html_partial_quote;
+#[cfg(feature = "quote")]
 #[allow(unused_imports)]
 pub use self::html_partial_quote::*;
 pub mod hydrate;

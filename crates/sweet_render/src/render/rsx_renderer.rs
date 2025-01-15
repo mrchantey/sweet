@@ -169,7 +169,7 @@ impl<'a, V: RsxVisitor> RsxRenderer<'a, V> {
 				}
 			}
 			Attribute::Block => {
-				if let RsxRust::AttributeKey(key) = self.get_rust()? {
+				if let RsxRust::AttributeBlock(key) = self.get_rust()? {
 					Ok(key)
 				} else {
 					Err(ParseError::hydration(
@@ -225,17 +225,19 @@ mod test {
 
 	#[test]
 	fn element() {
-		let key = "key";
+		let key = "hidden";
+		let key_value = "class=\"pretty\"";
 		let food = "pizza";
 		let (str, _) = render(rsx! { <div
-		name="pete"
-		age=9
-		favorite_food={food}
-		>
-		
-		</div> 
-	});
-		expect(str).to_be("<div name=\"pete\" age=\"9\" favorite_food=\"pizza\" data-sweet-id=\"0\"></div>");
+			name="pete"
+			age=9
+			{key}
+			{key_value}
+			favorite_food={food}
+			>
+			</div>
+		});
+		expect(str).to_be("<div name=\"pete\" age=\"9\" hidden class=\"pretty\" favorite_food=\"pizza\" data-sweet-id=\"0\"></div>");
 	}
 	#[test]
 	fn element_self_closing() {

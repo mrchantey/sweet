@@ -35,7 +35,7 @@ impl SweetCaseLogger {
 
 
 impl CaseLogger for SweetCaseLogger {
-	fn on_result(&mut self, result: &TestDescAndResult) -> Result<()> {
+	fn on_result(&mut self, result: &mut TestDescAndResult) -> Result<()> {
 		self.log_case_result_sweetly(&result);
 		Ok(())
 	}
