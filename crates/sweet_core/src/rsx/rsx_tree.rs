@@ -75,6 +75,7 @@ pub enum Node<R> {
 }
 
 impl<R> Node<R> {
+
 	pub fn to_string_placeholder(&self) -> String {
 		match self {
 			Node::Doctype => "<!DOCTYPE html>".to_string(),
@@ -99,6 +100,13 @@ impl<R> Node<R> {
 		match self {
 			Node::Element(e) => Some(&mut e.children),
 			Node::Component(_, c) => Some(c),
+			_ => None,
+		}
+	}
+	pub fn take_children(&mut self) -> Option<Vec<Node<R>>> {
+		match self {
+			Node::Element(e) => Some(std::mem::take(&mut e.children)),
+			Node::Component(_, c) => Some(std::mem::take(c)),
 			_ => None,
 		}
 	}

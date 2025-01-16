@@ -99,7 +99,9 @@ pub fn macro_or_err(expr: &Expr) -> syn::Result<&syn::Macro> {
 }
 #[cfg(test)]
 mod test {
-	use sweet::prelude::*;
+	use sweet_core as sweet;
+	use sweet_rsx_macros::rsx;
+	use sweet_test::prelude::*;
 
 	#[test]
 	fn compiles() {

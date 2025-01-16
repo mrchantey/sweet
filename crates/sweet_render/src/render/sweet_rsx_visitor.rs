@@ -5,6 +5,11 @@ pub struct SweetRsxVisitor {
 	pub position_visitor: RsxTreePositionVisitor,
 }
 
+impl SweetRsxVisitor {
+	pub const ID_ATTRIBUTE_KEY: &str = "data-sweet-id";
+	pub const BLOCK_ATTRIBUTE_KEY: &str = "data-sweet-blocks";
+}
+
 impl RsxTreeMapper<RustParts, String> for SweetRsxVisitor {
 	fn map_nodes(
 		&mut self,
@@ -56,14 +61,14 @@ impl SweetRsxVisitor {
 	) -> ParseResult<Element<String>> {
 		if el.contains_rust() {
 			el.attributes.push(Attribute::KeyValue {
-				key: "data-sweet-id".to_string(),
-				value: (self.position_visitor.node_count - 1).to_string(),
+				key: Self::ID_ATTRIBUTE_KEY.to_string(),
+				value: (self.position_visitor.current_node_id()).to_string(),
 			});
 		}
 		if el.contains_text_blocks() {
 			el.attributes.push(Attribute::KeyValue {
-				key: "data-sweet-blocks".to_string(),
-				value: encode_text_block_positions(&el.children),
+				key: Self::BLOCK_ATTRIBUTE_KEY.to_string(),
+				value: TextBlockEncoder::encode(&el.children),
 			});
 		}
 		let children = self.map_nodes(el.children)?;
@@ -97,7 +102,7 @@ impl SweetRsxVisitor {
 					(true, RustParts::Event(_)) => {
 						format!(
 							"_sweet.event({},event)",
-							self.position_visitor.node_count - 1
+							self.position_visitor.current_node_id()
 						)
 					}
 					(true, parts) => {
@@ -128,47 +133,4 @@ impl SweetRsxVisitor {
 		};
 		Ok(attr)
 	}
-}
-
-
-///	Encoding for TextBlock positions, we need the following:
-/// - The child index of the text node
-/// - The string index of the block
-/// - The length of the TextBlock initial value
-/// child_index - first-block-index , first-block-length , second-block-index , second-block-length . child_index2 etc
-///
-/// ## Example
-/// ```html
-/// <div>the 10th <bold>value</bold> was 9</div>
-/// ```
-/// Output:
-/// 0-4,2.2-5,1
-///
-///
-fn encode_text_block_positions(children: &Vec<Node<RustParts>>) -> String {
-	let mut encoded = String::new();
-	let mut child_index = 0;
-	let mut text_index = 0;
-	for child in children {
-		match child {
-			Node::Text(t) => {
-				text_index += t.len();
-			}
-			Node::TextBlock(_) => {
-				encoded.push_str(&format!("{},{},", child_index, text_index));
-			}
-			Node::Component(_, _) => {
-				todo!("what if component returns text")
-			}
-			_ => {
-				child_index += 1;
-				text_index = 0;
-				continue;
-			}
-		}
-	}
-	if encoded.len() > 0 {
-		encoded.pop();
-	}
-	encoded
 }

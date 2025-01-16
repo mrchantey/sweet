@@ -16,6 +16,9 @@ pub use self::rsx_tree_visitor::*;
 pub mod rust_parts;
 #[allow(unused_imports)]
 pub use self::rust_parts::*;
+pub mod text_block_encoder;
+#[allow(unused_imports)]
+pub use self::text_block_encoder::*;
 pub mod tree_position;
 #[allow(unused_imports)]
 pub use self::tree_position::*;

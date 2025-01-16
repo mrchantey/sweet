@@ -4,9 +4,9 @@
 #[cfg(test)]
 #[cfg(not(target_arch = "wasm32"))]
 mod test {
-	use forky::prelude::FsExt;
-	use forky::prelude::ReadFile;
-	use sweet_test::prelude::*;
+	use sweet_core as sweet;
+	use sweet_render::prelude::*;
+	use sweet_rsx_macros::rsx;
 
 	#[test]
 	fn works() {

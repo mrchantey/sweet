@@ -1,3 +1,4 @@
+
 #[cfg(not(target_arch = "wasm32"))]
 use forky::prelude::FsError;
 use thiserror::Error;
@@ -44,7 +45,6 @@ impl From<String> for ParseError {
 impl From<&str> for ParseError {
 	fn from(e: &str) -> Self { Self::Other(e.to_string()) }
 }
-
 
 #[cfg(feature = "serde")]
 impl From<bincode::Error> for ParseError {

@@ -27,14 +27,14 @@ clean-analyzer:
 test-cli *args:
 	just watch 'cargo test -p sweet-cli --lib -- --watch {{args}}'
 
-test crate test_name *args:
+test-named crate test_name *args:
 	just watch 'cargo test -p {{crate}} --test {{test_name}} -- --watch {{args}}'
-test-lib crate *args:
+test crate *args:
 	just watch 'cargo test -p {{crate}} --lib -- --watch {{args}}'
 
-test-wasm crate test_name *args:
+test-wasm-named crate test_name *args:
 	just watch 'cargo test -p {{crate}} --test {{test_name}} --target wasm32-unknown-unknown -- --watch {{args}}'
-test-wasm-lib crate *args:
+test-wasm crate *args:
 	just watch 'cargo test -p {{crate}} --lib --target wasm32-unknown-unknown -- --watch {{args}}'
 
 test-all *args:

@@ -52,7 +52,36 @@ pub trait RsxTreeVisitorMut<R> {
 		Ok(())
 	}
 }
+#[allow(unused_variables)]
+pub trait RsxTreeVisitorOwned<R> {
+	fn walk_nodes_dfs(&mut self, nodes: Vec<Node<R>>) -> ParseResult<()> {
+		let nodes = self.visit_children(nodes)?;
+		for node in nodes.into_iter() {
+			if let Some(children) = self.visit_node(node)? {
+				self.walk_nodes_dfs(children)?;
+			}
+			self.leave_node()?;
+		}
+		self.leave_children()?;
+		Ok(())
+	}
 
+	/// take a node, optionally returning its children
+	fn visit_node(
+		&mut self,
+		mut node: Node<R>,
+	) -> ParseResult<Option<Vec<Node<R>>>> {
+		Ok(node.take_children())
+	}
+	fn leave_node(&mut self) -> ParseResult<()> { Ok(()) }
+	fn visit_children(
+		&mut self,
+		children: Vec<Node<R>>,
+	) -> ParseResult<Vec<Node<R>>> {
+		Ok(children)
+	}
+	fn leave_children(&mut self) -> ParseResult<()> { Ok(()) }
+}
 
 
 
@@ -70,6 +99,7 @@ pub struct RsxTreePositionVisitor {
 }
 
 impl RsxTreePositionVisitor {
+	/// The node count - 1
 	/// # Panics
 	/// If no nodes have been visited
 	pub fn current_node_id(&self) -> usize { self.node_count - 1 }

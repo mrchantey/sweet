@@ -68,7 +68,7 @@ impl RsxTreeVisitor<String> for RsxRenderVisitor {
 					self.html.push('>');
 				}
 			}
-			Node::TextBlock(val) => self.html += val,
+			Node::TextBlock(val) => {self.html += val},
 			Node::Component(_, _) => {
 				// components are not html
 			}
@@ -167,7 +167,7 @@ mod test {
 		let out =
 			DefaultRsxRenderer::render(rsx! { <Child value=7/> }).unwrap();
 		expect(out).to_be(
-			"<div data-sweet-id=\"1\" data-sweet-blocks=\"0,0\">7</div>",
+			"<div data-sweet-id=\"1\" data-sweet-blocks=\"0-0-1\">7</div>",
 		);
 	}
 
@@ -183,6 +183,6 @@ mod test {
 		};
 		// println!("rsx: '{:#?}'", rsx);
 		let out = DefaultRsxRenderer::render(rsx).unwrap();
-		expect(out).to_be("<div onclick=\"_sweet.event(0,event)\" data-sweet-id=\"0\"><p data-sweet-id=\"1\" data-sweet-blocks=\"0,6\">hello mars</p></div>");
+		expect(out).to_be("<div onclick=\"_sweet.event(0,event)\" data-sweet-id=\"0\"><p data-sweet-id=\"1\" data-sweet-blocks=\"0-6-4\">hello mars</p></div>");
 	}
 }

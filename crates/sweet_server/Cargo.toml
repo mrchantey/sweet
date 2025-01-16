@@ -25,4 +25,4 @@ forky = { workspace = true, features = ["fs"] }
 tokio.workspace = true
 
 [dev-dependencies]
-sweet = { workspace = true, features = ["test"] }
+sweet_test.workspace = true
