@@ -90,7 +90,7 @@ fn prepend_failing_test_name(result: &mut TestDescAndResult) {
 
 		let test_name = TestDescExt::short_name(&result.desc);
 
-		let next = format!("\t• {file_stem} > {test_name} \n\n").red();
+		let next = format!("\n\t• {file_stem} > {test_name} \n\n").red();
 		*val = format!("{next}{val}");
 	}
 }

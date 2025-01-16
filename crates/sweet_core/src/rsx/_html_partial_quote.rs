@@ -1,5 +1,5 @@
 #![cfg(feature = "quote")]
-use super::*;
+use crate::prelude::*;
 use proc_macro2::TokenStream;
 use quote::quote;
 use quote::ToTokens;

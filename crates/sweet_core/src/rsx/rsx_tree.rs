@@ -2,6 +2,7 @@
 pub use serde::Deserialize;
 #[cfg(feature = "serde")]
 pub use serde::Serialize;
+use strum_macros::AsRefStr;
 
 
 
@@ -10,7 +11,7 @@ pub use serde::Serialize;
 ///
 /// It is a type that represents a tree of html, but with the
 /// rusty parts represented as <R>.
-/// 
+///
 /// This allows us to convert between hydrated and serialized html trees.
 ///
 /// There are currently three types being used (in order of process step):
@@ -58,7 +59,7 @@ impl<R> RsxTree<R> {
 }
 
 /// a 'collapsed' rstml node
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, AsRefStr)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum Node<R> {
 	Doctype,
@@ -84,6 +85,20 @@ impl<R> Node<R> {
 			Node::Component(_, c) => {
 				c.iter().map(|c| c.to_string_placeholder()).collect()
 			}
+		}
+	}
+	pub fn children(&self) -> Option<&Vec<Node<R>>> {
+		match self {
+			Node::Element(e) => Some(&e.children),
+			Node::Component(_, c) => Some(&c),
+			_ => None,
+		}
+	}
+	pub fn children_mut(&mut self) -> Option<&mut Vec<Node<R>>> {
+		match self {
+			Node::Element(e) => Some(&mut e.children),
+			Node::Component(_, c) => Some(c),
+			_ => None,
 		}
 	}
 }

@@ -19,8 +19,8 @@ run crate example *args:
 run-wasm crate example *args:
 	just watch 'cargo run -p {{crate}} --example {{example}} --target wasm32-unknown-unknown {{args}}'
 
-clear-deno:
-	rm -rf ./target/sweet/deno.ts
+clean-analyzer:
+	rm -rf $CARGO_TARGET_DIR/rust-analyzer
 
 #💡 Test
 

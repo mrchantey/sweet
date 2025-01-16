@@ -77,7 +77,7 @@ impl RsxParser {
 		*tokens = syn::parse_quote! {{
 			use sweet::prelude::*;
 			#errors
-			#tree
+			#tree as RsxTree::<RustParts>
 		}};
 		Ok(output)
 	}
@@ -110,5 +110,12 @@ mod test {
 				<p>hello {world}</p>
 			</div>
 		};
+	}
+	#[test]
+	fn compiles2() {
+		let parts = rsx! {<div> the value is {3} </div>};
+		let parts_str = format!("{:?}", parts);
+
+		expect(parts_str).to_be("RsxTree { nodes: [Element(Element { tag: \"div\", attributes: [], children: [Text(\" the value is \"), TextBlock(TextBlock)], self_closing: false })] }");
 	}
 }

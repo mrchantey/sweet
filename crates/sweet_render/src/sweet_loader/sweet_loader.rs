@@ -5,7 +5,7 @@ use wasm_bindgen::JsCast;
 use web_sys::Event;
 
 /**
-The sweet loader is the core of sweet_rsx, responsible for gluing together the hydrated events and blocks with
+The sweet loader is responsible for gluing together the hydrated events and blocks with
 the dom.
 
 The core of the event system is a global object called `_sweet`.

@@ -46,4 +46,5 @@ web-sys.workspace = true
 
 
 [dev-dependencies]
-sweet = { workspace = true, features = ["test"] }
+sweet_test.workspace = true
+sweet_rsx_macros.workspace = true

@@ -11,9 +11,6 @@ use sweet_core::rsx::RustParts;
 
 #[allow(unused_variables)]
 pub trait RsxVisitor {
-	/// Useful for keeping track of the position of the RustParts vec.
-	/// Note that mutating events will have no effect as the renderer will discard them
-	fn visit_rust(&mut self, rust: &mut RustParts) -> ParseResult<()> { Ok(()) }
 
 	fn visit_node(&mut self, node: &mut Node<RustParts>) -> ParseResult<()> {
 		Ok(())

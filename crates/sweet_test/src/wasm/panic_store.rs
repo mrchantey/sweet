@@ -117,9 +117,4 @@ impl PanicStore {
 			}
 		})
 	}
-
-	// pub fn save_current_result(id: LibtestHash, failed: bool) {
-	// 	let result = if failed { Err(Self::get()) } else { Ok(()) };
-	// 	AsyncTestResults::set(id, result);
-	// }
 }

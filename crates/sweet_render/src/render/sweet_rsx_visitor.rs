@@ -7,18 +7,14 @@ use sweet_core::prelude::*;
 
 #[derive(Default)]
 pub struct SweetRsxVisitor {
-	pub num_rust_blocks: usize,
-	/// incremented on element visit,
-	/// subtract 1 to use for the current data-sweet id
-	pub num_dyn_elements: usize,
+	pub current_pos: TreePosition,
+	pub num_nodes: usize,
 }
 
 impl RsxVisitor for SweetRsxVisitor {
-	fn visit_rust(
-		&mut self,
-		_rust: &mut sweet_core::prelude::RustParts,
-	) -> ParseResult<()> {
-		self.num_rust_blocks += 1;
+	fn visit_node(&mut self, _node: &mut Node<RustParts>) -> ParseResult<()> {
+		self.current_pos.next_sibling();
+		self.num_nodes += 1;
 		Ok(())
 	}
 
@@ -26,14 +22,16 @@ impl RsxVisitor for SweetRsxVisitor {
 		&mut self,
 		element: &mut Element<RustParts>,
 	) -> ParseResult<()> {
+		let current_pos = self.current_pos.to_csv();
+		self.current_pos.next_child();
+
 		if !element.contains_blocks() {
 			return Ok(());
 		}
 		element.attributes.push(Attribute::KeyValue {
-			key: "data-sweet-id".to_string(),
-			value: self.num_dyn_elements.to_string(),
+			key: "data-sweet-pos".to_string(),
+			value: current_pos,
 		});
-		self.num_dyn_elements += 1;
 
 		// we encode text block positions here because we need to see all
 		// children to calculate the positions
@@ -56,7 +54,7 @@ impl RsxVisitor for SweetRsxVisitor {
 
 
 	fn visit_event_attribute(&mut self, _key: &str) -> ParseResult<String> {
-		Ok(format!("_sweet.event({},event)", self.num_dyn_elements - 1))
+		Ok(format!("_sweet.event({},event)", self.num_nodes - 1))
 	}
 }
 

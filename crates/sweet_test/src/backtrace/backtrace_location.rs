@@ -85,7 +85,9 @@ impl BacktraceLocation {
 			.cwd_path
 			.strip_prefix(&cwd_root)
 			.unwrap_or(&self.cwd_path)
-			.to_string_lossy();
+			.to_string_lossy()
+			.to_string()
+			.cyan();
 		let line_loc =
 			String::from(format!(":{}:{}", self.line_no, self.col_no)).faint();
 
@@ -193,7 +195,7 @@ impl BacktraceLocation {
 			stack_locations.extend(locations);
 		}
 
-		output.push_str("\n");
+		output.push('\n');
 		output.push_string(&stack_locations.join("\n"));
 
 		Ok(output)

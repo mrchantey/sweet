@@ -1,9 +1,8 @@
 #![cfg_attr(test, feature(test, custom_test_frameworks))]
 #![cfg_attr(test, test_runner(sweet::test_runner))]
 
-
-
 #[cfg(test)]
+#[cfg(not(target_arch = "wasm32"))]
 mod test {
 	// use forky::prelude::FsExt;
 	// use forky::prelude::ReadFile;
@@ -11,7 +10,9 @@ mod test {
 
 	#[test]
 	fn works() {
-		// todo!("integration test");
-		// expect(&file_str).not().to_contain("rsx!");
+
+
+
+		// like parse_file but output html too
 	}
 }

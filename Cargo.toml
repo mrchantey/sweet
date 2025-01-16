@@ -2,10 +2,10 @@
 resolver = "2" # Important! wgpu/Bevy needs this!
 members = [
 	"crates/sweet_core",
-	"crates/sweet_leptos",
-	"crates/sweet_render",
 	"crates/sweet_rsx",
 	"crates/sweet_rsx/macros",
+	"crates/sweet_leptos",
+	"crates/sweet_render",
 	"crates/sweet_server",
 	"crates/sweet_site",
 	"crates/sweet_test/macros",
@@ -57,6 +57,7 @@ backtrace = "0.3"
 extend = "1"
 strum = "0.26"
 strum_macros = "0.26"
+prettyplease = "0.2"
 
 #💡 game
 bevy = { version = "0.15", default-features = false }
@@ -163,7 +164,7 @@ categories.workspace = true
 keywords.workspace = true
 
 [features]
-default = ["server","rsx", "macros", "render"]
+default = ["server", "rsx", "macros", "render"]
 
 render = ["dep:sweet_render"]
 macros = ["dep:sweet_rsx_macros"]
