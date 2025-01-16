@@ -15,32 +15,19 @@ impl<'a, R, V: RsxTreeVisitor<R>> RsxTreeWalker<'a, R, V> {
 		}
 	}
 
-
-
 	pub fn walk_nodes_dfs(
 		&mut self,
 		nodes: &mut Vec<Node<R>>,
 	) -> ParseResult<()> {
-		self.walk_nodes_dfs_with_options(nodes, false)
-	}
-	pub fn walk_nodes_dfs_with_options(
-		&mut self,
-		nodes: &mut Vec<Node<R>>,
-		visit_children: bool,
-	) -> ParseResult<()> {
-		if visit_children {
-			self.visitor.visit_children(nodes)?;
-		}
+		self.visitor.visit_children(nodes)?;
 		for node in nodes.iter_mut() {
 			self.visitor.visit_node(node)?;
 			if let Some(children) = node.children_mut() {
-				self.walk_nodes_dfs_with_options(children, true)?;
+				self.walk_nodes_dfs(children)?;
 			}
 			self.visitor.leave_node(node)?;
 		}
-		if visit_children {
-			self.visitor.leave_children(nodes)?;
-		}
+		self.visitor.leave_children(nodes)?;
 		Ok(())
 	}
 }
@@ -64,8 +51,10 @@ pub trait RsxTreeVisitor<R> {
 }
 
 /// Track the position of items in a tree,
-/// Other visitors that use this vistor must ensure the following
-/// are called **after** using the values, see [RsxTreeMetaVisitor] for an example.
+/// this vistors methods should be 'outer' to any implementors
+/// 
+/// 
+/// 
 #[derive(Debug, Default, Clone, PartialEq, Hash)]
 pub struct RsxTreePositionVisitor {
 	pub current_pos: TreePosition,
@@ -88,14 +77,14 @@ impl<R> RsxTreeVisitor<R> for RsxTreePositionVisitor {
 		&mut self,
 		_children: &mut Vec<Node<R>>,
 	) -> ParseResult<()> {
-		self.current_pos.next_child();
+		self.current_pos.push_child();
 		Ok(())
 	}
 	fn leave_children(
 		&mut self,
 		_children: &mut Vec<Node<R>>,
 	) -> ParseResult<()> {
-		self.current_pos.prev_child();
+		self.current_pos.pop_child();
 		Ok(())
 	}
 }
@@ -116,7 +105,9 @@ pub struct RsxTreeMeta {
 }
 
 impl<R> RsxTreeVisitor<R> for RsxTreeMetaVisitor {
+	/// called before visiting children
 	fn visit_node(&mut self, node: &mut Node<R>) -> ParseResult<()> {
+		self.position_visitor.visit_node(node)?;
 		self.nodes.push(RsxTreeMeta {
 			type_name: node.as_ref().to_string(),
 			info: match node {
@@ -130,9 +121,9 @@ impl<R> RsxTreeVisitor<R> for RsxTreeMetaVisitor {
 			position: self.position_visitor.current_pos.clone(),
 			node_index: self.position_visitor.node_index,
 		});
-		self.position_visitor.visit_node(node)?;
 		Ok(())
 	}
+	/// called after visiting children
 	fn leave_node(&mut self, _node: &mut Node<R>) -> ParseResult<()> {
 		self.position_visitor.leave_node(_node)
 	}
@@ -172,7 +163,7 @@ mod test {
 			.walk_nodes_dfs(&mut tree.nodes)
 			.unwrap();
 		expect(visitor.node_index).to_be(0);
-		expect(&visitor.current_pos.to_csv()).to_be("2");
+		expect(&visitor.current_pos.to_csv()).to_be("");
 	}
 
 	#[test]
@@ -190,7 +181,6 @@ mod test {
 			.walk_nodes_dfs(&mut tree.nodes)
 			.unwrap();
 		// println!("{:#?}", visitor);
-
 		expect(visitor.nodes.len()).to_be(7);
 		expect(&visitor.nodes[0].position.to_csv()).to_be("0");
 		expect(&visitor.nodes[1].position.to_csv()).to_be("0,0");

@@ -1,62 +1,140 @@
-use crate::prelude::*;
 use sweet_core::prelude::*;
-
-
-
-
 
 #[derive(Default)]
 pub struct SweetRsxVisitor {
-	pub current_pos: TreePosition,
-	pub num_nodes: usize,
+	pub position_visitor: RsxTreePositionVisitor,
+	pub out: RsxTree<String>,
 }
 
-impl RsxVisitor for SweetRsxVisitor {
-	fn visit_node(&mut self, _node: &mut Node<RustParts>) -> ParseResult<()> {
-		self.current_pos.next_sibling();
-		self.num_nodes += 1;
-		Ok(())
-	}
-
-	fn visit_element(
-		&mut self,
-		element: &mut Element<RustParts>,
-	) -> ParseResult<()> {
-		let current_pos = self.current_pos.to_csv();
-		self.current_pos.next_child();
-
-		if !element.contains_blocks() {
-			return Ok(());
-		}
-		element.attributes.push(Attribute::KeyValue {
-			key: "data-sweet-pos".to_string(),
-			value: current_pos,
+impl RsxTreeVisitor<RustParts> for SweetRsxVisitor {
+	fn visit_node(&mut self, node: &mut Node<RustParts>) -> ParseResult<()> {
+		self.position_visitor.visit_node(node)?;
+		self.out.nodes.push(match node {
+			Node::Doctype => Node::Doctype,
+			Node::Comment(val) => Node::Comment(std::mem::take(val)),
+			Node::Element(Element {
+				tag,
+				attributes,
+				children,
+				self_closing,
+			}) => Node::Element(Element {
+				tag: std::mem::take(tag),
+				self_closing: *self_closing,
+				attributes: attributes
+					.into_iter()
+					.map(|attr| self.parse_attribute(attr))
+					.collect::<ParseResult<_>>()?,
+				children: Vec::new(),
+			}),
+			Node::Text(val) => Node::Text(std::mem::take(val)),
+			Node::TextBlock(RustParts::TextBlock(val)) => {
+				Node::TextBlock(std::mem::take(val))
+			}
+			Node::TextBlock(parts) => {
+				return Err(ParseError::hydration("TextBlock", parts));
+			}
+			Node::Component(RustParts::Component(_), children) => {
+				
+				// children are pushed in the visit children step?
+				Node::Component(String::new(), Vec::new())
+			}
+			Node::Component(parts, _) => {
+				return Err(ParseError::hydration("Component", parts));
+			}
 		});
-
-		// we encode text block positions here because we need to see all
-		// children to calculate the positions
-		let encoded_block_positions =
-			encode_text_block_positions(&element.children);
-
-		if !encoded_block_positions.is_empty() {
-			element.attributes.push(Attribute::KeyValue {
-				key: "data-sweet-blocks".to_string(),
-				value: encoded_block_positions,
-			});
-		}
-
-		// if let Some(encoded) = encode_text_block_positions(children) {
-		// 	out.push(' ');
-		// 	out.push_str(&encoded);
-		// }
 		Ok(())
 	}
-
-
-	fn visit_event_attribute(&mut self, _key: &str) -> ParseResult<String> {
-		Ok(format!("_sweet.event({},event)", self.num_nodes - 1))
+	
+	fn leave_node(&mut self, node: &mut Node<RustParts>) -> ParseResult<()> {
+		self.position_visitor.leave_node(node)
+	}
+	fn visit_children(
+		&mut self,
+		children: &mut Vec<Node<RustParts>>,
+	) -> ParseResult<()> {
+		self.position_visitor.visit_children(children)
+	}
+	fn leave_children(
+		&mut self,
+		children: &mut Vec<Node<RustParts>>,
+	) -> ParseResult<()> {
+		let current_children = match self.out.nodes.last_mut() {
+			Some(Node::Element(el)) => &mut el.children,
+			Some(Node::Component(_, children)) => children,
+			other => panic!("no node to add children to: {:?}", other),
+		};
+		current_children.append(children);
+		self.position_visitor.leave_children(children)
 	}
 }
+
+impl SweetRsxVisitor {
+
+	fn map_children(&mut self, children: &Vec<Node<RustParts>>) -> Vec<Node<String>> {
+		children
+			.iter()
+			.map(|child| {
+				self.vis
+			})
+			.collect()
+	}
+
+	fn parse_attribute(
+		&self,
+		attribute: &mut Attribute<RustParts>,
+	) -> ParseResult<Attribute<String>> {
+		let attr = match attribute {
+			Attribute::Key { key } => Attribute::Key {
+				key: std::mem::take(key),
+			},
+			Attribute::KeyValue { key, value } => Attribute::KeyValue {
+				key: std::mem::take(key),
+				value: std::mem::take(value),
+			},
+			Attribute::BlockValue { key, value } => {
+				let is_event = key.starts_with("on");
+				let value = match (is_event, value) {
+					(true, RustParts::Event(_)) => {
+						format!(
+							"_sweet.event({},event)",
+							self.position_visitor.node_index
+						)
+					}
+					(true, parts) => {
+						return Err(ParseError::hydration(
+							"RustParts::Event",
+							parts,
+						));
+					}
+					(false, RustParts::AttributeValue(val)) => {
+						std::mem::take(val)
+					}
+					(false, val) => {
+						return Err(ParseError::hydration(
+							"RustParts::AttributeValue",
+							val,
+						))
+					}
+				};
+				Attribute::BlockValue {
+					key: std::mem::take(key),
+					value,
+				}
+			}
+			Attribute::Block(RustParts::AttributeBlock(block_str)) => {
+				Attribute::Block(std::mem::take(block_str))
+			}
+			Attribute::Block(parts) => {
+				return Err(ParseError::hydration(
+					"RustParts::AttributeBlock",
+					parts,
+				))
+			}
+		};
+		Ok(attr)
+	}
+}
+
 
 ///	Encoding for TextBlock positions, we need the following:
 /// - The child index of the text node

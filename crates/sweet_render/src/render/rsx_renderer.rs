@@ -1,8 +1,5 @@
-use crate::prelude::*;
+use super::SweetRsxVisitor;
 use sweet_core::prelude::*;
-
-
-pub type DefaultRsxRenderer = RsxRenderer<'static, SweetRsxVisitor>;
 
 /// The `SweetRenderPlugin` is the second part to the `RsxParser`.
 ///
@@ -17,156 +14,82 @@ pub type DefaultRsxRenderer = RsxRenderer<'static, SweetRsxVisitor>;
 /// 3. check for double placeholder, if so its beginning of a child block
 /// 4.
 ///
-pub struct RsxRenderer<'a, V> {
-	visitor: &'a mut V,
-}
 
-impl<'a, V: RsxVisitor + Default> RsxRenderer<'a, V> {
+
+pub struct DefaultRsxRenderer;
+
+impl DefaultRsxRenderer {
 	pub fn render(rsx: impl Rsx) -> ParseResult<String> {
-		let mut visitor = V::default();
-		let mut tree = rsx.into_rsx_tree();
-		RsxRenderer::render_with_visitor(&mut visitor, &mut tree)
+		// 1. parser converts to rsx tree
+		let mut rsx_tree = rsx.into_rsx_tree();
+		// 2. sweet visitor converts rusty parts to valid html
+		let mut rsx_visitor = SweetRsxVisitor::default();
+		RsxTreeWalker::new(&mut rsx_visitor)
+			.walk_nodes_dfs(&mut rsx_tree.nodes)?;
+		// 3. render visitor flattens tree into html string
+		let mut render_visitor = RsxRenderVisitor::default();
+		RsxTreeWalker::new(&mut render_visitor)
+			.walk_nodes_dfs(&mut rsx_visitor.out.nodes)?;
+		Ok(render_visitor.html)
 	}
 }
 
-impl<'a, V: RsxVisitor> RsxRenderer<'a, V> {
-	/// Render [RsxTree] into a html string, returning the modified html partial
-	pub fn render_with_visitor(
-		visitor: &'a mut V,
-		tree: &mut RsxTree<RustParts>,
-	) -> ParseResult<String> {
-		let mut renderer = Self { visitor };
-		let out = renderer.render_nodes(&mut tree.nodes)?;
-		Ok(out)
-	}
-
-	/// The render function will parse the parent node
-	/// depth-first traversal of children,
-	/// incrementing id
-	fn render_nodes(
-		&mut self,
-		nodes: &mut Vec<Node<RustParts>>,
-	) -> ParseResult<String> {
-		let mut out = String::new();
-		for node in nodes {
-			out.push_str(&self.render_node(node)?);
-		}
-		Ok(out)
-	}
-
-	fn render_node(
-		&mut self,
-		node: &mut Node<RustParts>,
-	) -> ParseResult<String> {
-		self.visitor.visit_node(node)?;
+#[derive(Default)]
+pub struct RsxRenderVisitor {
+	html: String,
+}
+impl RsxTreeVisitor<String> for RsxRenderVisitor {
+	fn visit_node(&mut self, node: &mut Node<String>) -> ParseResult<()> {
 		match node {
-			Node::Doctype => Ok("<!DOCTYPE html>".to_string()),
-			Node::Comment(val) => Ok(format!("<!-- {} -->", val)),
-			Node::Text(val) => Ok(val.clone()),
+			Node::Doctype => self.html += "<!DOCTYPE html>",
+			Node::Comment(val) => {
+				self.html += "<!-- ";
+				self.html += val;
+				self.html += " -->";
+			}
+			Node::Text(val) => self.html += val,
 			Node::Element(el) => {
-				// give visitor a chance to modify the element
-				self.visitor.visit_element(el)?;
-				let mut str = self.render_element_open(el)?;
-				str.push_str(&self.render_nodes(&mut el.children)?);
-				str.push_str(&self.render_element_close(el)?);
-				Ok(str)
-			}
-			Node::TextBlock(RustParts::TextBlock(val)) => Ok(val.clone()),
-			Node::TextBlock(other) => {
-				Err(ParseError::hydration("RustParts::TextBlock", other))
-			}
-			Node::Component(RustParts::Component(component), children) => {
-				self.render_component(component, children)
-			}
-			Node::Component(other, _) => {
-				Err(ParseError::hydration("RustParts::Component", other))
-			}
-		}
-	}
-	fn render_component(
-		&mut self,
-		component_tree: &mut RsxTree<RustParts>,
-		children: &mut Vec<Node<RustParts>>,
-	) -> ParseResult<String> {
-		// render 'passed in' children first
-		let mut str = self.render_nodes(children)?;
-		let child_out =
-			RsxRenderer::render_with_visitor(self.visitor, component_tree)?;
-		str.push_str(&child_out);
-		Ok(str)
-	}
-
-	fn render_element_open(
-		&mut self,
-		el: &mut Element<RustParts>,
-	) -> ParseResult<String> {
-		let mut out = String::new();
-
-		out.push_str(&format!("<{}", el.tag));
-		for attribute in &mut el.attributes {
-			out.push(' ');
-			out.push_str(&self.render_attribute(attribute)?);
-		}
-		if el.self_closing {
-			out.push_str("/>");
-		} else {
-			out.push('>');
-		}
-		Ok(out)
-	}
-
-
-	fn render_element_close(
-		&mut self,
-		el: &Element<RustParts>,
-	) -> ParseResult<String> {
-		if el.self_closing {
-			Ok("".to_string())
-		} else {
-			Ok(format!("</{}>", el.tag))
-		}
-	}
-
-
-	fn render_attribute(
-		&mut self,
-		attribute: &mut Attribute<RustParts>,
-	) -> ParseResult<String> {
-		match attribute {
-			Attribute::Key { key } => Ok(key.clone()),
-			Attribute::KeyValue { key, value } => {
-				// string literals are already quoted
-				Ok(format!("{}=\"{}\"", key, value))
-			}
-			Attribute::BlockValue { key, value } => {
-				let is_event = key.starts_with("on");
-				match (is_event, value) {
-					(true, RustParts::Event(_)) => {
-						let value = self.visitor.visit_event_attribute(key)?;
-						Ok(format!("{}=\"{}\"", key, value))
-					}
-					(true, val) => {
-						Err(ParseError::hydration("RustParts::Event", val))
-					}
-					(false, RustParts::AttributeValue(val)) => {
-						Ok(format!("{}=\"{}\"", key, val))
-					}
-					(false, val) => Err(ParseError::hydration(
-						"RustParts::AttributeValue",
-						val,
-					)),
+				self.html += "<";
+				self.html += &el.tag;
+				for attribute in &mut el.attributes {
+					self.html.push(' ');
+					match attribute {
+						Attribute::Key { key } => self.html += key,
+						Attribute::KeyValue { key, value } => {
+							self.html += &format!("{}=\"{}\"", key, value)
+						}
+						Attribute::BlockValue { key, value } => {
+							self.html += &format!("{}=\"{}\"", key, value)
+						}
+						Attribute::Block(block) => self.html += block,
+					};
+				}
+				if el.self_closing {
+					self.html.push_str("/>");
+				} else {
+					self.html.push('>');
 				}
 			}
-			Attribute::Block(RustParts::AttributeBlock(block_str)) => {
-				Ok(block_str.to_string())
+			Node::TextBlock(val) => self.html += val,
+			Node::Component(_, _) => {
+				// components are not html
 			}
-			Attribute::Block(other) => {
-				Err(ParseError::hydration("RustParts::AttributeBlock", other))
+		};
+		Ok(())
+	}
+	fn leave_node(&mut self, node: &mut Node<String>) -> ParseResult<()> {
+		match node {
+			Node::Element(element) => {
+				if !element.self_closing {
+					self.html += &format!("</{}>", element.tag);
+				} else {
+				}
 			}
+			_ => {}
 		}
+		Ok(())
 	}
 }
-
 
 #[cfg(test)]
 mod test {
