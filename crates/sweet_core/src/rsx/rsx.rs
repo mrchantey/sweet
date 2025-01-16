@@ -12,6 +12,8 @@ impl Rsx for () {
 	fn into_rsx_tree(self) -> RsxTree<RustParts> { Default::default() }
 }
 
+
+
 pub trait Component {
 	// type Props;
 	// fn from_props(props: Self::Props) -> Self;

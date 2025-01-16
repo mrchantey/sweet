@@ -3,101 +3,101 @@ use sweet_core::prelude::*;
 #[derive(Default)]
 pub struct SweetRsxVisitor {
 	pub position_visitor: RsxTreePositionVisitor,
-	pub out: RsxTree<String>,
 }
 
-impl RsxTreeVisitor<RustParts> for SweetRsxVisitor {
-	fn visit_node(&mut self, node: &mut Node<RustParts>) -> ParseResult<()> {
-		self.position_visitor.visit_node(node)?;
-		self.out.nodes.push(match node {
+impl RsxTreeMapper<RustParts, String> for SweetRsxVisitor {
+	fn map_nodes(
+		&mut self,
+		mut nodes: Vec<Node<RustParts>>,
+	) -> ParseResult<Vec<Node<String>>> {
+		self.position_visitor.visit_children(&mut nodes)?;
+		let mut nodes = nodes
+			.into_iter()
+			.map(|node| self.map_node(node))
+			.collect::<ParseResult<_>>()?;
+		self.position_visitor.leave_children(&mut nodes)?;
+		Ok(nodes)
+	}
+
+
+	fn map_node(
+		&mut self,
+		mut node: Node<RustParts>,
+	) -> ParseResult<Node<String>> {
+		self.position_visitor.visit_node(&mut node)?;
+		let mut node = match node {
 			Node::Doctype => Node::Doctype,
-			Node::Comment(val) => Node::Comment(std::mem::take(val)),
-			Node::Element(Element {
-				tag,
-				attributes,
-				children,
-				self_closing,
-			}) => Node::Element(Element {
-				tag: std::mem::take(tag),
-				self_closing: *self_closing,
-				attributes: attributes
-					.into_iter()
-					.map(|attr| self.parse_attribute(attr))
-					.collect::<ParseResult<_>>()?,
-				children: Vec::new(),
-			}),
-			Node::Text(val) => Node::Text(std::mem::take(val)),
-			Node::TextBlock(RustParts::TextBlock(val)) => {
-				Node::TextBlock(std::mem::take(val))
-			}
+			Node::Comment(val) => Node::Comment(val),
+			Node::Element(el) => Node::Element(self.parse_element(el)?),
+			Node::Text(val) => Node::Text(val),
+			Node::TextBlock(RustParts::TextBlock(val)) => Node::TextBlock(val),
 			Node::TextBlock(parts) => {
 				return Err(ParseError::hydration("TextBlock", parts));
 			}
-			Node::Component(RustParts::Component(_), children) => {
-				
-				// children are pushed in the visit children step?
-				Node::Component(String::new(), Vec::new())
+			Node::Component(RustParts::Component(component), children) => {
+				// components arent html, return empty string
+				let mut component_children = self.map_nodes(component.nodes)?;
+				component_children.append(&mut self.map_nodes(children)?);
+				Node::Component(String::new(), component_children)
 			}
 			Node::Component(parts, _) => {
 				return Err(ParseError::hydration("Component", parts));
 			}
-		});
-		Ok(())
-	}
-	
-	fn leave_node(&mut self, node: &mut Node<RustParts>) -> ParseResult<()> {
-		self.position_visitor.leave_node(node)
-	}
-	fn visit_children(
-		&mut self,
-		children: &mut Vec<Node<RustParts>>,
-	) -> ParseResult<()> {
-		self.position_visitor.visit_children(children)
-	}
-	fn leave_children(
-		&mut self,
-		children: &mut Vec<Node<RustParts>>,
-	) -> ParseResult<()> {
-		let current_children = match self.out.nodes.last_mut() {
-			Some(Node::Element(el)) => &mut el.children,
-			Some(Node::Component(_, children)) => children,
-			other => panic!("no node to add children to: {:?}", other),
 		};
-		current_children.append(children);
-		self.position_visitor.leave_children(children)
+		self.position_visitor.leave_node(&mut node)?;
+		Ok(node)
 	}
 }
 
 impl SweetRsxVisitor {
+	fn parse_element(
+		&mut self,
+		mut el: Element<RustParts>,
+	) -> ParseResult<Element<String>> {
+		if el.contains_rust() {
+			el.attributes.push(Attribute::KeyValue {
+				key: "data-sweet-id".to_string(),
+				value: (self.position_visitor.node_count - 1).to_string(),
+			});
+		}
+		if el.contains_text_blocks() {
+			el.attributes.push(Attribute::KeyValue {
+				key: "data-sweet-blocks".to_string(),
+				value: encode_text_block_positions(&el.children),
+			});
+		}
+		let children = self.map_nodes(el.children)?;
+		let attributes = el
+			.attributes
+			.into_iter()
+			.map(|attr| self.parse_attribute(attr))
+			.collect::<ParseResult<Vec<_>>>()?;
 
-	fn map_children(&mut self, children: &Vec<Node<RustParts>>) -> Vec<Node<String>> {
-		children
-			.iter()
-			.map(|child| {
-				self.vis
-			})
-			.collect()
+		Ok(Element {
+			tag: el.tag,
+			self_closing: el.self_closing,
+			attributes,
+			children,
+		})
 	}
+
 
 	fn parse_attribute(
 		&self,
-		attribute: &mut Attribute<RustParts>,
+		attribute: Attribute<RustParts>,
 	) -> ParseResult<Attribute<String>> {
 		let attr = match attribute {
-			Attribute::Key { key } => Attribute::Key {
-				key: std::mem::take(key),
-			},
-			Attribute::KeyValue { key, value } => Attribute::KeyValue {
-				key: std::mem::take(key),
-				value: std::mem::take(value),
-			},
+			Attribute::Key { key } => Attribute::Key { key },
+			Attribute::KeyValue { key, value } => {
+				Attribute::KeyValue { key, value }
+			}
 			Attribute::BlockValue { key, value } => {
 				let is_event = key.starts_with("on");
 				let value = match (is_event, value) {
 					(true, RustParts::Event(_)) => {
 						format!(
 							"_sweet.event({},event)",
-							self.position_visitor.node_index
+							self.position_visitor.node_count - 1
 						)
 					}
 					(true, parts) => {
@@ -106,9 +106,7 @@ impl SweetRsxVisitor {
 							parts,
 						));
 					}
-					(false, RustParts::AttributeValue(val)) => {
-						std::mem::take(val)
-					}
+					(false, RustParts::AttributeValue(val)) => val,
 					(false, val) => {
 						return Err(ParseError::hydration(
 							"RustParts::AttributeValue",
@@ -116,13 +114,10 @@ impl SweetRsxVisitor {
 						))
 					}
 				};
-				Attribute::BlockValue {
-					key: std::mem::take(key),
-					value,
-				}
+				Attribute::BlockValue { key, value }
 			}
 			Attribute::Block(RustParts::AttributeBlock(block_str)) => {
-				Attribute::Block(std::mem::take(block_str))
+				Attribute::Block(block_str)
 			}
 			Attribute::Block(parts) => {
 				return Err(ParseError::hydration(

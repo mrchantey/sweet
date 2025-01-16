@@ -1,39 +1,42 @@
 use crate::prelude::*;
-use std::marker::PhantomData;
-
-
-pub struct RsxTreeWalker<'a, R, V> {
-	pub visitor: &'a mut V,
-	_r: PhantomData<R>,
-}
-
-impl<'a, R, V: RsxTreeVisitor<R>> RsxTreeWalker<'a, R, V> {
-	pub fn new(visitor: &'a mut V) -> Self {
-		Self {
-			visitor,
-			_r: PhantomData,
-		}
-	}
-
-	pub fn walk_nodes_dfs(
-		&mut self,
-		nodes: &mut Vec<Node<R>>,
-	) -> ParseResult<()> {
-		self.visitor.visit_children(nodes)?;
-		for node in nodes.iter_mut() {
-			self.visitor.visit_node(node)?;
-			if let Some(children) = node.children_mut() {
-				self.walk_nodes_dfs(children)?;
-			}
-			self.visitor.leave_node(node)?;
-		}
-		self.visitor.leave_children(nodes)?;
-		Ok(())
-	}
-}
 
 #[allow(unused_variables)]
 pub trait RsxTreeVisitor<R> {
+	fn walk_nodes_dfs(&mut self, nodes: &Vec<Node<R>>) -> ParseResult<()> {
+		self.visit_children(nodes)?;
+		for node in nodes.iter() {
+			self.visit_node(node)?;
+			if let Some(children) = node.children() {
+				self.walk_nodes_dfs(children)?;
+			}
+			self.leave_node(node)?;
+		}
+		self.leave_children(nodes)?;
+		Ok(())
+	}
+	fn visit_node(&mut self, node: &Node<R>) -> ParseResult<()> { Ok(()) }
+	fn leave_node(&mut self, node: &Node<R>) -> ParseResult<()> { Ok(()) }
+	fn visit_children(&mut self, children: &Vec<Node<R>>) -> ParseResult<()> {
+		Ok(())
+	}
+	fn leave_children(&mut self, children: &Vec<Node<R>>) -> ParseResult<()> {
+		Ok(())
+	}
+}
+#[allow(unused_variables)]
+pub trait RsxTreeVisitorMut<R> {
+	fn walk_nodes_dfs(&mut self, nodes: &mut Vec<Node<R>>) -> ParseResult<()> {
+		self.visit_children(nodes)?;
+		for node in nodes.iter_mut() {
+			self.visit_node(node)?;
+			if let Some(children) = node.children_mut() {
+				self.walk_nodes_dfs(children)?;
+			}
+			self.leave_node(node)?;
+		}
+		self.leave_children(nodes)?;
+		Ok(())
+	}
 	fn visit_node(&mut self, node: &mut Node<R>) -> ParseResult<()> { Ok(()) }
 	fn leave_node(&mut self, node: &mut Node<R>) -> ParseResult<()> { Ok(()) }
 	fn visit_children(
@@ -50,40 +53,43 @@ pub trait RsxTreeVisitor<R> {
 	}
 }
 
+
+
+
 /// Track the position of items in a tree,
 /// this vistors methods should be 'outer' to any implementors
-/// 
-/// 
-/// 
+///
+///
+///
 #[derive(Debug, Default, Clone, PartialEq, Hash)]
 pub struct RsxTreePositionVisitor {
 	pub current_pos: TreePosition,
-	/// total accumulated index,
-	/// tells how many nodes were visited
-	pub node_index: usize,
+	/// number of rsx nodes visited, this is more than number of html nodes
+	/// because of components and sibling text and textblock nodes
+	pub node_count: usize,
+}
+
+impl RsxTreePositionVisitor {
+	/// # Panics
+	/// If no nodes have been visited
+	pub fn current_node_id(&self) -> usize { self.node_count - 1 }
 }
 
 impl<R> RsxTreeVisitor<R> for RsxTreePositionVisitor {
-	fn visit_node(&mut self, _node: &mut Node<R>) -> ParseResult<()> {
-		self.node_index += 1;
+	fn visit_node(&mut self, _node: &Node<R>) -> ParseResult<()> {
+		self.node_count += 1;
 		Ok(())
 	}
-	fn leave_node(&mut self, _node: &mut Node<R>) -> ParseResult<()> {
+	fn leave_node(&mut self, _node: &Node<R>) -> ParseResult<()> {
 		self.current_pos.next_sibling();
-		self.node_index -= 1;
+		self.node_count -= 1;
 		Ok(())
 	}
-	fn visit_children(
-		&mut self,
-		_children: &mut Vec<Node<R>>,
-	) -> ParseResult<()> {
+	fn visit_children(&mut self, _children: &Vec<Node<R>>) -> ParseResult<()> {
 		self.current_pos.push_child();
 		Ok(())
 	}
-	fn leave_children(
-		&mut self,
-		_children: &mut Vec<Node<R>>,
-	) -> ParseResult<()> {
+	fn leave_children(&mut self, _children: &Vec<Node<R>>) -> ParseResult<()> {
 		self.current_pos.pop_child();
 		Ok(())
 	}
@@ -106,7 +112,7 @@ pub struct RsxTreeMeta {
 
 impl<R> RsxTreeVisitor<R> for RsxTreeMetaVisitor {
 	/// called before visiting children
-	fn visit_node(&mut self, node: &mut Node<R>) -> ParseResult<()> {
+	fn visit_node(&mut self, node: &Node<R>) -> ParseResult<()> {
 		self.position_visitor.visit_node(node)?;
 		self.nodes.push(RsxTreeMeta {
 			type_name: node.as_ref().to_string(),
@@ -119,24 +125,18 @@ impl<R> RsxTreeVisitor<R> for RsxTreeMetaVisitor {
 				Node::Component(_, _) => "component".to_string(),
 			},
 			position: self.position_visitor.current_pos.clone(),
-			node_index: self.position_visitor.node_index,
+			node_index: self.position_visitor.node_count,
 		});
 		Ok(())
 	}
 	/// called after visiting children
-	fn leave_node(&mut self, _node: &mut Node<R>) -> ParseResult<()> {
+	fn leave_node(&mut self, _node: &Node<R>) -> ParseResult<()> {
 		self.position_visitor.leave_node(_node)
 	}
-	fn visit_children(
-		&mut self,
-		children: &mut Vec<Node<R>>,
-	) -> ParseResult<()> {
+	fn visit_children(&mut self, children: &Vec<Node<R>>) -> ParseResult<()> {
 		self.position_visitor.visit_children(children)
 	}
-	fn leave_children(
-		&mut self,
-		children: &mut Vec<Node<R>>,
-	) -> ParseResult<()> {
+	fn leave_children(&mut self, children: &Vec<Node<R>>) -> ParseResult<()> {
 		self.position_visitor.leave_children(children)
 	}
 }
@@ -159,10 +159,8 @@ mod test {
 			<br/>
 		};
 		let mut visitor = RsxTreePositionVisitor::default();
-		RsxTreeWalker::new(&mut visitor)
-			.walk_nodes_dfs(&mut tree.nodes)
-			.unwrap();
-		expect(visitor.node_index).to_be(0);
+		visitor.walk_nodes_dfs(&mut tree.nodes).unwrap();
+		expect(visitor.node_count).to_be(0);
 		expect(&visitor.current_pos.to_csv()).to_be("");
 	}
 
@@ -177,9 +175,7 @@ mod test {
 			<br/>
 		};
 		let mut visitor = RsxTreeMetaVisitor::default();
-		RsxTreeWalker::new(&mut visitor)
-			.walk_nodes_dfs(&mut tree.nodes)
-			.unwrap();
+		visitor.walk_nodes_dfs(&mut tree.nodes).unwrap();
 		// println!("{:#?}", visitor);
 		expect(visitor.nodes.len()).to_be(7);
 		expect(&visitor.nodes[0].position.to_csv()).to_be("0");
@@ -189,49 +185,5 @@ mod test {
 		expect(&visitor.nodes[4].position.to_csv()).to_be("0,2");
 		expect(&visitor.nodes[5].position.to_csv()).to_be("0,2,0");
 		expect(&visitor.nodes[6].position.to_csv()).to_be("1");
-		// expect(&visitor.nodes[1].position)
-		// 	.to_be(&TreePosition::from_vec(vec![0, 0]));
-
-		// let expected = RsxTreeMetaVisitor {
-		// 	position_visitor: RsxTreePositionVisitor {
-		// 		current_pos: TreePosition::from_vec(vec![1, 0]),
-		// 		node_index: 5,
-		// 	},
-		// 	nodes: vec![RsxTreeMeta {
-		// 		type_name: "Element".to_string(),
-		// 		position: TreePosition::from_vec(vec![0]),
-		// 		node_index: 0,
-		// 		children: vec![
-		// 			RsxTreeMeta {
-		// 				type_name: "Element".to_string(),
-		// 				position: TreePosition::from_vec(vec![0, 1]),
-		// 				node_index: 1,
-		// 				children: vec![RsxTreeMeta {
-		// 					type_name: "Text".to_string(),
-		// 					position: TreePosition::from_vec(vec![0, 2]),
-		// 					node_index: 2,
-		// 					children: vec![],
-		// 				}],
-		// 			},
-		// 			RsxTreeMeta {
-		// 				type_name: "Element".to_string(),
-		// 				position: TreePosition::from_vec(vec![2, 0]),
-		// 				node_index: 3,
-		// 				children: vec![RsxTreeMeta {
-		// 					type_name: "Text".to_string(),
-		// 					position: TreePosition::from_vec(vec![2, 1]),
-		// 					node_index: 4,
-		// 					children: vec![],
-		// 				}],
-		// 			},
-		// 		],
-		// 	}],
-		// };
-
-		// expect(&visitor).to_be(&expected);
-
-		// let expected = RsxTreeMeta::new(
-
-		// let mut visitor = TestVisitor::default();
 	}
 }

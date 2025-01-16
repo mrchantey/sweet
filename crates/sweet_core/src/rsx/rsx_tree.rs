@@ -87,6 +87,7 @@ impl<R> Node<R> {
 			}
 		}
 	}
+
 	pub fn children(&self) -> Option<&Vec<Node<R>>> {
 		match self {
 			Node::Element(e) => Some(&e.children),
@@ -131,13 +132,16 @@ impl<R> Element<R> {
 		}
 	}
 
-
-	/// Whether any children or attributes are blocks,
-	/// used to determine whether the node requires an id
-	pub fn contains_blocks(&self) -> bool {
+	pub fn contains_text_blocks(&self) -> bool {
 		self.children
 			.iter()
 			.any(|c| matches!(c, Node::TextBlock(_)))
+	}
+
+	/// Whether any children or attributes are blocks,
+	/// used to determine whether the node requires an id
+	pub fn contains_rust(&self) -> bool {
+		self.contains_text_blocks()
 			|| self.attributes.iter().any(|a| {
 				matches!(a, Attribute::Block(_) | Attribute::BlockValue { .. })
 			})

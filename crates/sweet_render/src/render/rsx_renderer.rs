@@ -21,15 +21,13 @@ pub struct DefaultRsxRenderer;
 impl DefaultRsxRenderer {
 	pub fn render(rsx: impl Rsx) -> ParseResult<String> {
 		// 1. parser converts to rsx tree
-		let mut rsx_tree = rsx.into_rsx_tree();
+		let rsx_tree = rsx.into_rsx_tree();
 		// 2. sweet visitor converts rusty parts to valid html
-		let mut rsx_visitor = SweetRsxVisitor::default();
-		RsxTreeWalker::new(&mut rsx_visitor)
-			.walk_nodes_dfs(&mut rsx_tree.nodes)?;
+		let mut html_nodes =
+			SweetRsxVisitor::default().map_nodes(rsx_tree.nodes)?;
 		// 3. render visitor flattens tree into html string
 		let mut render_visitor = RsxRenderVisitor::default();
-		RsxTreeWalker::new(&mut render_visitor)
-			.walk_nodes_dfs(&mut rsx_visitor.out.nodes)?;
+		render_visitor.walk_nodes_dfs(&mut html_nodes)?;
 		Ok(render_visitor.html)
 	}
 }
@@ -39,7 +37,7 @@ pub struct RsxRenderVisitor {
 	html: String,
 }
 impl RsxTreeVisitor<String> for RsxRenderVisitor {
-	fn visit_node(&mut self, node: &mut Node<String>) -> ParseResult<()> {
+	fn visit_node(&mut self, node: &Node<String>) -> ParseResult<()> {
 		match node {
 			Node::Doctype => self.html += "<!DOCTYPE html>",
 			Node::Comment(val) => {
@@ -51,7 +49,7 @@ impl RsxTreeVisitor<String> for RsxRenderVisitor {
 			Node::Element(el) => {
 				self.html += "<";
 				self.html += &el.tag;
-				for attribute in &mut el.attributes {
+				for attribute in &el.attributes {
 					self.html.push(' ');
 					match attribute {
 						Attribute::Key { key } => self.html += key,
@@ -77,7 +75,7 @@ impl RsxTreeVisitor<String> for RsxRenderVisitor {
 		};
 		Ok(())
 	}
-	fn leave_node(&mut self, node: &mut Node<String>) -> ParseResult<()> {
+	fn leave_node(&mut self, node: &Node<String>) -> ParseResult<()> {
 		match node {
 			Node::Element(element) => {
 				if !element.self_closing {
@@ -93,9 +91,11 @@ impl RsxTreeVisitor<String> for RsxRenderVisitor {
 
 #[cfg(test)]
 mod test {
-	// use super::SweetRenderPlugin;
-	// use crate::render::RenderPlugin;
-	use sweet::prelude::*;
+	use crate::prelude::*;
+	use sweet_core as sweet;
+	use sweet_core::prelude::*;
+	use sweet_rsx_macros::rsx;
+	use sweet_test::prelude::*;
 
 	#[test]
 	fn doctype() {
@@ -157,8 +157,8 @@ mod test {
 		struct Child {
 			value: u32,
 		}
-		impl Rsx for Child {
-			fn into_rsx_tree(self) -> RsxTree<RustParts> {
+		impl Component for Child {
+			fn render(self) -> impl Rsx {
 				rsx! {
 					<div>{self.value}</div>
 				}
@@ -167,7 +167,7 @@ mod test {
 		let out =
 			DefaultRsxRenderer::render(rsx! { <Child value=7/> }).unwrap();
 		expect(out).to_be(
-			"<div data-sweet-id=\"0\" data-sweet-blocks=\"0,0\">7</div>",
+			"<div data-sweet-id=\"1\" data-sweet-blocks=\"0,0\">7</div>",
 		);
 	}
 

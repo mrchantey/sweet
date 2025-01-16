@@ -7,9 +7,12 @@ pub use self::rsx::*;
 pub mod rsx_tree;
 #[allow(unused_imports)]
 pub use self::rsx_tree::*;
-pub mod rsx_tree_walker;
+pub mod rsx_tree_mapper;
 #[allow(unused_imports)]
-pub use self::rsx_tree_walker::*;
+pub use self::rsx_tree_mapper::*;
+pub mod rsx_tree_visitor;
+#[allow(unused_imports)]
+pub use self::rsx_tree_visitor::*;
 pub mod rust_parts;
 #[allow(unused_imports)]
 pub use self::rust_parts::*;
