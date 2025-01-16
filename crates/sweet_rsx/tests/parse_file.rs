@@ -15,7 +15,8 @@ mod test {
 		let (file, out) = RsxParser::default().parse_file(file).unwrap();
 		let file_str = prettyplease::unparse(&file);
 
-		let path = FsExt::workspace_root().join("examples/counter_parsed.rs");
+		let path =
+			FsExt::workspace_root().join("target/rendered/counter_parsed.rs");
 		ReadFile::write(path, &file_str).unwrap();
 
 		expect(out.errors.len()).to_be(0);

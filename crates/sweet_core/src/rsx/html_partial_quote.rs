@@ -4,11 +4,11 @@ use proc_macro2::TokenStream;
 use quote::quote;
 use quote::ToTokens;
 
-impl ToTokens for HtmlPartial {
+impl<R: ToTokens> ToTokens for RsxTree<R> {
 	fn to_tokens(&self, tokens: &mut TokenStream) {
 		let nodes = &self.nodes;
 		quote! {
-			HtmlPartial {
+			RsxTree {
 				nodes: vec![#(#nodes),*],
 			}
 		}
@@ -16,7 +16,7 @@ impl ToTokens for HtmlPartial {
 	}
 }
 
-impl ToTokens for Element {
+impl<R: ToTokens> ToTokens for Element<R> {
 	fn to_tokens(&self, tokens: &mut TokenStream) {
 		let tag = &self.tag;
 		let attributes = &self.attributes;
@@ -34,31 +34,33 @@ impl ToTokens for Element {
 	}
 }
 
-impl ToTokens for Node {
+impl<R: ToTokens> ToTokens for Node<R> {
 	fn to_tokens(&self, tokens: &mut TokenStream) {
 		match self {
 			Node::Doctype => quote!(Node::Doctype),
 			Node::Comment(s) => quote!(Node::Comment(#s.to_string())),
 			Node::Element(e) => quote!(Node::Element(#e)),
 			Node::Text(s) => quote!(Node::Text(#s.to_string())),
-			Node::TextBlock => quote!(Node::TextBlock),
-			Node::Component(c) => quote!(Node::Component(Vec::from([#(#c,)*]))),
+			Node::TextBlock(r) => quote!(Node::TextBlock(#r)),
+			Node::Component(r, c) => {
+				quote!(Node::Component(#r,Vec::from([#(#c,)*])))
+			}
 		}
 		.to_tokens(tokens);
 	}
 }
 
-impl ToTokens for Attribute {
+impl<R: ToTokens> ToTokens for Attribute<R> {
 	fn to_tokens(&self, tokens: &mut TokenStream) {
 		match self {
             Attribute::Key { key } => quote!(Attribute::Key { key: #key.to_string() }),
             Attribute::KeyValue { key, value } => {
                 quote!(Attribute::KeyValue { key: #key.to_string(), value: #value.to_string() })
             }
-            Attribute::BlockValue { key } => {
-                quote!(Attribute::BlockValue { key: #key.to_string() })
+            Attribute::BlockValue { key,value } => {
+                quote!(Attribute::BlockValue { key: #key.to_string(),value: #value })
             }
-            Attribute::Block => quote!(Attribute::Block),
+            Attribute::Block(r) => quote!(Attribute::Block(#r)),
         }.to_tokens(tokens);
 	}
 }

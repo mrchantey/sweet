@@ -22,7 +22,10 @@ impl RsxVisitor for SweetRsxVisitor {
 		Ok(())
 	}
 
-	fn visit_element(&mut self, element: &mut Element) -> ParseResult<()> {
+	fn visit_element(
+		&mut self,
+		element: &mut Element<RustParts>,
+	) -> ParseResult<()> {
 		if !element.contains_blocks() {
 			return Ok(());
 		}
@@ -52,24 +55,8 @@ impl RsxVisitor for SweetRsxVisitor {
 	}
 
 
-	fn visit_event_attribute(
-		&mut self,
-		_key: &mut String,
-		value: &mut String,
-	) -> ParseResult<()> {
-		*value = format!("_sweet.event({},event)", self.num_dyn_elements - 1);
-		Ok(())
-	}
-
-	fn visit_final(&mut self, _out: &mut RsxRendererOut) -> ParseResult<()> {
-		// if self.num_rust_blocks != out.num_rust_parts {
-		// 	return Err(ParseError::Hydration(format!(
-		// 		"Visitor found {} rust parts, renderer found {}",
-		// 		self.num_rust_blocks, out.num_rust_parts
-		// 	)));
-		// }
-
-		Ok(())
+	fn visit_event_attribute(&mut self, _key: &str) -> ParseResult<String> {
+		Ok(format!("_sweet.event({},event)", self.num_dyn_elements - 1))
 	}
 }
 
@@ -87,7 +74,7 @@ impl RsxVisitor for SweetRsxVisitor {
 /// 0-4,2.2-5,1
 ///
 ///
-fn encode_text_block_positions(children: &Vec<Node>) -> String {
+fn encode_text_block_positions(children: &Vec<Node<RustParts>>) -> String {
 	let mut encoded = String::new();
 	let mut child_index = 0;
 	let mut text_index = 0;
@@ -96,10 +83,10 @@ fn encode_text_block_positions(children: &Vec<Node>) -> String {
 			Node::Text(t) => {
 				text_index += t.len();
 			}
-			Node::TextBlock => {
+			Node::TextBlock(_) => {
 				encoded.push_str(&format!("{},{},", child_index, text_index));
 			}
-			Node::Component(_) => {
+			Node::Component(_, _) => {
 				todo!("what if component returns text")
 			}
 			_ => {

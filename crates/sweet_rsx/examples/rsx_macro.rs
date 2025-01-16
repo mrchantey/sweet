@@ -1,13 +1,11 @@
-use sweet::prelude::rsx;
-use sweet::prelude::Rsx;
-use sweet::prelude::RsxParts;
+use sweet::prelude::*;
 
 /// its my component
 struct MyComponent {
 	value: u32,
 }
-impl Rsx for MyComponent {
-	fn into_rsx_parts(self) -> RsxParts {
+impl Component for MyComponent {
+	fn render(self) -> impl Rsx {
 		rsx! {
 			<div>{self.value}</div>
 		}
@@ -25,6 +23,6 @@ fn main() {
 		</div>
 	};
 
-	let str = _foo.html.load().unwrap().to_string_placeholder();
+	let str = _foo.to_string_placeholder();
 	println!("{}", str);
 }

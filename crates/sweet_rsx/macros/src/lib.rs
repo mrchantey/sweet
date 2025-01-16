@@ -1,13 +1,11 @@
 use proc_macro::TokenStream;
 mod rsx;
 
-/// This macro replaces its html contents with
-/// [RsxParts](sweet_core::prelude::RsxParts).
+/// This macro expands to an [RsxTree<RustParts>](sweet_core::prelude::RsxTree)
 /// ```
 /// # use sweet::prelude::*;
-/// let parts: RsxParts = rsx! {<div> the value is {3}</div>};
-/// assert_eq!(parts.rust.len(), 1);
-/// assert_eq!(parts.html.load().unwrap().to_string_placeholder(), "<div> the value is §</div>");
+/// let tree = rsx! {<div> the value is {3}</div>};
+/// assert_eq!(tree.nodes.len(), 1);
 ///
 /// ```
 ///

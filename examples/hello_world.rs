@@ -21,7 +21,7 @@ fn renderer() -> ParseResult<()> {
 	let out = DefaultRsxRenderer::render(HelloWorld)?;
 	forky::prelude::ReadFile::write(
 		"target/hello_world/hello_world.html",
-		&out.html_str,
+		&out,
 	)?;
 
 	Ok(())

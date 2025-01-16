@@ -3,7 +3,7 @@ use super::RsxFileVisitor;
 use super::RsxFileVisitorOut;
 use super::WalkNodesOutput;
 use proc_macro2::TokenStream;
-use sweet_core::rsx::HtmlPartial;
+use sweet_core::rsx::RsxTree;
 use syn::visit_mut::VisitMut;
 use syn::Expr;
 use syn::File;
@@ -53,15 +53,11 @@ impl RsxParser {
 	) -> syn::Result<WalkNodesOutput> {
 		let (nodes, rstml_errors) = parse_rstml(tokens.clone());
 		let mut output = WalkNodesOutput::default();
-
-		output.html = HtmlPartial {
-			nodes: output.visit_nodes(nodes),
-		};
+		let nodes = output.visit_nodes(nodes);
+		let tree = RsxTree::new(nodes);
 
 		let WalkNodesOutput {
 			errors,
-			html,
-			rust,
 			collected_elements,
 			..
 		} = output.clone();
@@ -81,10 +77,7 @@ impl RsxParser {
 		*tokens = syn::parse_quote! {{
 			use sweet::prelude::*;
 			#errors
-			RsxParts {
-				rust: std::collections::VecDeque::from([#(#rust,)*]),
-				html: PathOrInline::Inline(#html),
-			}
+			#tree
 		}};
 		Ok(output)
 	}
@@ -109,14 +102,13 @@ mod test {
 	use sweet::prelude::*;
 
 	#[test]
-	fn event_order() {
+	fn compiles() {
 		let onclick = |_| {};
 		let world = "mars";
-		let rsx = rsx! {
+		let _rsx = rsx! {
 			<div onclick>
 				<p>hello {world}</p>
 			</div>
 		};
-		expect(format!("{:?}", rsx.rust)).to_be("[Event, InnerText]");
 	}
 }

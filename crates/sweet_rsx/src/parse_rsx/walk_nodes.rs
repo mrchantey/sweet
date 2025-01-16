@@ -10,16 +10,11 @@ use rstml::node::NodeElement;
 use rstml::node::NodeFragment;
 use rstml::node::NodeName;
 use std::collections::HashSet;
-use sweet_core::rsx::HtmlPartial;
 use syn::spanned::Spanned;
 use syn::Ident;
 
 #[derive(Debug, Clone)]
 pub struct WalkNodesOutput {
-	/// The actual output html
-	pub html: HtmlPartial,
-	/// The rust identifiers and blocks
-	pub rust: Vec<TokenStream>,
 	// Additional error and warning messages.
 	pub errors: Vec<TokenStream>,
 	// Collect elements to provide semantic highlight based on element tag.
@@ -33,8 +28,6 @@ pub struct WalkNodesOutput {
 impl Default for WalkNodesOutput {
 	fn default() -> Self {
 		Self {
-			html: HtmlPartial::default(),
-			rust: Vec::new(),
 			errors: Vec::new(),
 			collected_elements: Vec::new(),
 			self_closing_elements: self_closing_elements(),
@@ -43,15 +36,15 @@ impl Default for WalkNodesOutput {
 }
 
 
-type HtmlNode = sweet_core::rsx::Node;
-type HtmlElement = sweet_core::rsx::Element;
-type HtmlAttribute = sweet_core::rsx::Attribute;
+type SweetNode = sweet_core::rsx::Node<TokenStream>;
+type SweetElement = sweet_core::rsx::Element<TokenStream>;
+type SweetAttribute = sweet_core::rsx::Attribute<TokenStream>;
 
 impl WalkNodesOutput {
 	#[must_use]
 	/// the number of actual html nodes will likely be different
 	/// due to fragments, blocks etc
-	pub fn visit_nodes(&mut self, nodes: Vec<Node>) -> Vec<HtmlNode> {
+	pub fn visit_nodes(&mut self, nodes: Vec<Node>) -> Vec<SweetNode> {
 		nodes
 			.into_iter()
 			.flat_map(|node| self.visit_node(node))
@@ -61,25 +54,25 @@ impl WalkNodesOutput {
 	/// visit node does not add html to self, giving caller
 	/// a decision. Vec is returned to handle fragments
 	#[must_use]
-	fn visit_node(&mut self, node: Node) -> Vec<HtmlNode> {
+	fn visit_node(&mut self, node: Node) -> Vec<SweetNode> {
 		match node {
-			Node::Doctype(_) => vec![HtmlNode::Doctype],
+			Node::Doctype(_) => vec![SweetNode::Doctype],
 			Node::Text(text) => {
-				vec![HtmlNode::Text(text.value_string())]
+				vec![SweetNode::Text(text.value_string())]
 			}
 			Node::RawText(raw) => {
-				vec![HtmlNode::Text(raw.to_string_best())]
+				vec![SweetNode::Text(raw.to_string_best())]
 			}
 			Node::Fragment(NodeFragment { children, .. }) => {
 				self.visit_nodes(children)
 			}
 			Node::Comment(comment) => {
-				vec![HtmlNode::Comment(comment.value.value())]
+				vec![SweetNode::Comment(comment.value.value())]
 			}
 			Node::Block(block) => {
-				self.rust
-					.push(quote! {RustParts::InnerText(#block.to_string())});
-				vec![HtmlNode::TextBlock]
+				vec![SweetNode::TextBlock(
+					quote! {RustParts::TextBlock(#block.to_string())},
+				)]
 			}
 			Node::Element(el) => {
 				self.check_self_closing_children(&el);
@@ -118,15 +111,16 @@ impl WalkNodesOutput {
 						);
 					let ident = syn::Ident::new(&tag, tag.span());
 
-					self.rust.push(quote! { RustParts::Component(
+					let rust = quote! { RustParts::Component(
 							#ident{
 								#(#props,)*
 							}
-							.into_rsx_parts()
+							.into_rsx_tree()
 						)
-					});
+					};
+
 					let children = self.visit_nodes(children);
-					vec![HtmlNode::Component(children)]
+					vec![SweetNode::Component(rust, children)]
 				} else {
 					let attributes = open_tag
 						.attributes
@@ -134,7 +128,7 @@ impl WalkNodesOutput {
 						.map(|attr| self.visit_attribute(attr))
 						.collect();
 					let children = self.visit_nodes(children);
-					vec![HtmlNode::Element(HtmlElement {
+					vec![SweetNode::Element(SweetElement {
 						tag: tag.clone(),
 						attributes,
 						children,
@@ -162,12 +156,11 @@ impl WalkNodesOutput {
 		self.errors.push(warning.emit_as_expr_tokens());
 	}
 
-	fn visit_attribute(&mut self, attr: NodeAttribute) -> HtmlAttribute {
+	fn visit_attribute(&mut self, attr: NodeAttribute) -> SweetAttribute {
 		match attr {
-			NodeAttribute::Block(block) => {
-				self.rust.push(quote!{RustParts::AttributeBlock(#block.to_string())});
-				HtmlAttribute::Block
-			}
+			NodeAttribute::Block(block) => SweetAttribute::Block(
+				quote! {RustParts::AttributeBlock(#block.to_string())},
+			),
 			NodeAttribute::Attribute(attr) => {
 				let key = attr.key.to_string();
 
@@ -178,8 +171,10 @@ impl WalkNodesOutput {
 						// default to a function called onclick
 						Ident::new(&key, key.span()).to_token_stream()
 					};
-					self.rust.push(quote! {RustParts::Event(Box::new(#tokens))});
-					HtmlAttribute::BlockValue { key }
+					SweetAttribute::BlockValue {
+						key,
+						value: quote! {RustParts::Event(Box::new(#tokens))},
+					}
 				} else if let Some(value) = attr.value() {
 					match value {
 						// only literals (string, number, bool) are not rusty
@@ -188,17 +183,15 @@ impl WalkNodesOutput {
 								syn::Lit::Str(s) => s.value(),
 								other => other.to_token_stream().to_string(),
 							};
-							HtmlAttribute::KeyValue { key, value }
+							SweetAttribute::KeyValue { key, value }
 						}
-						tokens => {
-							self.rust.push(
-								quote! {RustParts::AttributeValue(#tokens.to_string())},
-							);
-							HtmlAttribute::BlockValue { key }
-						}
+						tokens => SweetAttribute::BlockValue {
+							key,
+							value: quote! {RustParts::AttributeValue(#tokens.to_string())},
+						},
 					}
 				} else {
-					HtmlAttribute::Key { key }
+					SweetAttribute::Key { key }
 				}
 			}
 		}

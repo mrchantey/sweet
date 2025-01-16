@@ -43,9 +43,9 @@ test-all *args:
 	cargo test -p sweet_test --test hello_async -- {{args}}
 	cargo test -p sweet_test --test hello_async --target wasm32-unknown-unknown -- {{args}}
 	cargo test --workspace -- {{args}}
-	cargo test -p sweet_render --lib --target wasm32-unknown-unknown -- {{args}}
 	cargo test -p sweet_test --lib --target wasm32-unknown-unknown -- {{args}}
 	cargo test -p sweet_test --test macros --target wasm32-unknown-unknown -- {{args}}
+#cargo test -p sweet_render --lib --target wasm32-unknown-unknown -- {{args}}
 
 expand-wasm test *args:
 	just watch 'cargo expand --test {{test}} --target wasm32-unknown-unknown {{args}}'

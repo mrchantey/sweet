@@ -1,31 +1,15 @@
 use crate::prelude::*;
-use std::collections::VecDeque;
 use std::path::PathBuf;
 use strum_macros::AsRefStr;
 
-/// This struct represents one of the core concepts of sweet rsx!
-/// 
-/// Here we have actual rust code, stored as boxed closures and strings,
-/// and a serializable html tree that may be either inline or in a file.
-/// 
-#[derive(Debug, Default)]
-pub struct RsxParts {
-	/// The rust parts extracted from the rsx! macro,
-	/// collected via Depth First Search traversal.
-	pub rust: VecDeque<RustParts>,
-	pub html: PathOrInline<HtmlPartial>,
-}
-
-impl RsxParts {}
-
-/// The event or the indentifiers/blocks `ToString`.
+/// The rusty parts of a rsx tree.
 #[derive(AsRefStr)]
 pub enum RustParts {
 	/// Any element containing rust needs a node id
 	DynNodeId,
 	/// **rust**
 	/// ie `<div>{value}</div>`
-	InnerText(String),
+	TextBlock(String),
 	/// ie `<div {attr_block}></div>`
 	AttributeBlock(String),
 	/// ie `<div class={class_name}></div>`
@@ -34,7 +18,7 @@ pub enum RustParts {
 	/// or the shorthand `<div on_click></div>`
 	Event(HydratedEvent),
 	/// ie `<div><Counter/></div>`
-	Component(RsxParts),
+	Component(RsxTree<RustParts>),
 }
 
 impl std::fmt::Debug for RustParts {

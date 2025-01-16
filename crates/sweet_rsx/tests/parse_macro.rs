@@ -8,9 +8,9 @@ mod test {
 
 	#[test]
 	fn works() {
-		let parts: RsxParts = rsx! {<div> the value is {3} </div>};
+		let parts = rsx! {<div> the value is {3} </div>};
 		let parts_str = format!("{:?}", parts);
 
-		expect(parts_str).to_be("RsxParts { rust: [InnerText], html: Inline(HtmlPartial { nodes: [Element(Element { tag: \"div\", attributes: [], children: [Text(\" the value is \"), TextBlock], self_closing: false })] }) }");
+		expect(parts_str).to_be("RsxTree { nodes: [Element(Element { tag: \"div\", attributes: [], children: [Text(\" the value is \"), TextBlock(TextBlock)], self_closing: false })] }");
 	}
 }
