@@ -1,15 +1,15 @@
 use crate::prelude::*;
 
 pub trait Rsx {
-	fn into_parts(self) -> RsxParts;
+	fn into_rsx_parts(self) -> RsxParts;
 }
 
 impl Rsx for RsxParts {
-	fn into_parts(self) -> RsxParts { self }
+	fn into_rsx_parts(self) -> RsxParts { self }
 }
 
 impl Rsx for () {
-	fn into_parts(self) -> RsxParts { RsxParts::default() }
+	fn into_rsx_parts(self) -> RsxParts { RsxParts::default() }
 }
 
 pub trait Component {
@@ -19,9 +19,9 @@ pub trait Component {
 }
 
 impl<T: Component> Rsx for T {
-	fn into_parts(self) -> RsxParts {
+	fn into_rsx_parts(self) -> RsxParts {
 		let component = self.render();
-		component.into_parts()
+		component.into_rsx_parts()
 	}
 }
 

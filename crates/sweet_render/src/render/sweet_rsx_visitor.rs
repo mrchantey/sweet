@@ -1,9 +1,5 @@
-use super::RsxVisitor;
-use sweet_core::error::ParseResult;
-use sweet_core::rsx::Attribute;
-use sweet_core::rsx::Element;
-use sweet_core::rsx::Node;
-
+use crate::prelude::*;
+use sweet_core::prelude::*;
 
 
 
@@ -11,16 +7,18 @@ use sweet_core::rsx::Node;
 
 #[derive(Default)]
 pub struct SweetRsxVisitor {
-	pub current_rust: usize,
+	pub num_rust_blocks: usize,
+	/// incremented on element visit,
+	/// subtract 1 to use for the current data-sweet id
 	pub num_dyn_elements: usize,
 }
 
 impl RsxVisitor for SweetRsxVisitor {
 	fn visit_rust(
 		&mut self,
-		_rust: &mut sweet_core::prelude::RsxRust,
+		_rust: &mut sweet_core::prelude::RustParts,
 	) -> ParseResult<()> {
-		self.current_rust += 1;
+		self.num_rust_blocks += 1;
 		Ok(())
 	}
 
@@ -33,6 +31,9 @@ impl RsxVisitor for SweetRsxVisitor {
 			value: self.num_dyn_elements.to_string(),
 		});
 		self.num_dyn_elements += 1;
+
+		// we encode text block positions here because we need to see all
+		// children to calculate the positions
 		let encoded_block_positions =
 			encode_text_block_positions(&element.children);
 
@@ -57,6 +58,17 @@ impl RsxVisitor for SweetRsxVisitor {
 		value: &mut String,
 	) -> ParseResult<()> {
 		*value = format!("_sweet.event({},event)", self.num_dyn_elements - 1);
+		Ok(())
+	}
+
+	fn visit_final(&mut self, _out: &mut RsxRendererOut) -> ParseResult<()> {
+		// if self.num_rust_blocks != out.num_rust_parts {
+		// 	return Err(ParseError::Hydration(format!(
+		// 		"Visitor found {} rust parts, renderer found {}",
+		// 		self.num_rust_blocks, out.num_rust_parts
+		// 	)));
+		// }
+
 		Ok(())
 	}
 }

@@ -3,14 +3,16 @@ use std::collections::VecDeque;
 use std::path::PathBuf;
 use strum_macros::AsRefStr;
 
-/// The rust, html and css extracted from an `rsx!` macro.
-/// Note that the outputted html and css is not final,
-/// it contains a placeholder that is filled in the render step.
+/// This struct represents one of the core concepts of sweet rsx!
+/// 
+/// Here we have actual rust code, stored as boxed closures and strings,
+/// and a serializable html tree that may be either inline or in a file.
+/// 
 #[derive(Debug, Default)]
 pub struct RsxParts {
-	/// The rust blocks extracted from the rsx! macro,
+	/// The rust parts extracted from the rsx! macro,
 	/// collected via Depth First Search traversal.
-	pub rust: VecDeque<RsxRust>,
+	pub rust: VecDeque<RustParts>,
 	pub html: PathOrInline<HtmlPartial>,
 }
 
@@ -18,7 +20,7 @@ impl RsxParts {}
 
 /// The event or the indentifiers/blocks `ToString`.
 #[derive(AsRefStr)]
-pub enum RsxRust {
+pub enum RustParts {
 	/// Any element containing rust needs a node id
 	DynNodeId,
 	/// **rust**
@@ -35,7 +37,7 @@ pub enum RsxRust {
 	Component(RsxParts),
 }
 
-impl std::fmt::Debug for RsxRust {
+impl std::fmt::Debug for RustParts {
 	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
 		f.debug_struct(self.as_ref()).finish()
 	}

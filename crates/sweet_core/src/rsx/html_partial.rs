@@ -13,7 +13,7 @@ pub struct HtmlPartial {
 
 
 impl HtmlPartial {
-	/// placeholder for rust blocks
+	/// placeholder for rust parts
 	pub const PLACEHOLDER: char = '§';
 	pub fn new() -> Self { Self::default() }
 

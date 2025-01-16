@@ -80,17 +80,25 @@ impl FileLogger {
 	}
 }
 
+fn prepend_failing_test_name(result: &mut TestDescAndResult) {
+	if let TestResult::Fail(val) = &mut result.result {
+		let file_stem = std::path::Path::new(result.desc.source_file)
+			.file_stem()
+			.unwrap_or_default()
+			.to_str()
+			.unwrap_or_default();
+
+		let test_name = TestDescExt::short_name(&result.desc);
+
+		let next = format!("\t• {file_stem} > {test_name} \n\n").red();
+		*val = format!("{next}{val}");
+	}
+}
+
 
 impl CaseLogger for FileLogger {
 	fn on_result(&mut self, result: &mut TestDescAndResult) -> Result<()> {
-		if let TestResult::Fail(val) = &mut result.result {
-			*val = format!(
-				"\ttest::{} \n\n{}",
-				TestDescExt::short_name(&result.desc).bold(),
-				val
-			);
-		}
-
+		prepend_failing_test_name(result);
 
 
 		let Some(counter) = self.test_counters.get_mut(result.desc.source_file)

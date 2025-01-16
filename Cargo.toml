@@ -1,16 +1,16 @@
 [workspace]
 resolver = "2" # Important! wgpu/Bevy needs this!
 members = [
-	# "crates/sweet_core",
-	# "crates/sweet_leptos",
-	# "crates/sweet_render",
-	# "crates/sweet_rsx",
-	# "crates/sweet_rsx/macros",
-	# "crates/sweet_server",
-	# "crates/sweet_site",
+	"crates/sweet_core",
+	"crates/sweet_leptos",
+	"crates/sweet_render",
+	"crates/sweet_rsx",
+	"crates/sweet_rsx/macros",
+	"crates/sweet_server",
+	"crates/sweet_site",
 	"crates/sweet_test/macros",
 	"crates/sweet_test",
-	# "crates/sweet-cli",
+	"crates/sweet-cli",
 ]
 
 [workspace.package]
@@ -163,7 +163,7 @@ categories.workspace = true
 keywords.workspace = true
 
 [features]
-default = ["rsx", "macros", "render"]
+default = ["server","rsx", "macros", "render"]
 
 render = ["dep:sweet_render"]
 macros = ["dep:sweet_rsx_macros"]

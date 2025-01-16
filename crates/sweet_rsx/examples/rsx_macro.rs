@@ -7,7 +7,7 @@ struct MyComponent {
 	value: u32,
 }
 impl Rsx for MyComponent {
-	fn into_parts(self) -> RsxParts {
+	fn into_rsx_parts(self) -> RsxParts {
 		rsx! {
 			<div>{self.value}</div>
 		}

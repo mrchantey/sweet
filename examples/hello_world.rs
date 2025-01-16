@@ -18,10 +18,10 @@ type Event = ();
 
 #[cfg(not(target_arch = "wasm32"))]
 fn renderer() -> ParseResult<()> {
-	let (html, _) = DefaultRsxRenderer::render(HelloWorld)?;
+	let out = DefaultRsxRenderer::render(HelloWorld)?;
 	forky::prelude::ReadFile::write(
 		"target/hello_world/hello_world.html",
-		&html,
+		&out.html_str,
 	)?;
 
 	Ok(())
@@ -39,7 +39,7 @@ impl Component for HelloWorld {
 				.unwrap()
 				.set_inner_html(s);
 		}
-		let handle_click = move |e: Event| {
+		let handle_click = move |_e: Event| {
 			count += 1;
 			let str = count.to_string();
 			#[cfg(target_arch = "wasm32")]

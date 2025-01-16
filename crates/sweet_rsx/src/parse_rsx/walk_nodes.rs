@@ -78,7 +78,7 @@ impl WalkNodesOutput {
 			}
 			Node::Block(block) => {
 				self.rust
-					.push(quote! {RsxRust::InnerText(#block.to_string())});
+					.push(quote! {RustParts::InnerText(#block.to_string())});
 				vec![HtmlNode::TextBlock]
 			}
 			Node::Element(el) => {
@@ -118,11 +118,11 @@ impl WalkNodesOutput {
 						);
 					let ident = syn::Ident::new(&tag, tag.span());
 
-					self.rust.push(quote! { RsxRust::Component(
+					self.rust.push(quote! { RustParts::Component(
 							#ident{
 								#(#props,)*
 							}
-							.into_parts()
+							.into_rsx_parts()
 						)
 					});
 					let children = self.visit_nodes(children);
@@ -165,7 +165,7 @@ impl WalkNodesOutput {
 	fn visit_attribute(&mut self, attr: NodeAttribute) -> HtmlAttribute {
 		match attr {
 			NodeAttribute::Block(block) => {
-				self.rust.push(quote!{RsxRust::AttributeBlock(#block.to_string())});
+				self.rust.push(quote!{RustParts::AttributeBlock(#block.to_string())});
 				HtmlAttribute::Block
 			}
 			NodeAttribute::Attribute(attr) => {
@@ -178,7 +178,7 @@ impl WalkNodesOutput {
 						// default to a function called onclick
 						Ident::new(&key, key.span()).to_token_stream()
 					};
-					self.rust.push(quote! {RsxRust::Event(Box::new(#tokens))});
+					self.rust.push(quote! {RustParts::Event(Box::new(#tokens))});
 					HtmlAttribute::BlockValue { key }
 				} else if let Some(value) = attr.value() {
 					match value {
@@ -192,7 +192,7 @@ impl WalkNodesOutput {
 						}
 						tokens => {
 							self.rust.push(
-								quote! {RsxRust::AttributeValue(#tokens.to_string())},
+								quote! {RustParts::AttributeValue(#tokens.to_string())},
 							);
 							HtmlAttribute::BlockValue { key }
 						}

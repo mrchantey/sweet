@@ -22,7 +22,7 @@ impl BacktraceLocation {
 	/// The input path from test desc, panic info, or backtrace frame
 	/// is relative to cwd(), we resolve relative to workspace root
 	/// for terminal links and cleaner output
-	pub fn from_cwd(
+	pub fn with_cwd(
 		cwd_path: impl AsRef<Path>,
 		line_no: usize,
 		col_no: usize,
@@ -36,12 +36,12 @@ impl BacktraceLocation {
 
 	/// In wasm we dont get a backtrace so instead use the test entrypoint
 	pub fn from_test_desc(desc: &TestDesc) -> Self {
-		Self::from_cwd(&desc.source_file, desc.start_line, desc.start_col)
+		Self::with_cwd(&desc.source_file, desc.start_line, desc.start_col)
 	}
 	/// Use location of the panic, will fall back to desc if no location is found
 	pub fn from_panic_info(info: &PanicHookInfo, desc: &TestDesc) -> Self {
 		if let Some(location) = info.location() {
-			Self::from_cwd(
+			Self::with_cwd(
 				location.file(),
 				location.line() as usize,
 				location.column() as usize,
@@ -68,7 +68,7 @@ impl BacktraceLocation {
 		let line_no = symbol.lineno().unwrap_or_default() as usize;
 		let col_no = symbol.colno().unwrap_or_default() as usize;
 
-		Ok(Self::from_cwd(file, line_no, col_no))
+		Ok(Self::with_cwd(file, line_no, col_no))
 	}
 	///
 	/// Efficiently resolves workspace relative path by
