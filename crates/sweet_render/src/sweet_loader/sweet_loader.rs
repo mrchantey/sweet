@@ -21,40 +21,6 @@ pub struct SweetLoader {
 	pub postion_visitor: RsxTreePositionVisitor,
 }
 
-impl RsxTreeVisitorOwned<RustParts> for SweetLoader {
-	fn visit_node(
-		&mut self,
-		mut node: Node<RustParts>,
-	) -> ParseResult<Option<Vec<Node<RustParts>>>> {
-		self.postion_visitor.visit_node(&node)?;
-		let children = node.take_children();
-		match &node {
-			Node::Doctype => {}
-			Node::Comment(_) => {}
-			Node::Element(element) => todo!(),
-			Node::Text(_) => {}
-			Node::TextBlock(text_block) => {
-				// self.visit_text_block(blocks, recv);
-			}
-			Node::Component(_, vec) => todo!(),
-		}
-		self.postion_visitor.leave_node(&node)?;
-		Ok(children)
-	}
-
-	fn leave_node(&mut self) -> ParseResult<()> { Ok(()) }
-
-	fn visit_children(
-		&mut self,
-		children: Vec<Node<RustParts>>,
-	) -> ParseResult<Vec<Node<RustParts>>> {
-		Ok(children)
-	}
-
-	fn leave_children(&mut self) -> ParseResult<()> { Ok(()) }
-}
-
-
 impl SweetLoader {
 	pub fn load(self, rsx: impl Rsx) -> ParseResult<()> {
 		console_error_panic_hook::set_once();

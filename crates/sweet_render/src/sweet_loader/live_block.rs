@@ -21,7 +21,7 @@ impl LiveBlock {
 					block.node_id
 				))
 			})?;
-		let el = el.dyn_into::<HtmlElement>().unwrap();
+		let _el = el.dyn_into::<HtmlElement>().unwrap();
 		// let parts = Self::parse_parts(&el)?;
 		todo!();
 		// Ok(Self { el, parts })

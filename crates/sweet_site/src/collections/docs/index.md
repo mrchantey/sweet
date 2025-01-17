@@ -5,14 +5,15 @@ title: Sweet
 
 ---
 
-A web framework building on the best ideas from astro, quik and more, all entirely in a rust ecosystem.
+Sweet is a rust metaframework that minimizes rust recompilations by extracting serializable content. 
 
-## Core concept
+Find your rust dev flow with sweet.
 
-Sweet *preprocesses* `rsx` macros, allowing for all kinds of sweet features.
+## Find your flow with:
 
-- 🔥 **Smokin hot reload** sweet splits html from rust and only triggers recompilation on code changes, html diffs are instant.
+- 🔥 **Smokin hot reload** instant html reloads
 - 🌊 **Stay Hydrated** sweet collects pre-hydration events and plays them back in order, no missed events!.
+-  **Scoped CSS** with component `<style/>` tags
 - 🌐 **No signal, no problem** sweet provides reactivity primitives and easily integrates other frameworks astro-style.
 - 🦀 **Rusty to the core** components are described as *regular structs and traits*.
 - 🧪 **A full ecosystem** sweet has a built-in component library and testing framework, as well as integrations with axum, leptos and bevy.

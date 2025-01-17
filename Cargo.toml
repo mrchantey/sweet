@@ -181,10 +181,9 @@ sweet_rsx = { workspace = true, optional = true }
 sweet_rsx_macros = { workspace = true, optional = true }
 sweet_server = { workspace = true, optional = true }
 
-
-[examples]
-counter = { required_features = ["server"] }
-render_counter = { required_features = ["server"] }
+# [examples]
+# counter = { required_features = ["server"] }
+# render_counter = { required_features = ["server"] }
 
 [dev-dependencies]
 forky.workspace = true
