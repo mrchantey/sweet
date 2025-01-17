@@ -4,6 +4,32 @@ title: How it works
 ---
 
 
+```rust
+trait RsxParser{
+  fn map_event(el: &RsxElement, key:&str){
+
+  }
+}
+
+
+Tree<RsxNode<BevyHydrate>>
+Tree<SerdeRsxNode<BevyHydrate>>
+```
+
+```mermaid
+graph TD
+  compiler -- Token Stream --- b[Rstml Parser]
+  b -- Rstml Tree --- c[BevyHydrate: RsxParser]
+  c -- Bevy Rsx Nodes --- d[Splitter]
+  d -- Bevy Serde Rsx Nodes --- e[File System]
+  e -- Bevy Serde Rsx Nodes --- f[Dom Renderer]
+  f -- DOM --- g[Differ & Hydrator]
+```
+
+
+
+
+
 ```mermaid
 graph TD
   subgraph Sweet

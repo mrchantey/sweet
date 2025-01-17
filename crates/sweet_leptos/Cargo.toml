@@ -13,9 +13,10 @@ keywords.workspace = true
 
 
 [dependencies]
-reactive_graph = { version = "0.1", features = ["effects"] }
+reactive_graph = { version = "0.1", features = ["nightly", "effects"] }
 thiserror.workspace = true
 anyhow.workspace = true
+futures.workspace = true
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 tokio.workspace = true

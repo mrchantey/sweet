@@ -5,8 +5,6 @@ use strum_macros::AsRefStr;
 /// The rusty parts of a rsx tree.
 #[derive(AsRefStr)]
 pub enum RustParts {
-	/// Any element containing rust needs a node id
-	DynNodeId,
 	/// **rust**
 	/// ie `<div>{value}</div>`
 	TextBlock(String),
