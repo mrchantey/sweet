@@ -13,12 +13,12 @@ impl Rsx for () {
 }
 impl Rsx for &str {
 	fn into_rsx_tree(self) -> RsxTree<RustParts> {
-		RsxTree::new(vec![Node::Text(self.to_string())])
+		RsxTree::new(vec![RsxNode::Text(self.to_string())])
 	}
 }
 impl Rsx for String {
 	fn into_rsx_tree(self) -> RsxTree<RustParts> {
-		RsxTree::new(vec![Node::Text(self)])
+		RsxTree::new(vec![RsxNode::Text(self)])
 	}
 }
 

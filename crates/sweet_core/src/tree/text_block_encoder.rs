@@ -1,4 +1,4 @@
-use super::Node;
+use super::RsxNode;
 use super::RustParts;
 use crate::error::ParseError;
 use crate::error::ParseResult;
@@ -38,7 +38,7 @@ impl TextBlockEncoder {
 	/// ```
 	/// Output:
 	/// 0-4,2.2-5,1
-	pub fn encode(nodes: &Vec<Node<RustParts>>) -> String {
+	pub fn encode(nodes: &Vec<RsxNode<RustParts>>) -> String {
 		let collapsed = CollapsedNode::from_nodes(nodes);
 		Self::encode_text_block_positions(&collapsed)
 	}
@@ -121,20 +121,20 @@ impl CollapsedNode {
 }
 
 impl CollapsedNode {
-	fn from_nodes(nodes: &Vec<Node<RustParts>>) -> Vec<CollapsedNode> {
+	fn from_nodes(nodes: &Vec<RsxNode<RustParts>>) -> Vec<CollapsedNode> {
 		let mut out = Vec::new();
 		for node in nodes {
 			match node {
-				Node::TextBlock(RustParts::TextBlock(val)) => {
+				RsxNode::TextBlock(RustParts::TextBlock(val)) => {
 					out.push(CollapsedNode::RustText(val.clone()))
 				}
-				Node::Text(val) => {
+				RsxNode::Text(val) => {
 					out.push(CollapsedNode::StaticText(val.clone()))
 				}
-				Node::Doctype => out.push(CollapsedNode::Break),
-				Node::Comment(_) => out.push(CollapsedNode::Break),
-				Node::Element(_) => out.push(CollapsedNode::Break),
-				Node::Component(RustParts::Component(children), vec) => {
+				RsxNode::Doctype => out.push(CollapsedNode::Break),
+				RsxNode::Comment(_) => out.push(CollapsedNode::Break),
+				RsxNode::Element(_) => out.push(CollapsedNode::Break),
+				RsxNode::Component(RustParts::Component(children), vec) => {
 					out.append(&mut Self::from_nodes(&children.nodes));
 					out.append(&mut Self::from_nodes(vec))
 				}
@@ -156,12 +156,8 @@ pub struct TextBlockPosition {
 
 #[cfg(test)]
 mod test {
-	#![allow(non_snake_case)]
-	use crate as sweet;
-	use crate::prelude::*;
-	use sweet_rsx_macros::rsx;
-	use sweet_test::prelude::*;
 	use super::*;
+	use crate::prelude::*;
 
 	struct Adjective;
 	impl Component for Adjective {

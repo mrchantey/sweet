@@ -1,3 +1,4 @@
+use super::Node;
 #[cfg(feature = "serde")]
 pub use serde::Deserialize;
 #[cfg(feature = "serde")]
@@ -28,14 +29,14 @@ use strum_macros::AsRefStr;
 #[derive(Debug, Clone, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct RsxTree<R> {
-	pub nodes: Vec<Node<R>>,
+	pub nodes: Vec<RsxNode<R>>,
 }
 impl<R> Default for RsxTree<R> {
 	fn default() -> Self { Self { nodes: Vec::new() } }
 }
 
 impl<R> RsxTree<R> {
-	pub fn new(nodes: Vec<Node<R>>) -> Self { Self { nodes } }
+	pub fn new(nodes: Vec<RsxNode<R>>) -> Self { Self { nodes } }
 }
 
 
@@ -49,10 +50,10 @@ impl<R> RsxTree<R> {
 		self.nodes.extend(nodes);
 	}
 
-	pub fn to_string_placeholder(&self) -> String {
+	pub fn to_info_string(&self) -> String {
 		let mut out = String::new();
 		for node in &self.nodes {
-			out.push_str(&node.to_string_placeholder());
+			out.push_str(&node.info());
 		}
 		out
 	}
@@ -61,52 +62,51 @@ impl<R> RsxTree<R> {
 /// a 'collapsed' rstml node
 #[derive(Debug, Clone, PartialEq, AsRefStr)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub enum Node<R> {
+pub enum RsxNode<R> {
 	Doctype,
 	Comment(String),
-	Element(Element<R>),
+	Element(RsxElement<R>),
 	/// may have been Text or RawText
 	Text(String),
 	/// a rust block, contents is reconciled by renderer
 	TextBlock(R),
 	/// an rust value that implements [Rsx] contents is reconciled by renderer
 	/// The children here are the 'children' of the component
-	Component(R, Vec<Node<R>>),
+	Component(R, Vec<RsxNode<R>>),
 }
 
-impl<R> Node<R> {
+impl<R> RsxNode<R> {}
 
-	pub fn to_string_placeholder(&self) -> String {
+impl<R> Node for RsxNode<R> {
+	fn info(&self) -> String {
 		match self {
-			Node::Doctype => "<!DOCTYPE html>".to_string(),
-			Node::Comment(s) => format!("<!--{}-->", s),
-			Node::Element(e) => e.to_string_placeholder(),
-			Node::Text(s) => s.clone(),
-			Node::TextBlock(_) => PLACEHOLDER.to_string(),
-			Node::Component(_, c) => {
-				c.iter().map(|c| c.to_string_placeholder()).collect()
-			}
+			RsxNode::Doctype => "<!DOCTYPE html>".to_string(),
+			RsxNode::Comment(s) => format!("<!--{}-->", s),
+			RsxNode::Element(e) => e.to_info_string(),
+			RsxNode::Text(s) => s.clone(),
+			RsxNode::TextBlock(_) => PLACEHOLDER.to_string(),
+			RsxNode::Component(_, c) => c.iter().map(|c| c.info()).collect(),
 		}
 	}
 
-	pub fn children(&self) -> Option<&Vec<Node<R>>> {
+	fn children(&self) -> Option<&Vec<RsxNode<R>>> {
 		match self {
-			Node::Element(e) => Some(&e.children),
-			Node::Component(_, c) => Some(&c),
+			RsxNode::Element(e) => Some(&e.children),
+			RsxNode::Component(_, c) => Some(&c),
 			_ => None,
 		}
 	}
-	pub fn children_mut(&mut self) -> Option<&mut Vec<Node<R>>> {
+	fn children_mut(&mut self) -> Option<&mut Vec<RsxNode<R>>> {
 		match self {
-			Node::Element(e) => Some(&mut e.children),
-			Node::Component(_, c) => Some(c),
+			RsxNode::Element(e) => Some(&mut e.children),
+			RsxNode::Component(_, c) => Some(c),
 			_ => None,
 		}
 	}
-	pub fn take_children(&mut self) -> Option<Vec<Node<R>>> {
+	fn take_children(&mut self) -> Option<Vec<RsxNode<R>>> {
 		match self {
-			Node::Element(e) => Some(std::mem::take(&mut e.children)),
-			Node::Component(_, c) => Some(std::mem::take(c)),
+			RsxNode::Element(e) => Some(std::mem::take(&mut e.children)),
+			RsxNode::Component(_, c) => Some(std::mem::take(c)),
 			_ => None,
 		}
 	}
@@ -118,19 +118,19 @@ impl<R> Node<R> {
 /// they are defined as 'the next block in the vec' when reconciling.
 #[derive(Debug, Clone, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct Element<R> {
+pub struct RsxElement<R> {
 	/// ie `div, span, input`
 	pub tag: String,
 	/// ie `class="my-class"`
-	pub attributes: Vec<Attribute<R>>,
+	pub attributes: Vec<RsxAttribute<R>>,
 	/// ie `<div>childtext<childel/>{childblock}</div>`
-	pub children: Vec<Node<R>>,
+	pub children: Vec<RsxNode<R>>,
 	/// ie `<input/>`
 	pub self_closing: bool,
 }
 
 
-impl<R> Element<R> {
+impl<R> RsxElement<R> {
 	pub fn new(tag: String, self_closing: bool) -> Self {
 		Self {
 			tag,
@@ -143,7 +143,7 @@ impl<R> Element<R> {
 	pub fn contains_text_blocks(&self) -> bool {
 		self.children
 			.iter()
-			.any(|c| matches!(c, Node::TextBlock(_)))
+			.any(|c| matches!(c, RsxNode::TextBlock(_)))
 	}
 
 	/// Whether any children or attributes are blocks,
@@ -151,12 +151,15 @@ impl<R> Element<R> {
 	pub fn contains_rust(&self) -> bool {
 		self.contains_text_blocks()
 			|| self.attributes.iter().any(|a| {
-				matches!(a, Attribute::Block(_) | Attribute::BlockValue { .. })
+				matches!(
+					a,
+					RsxAttribute::Block(_) | RsxAttribute::BlockValue { .. }
+				)
 			})
 	}
 
 
-	pub fn to_string_placeholder(&self) -> String {
+	pub fn to_info_string(&self) -> String {
 		let mut out = String::new();
 		let self_closing = if self.self_closing { "/" } else { "" };
 
@@ -166,7 +169,7 @@ impl<R> Element<R> {
 			out.push_str(&attribute.to_string_placeholder());
 		}
 		for child in &self.children {
-			out.push_str(&child.to_string_placeholder());
+			out.push_str(&child.info());
 		}
 		if !self.self_closing {
 			out.push_str(&format!("</{}>", self.tag));
@@ -177,24 +180,24 @@ impl<R> Element<R> {
 
 #[derive(Debug, Clone, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub enum Attribute<R> {
+pub enum RsxAttribute<R> {
 	Key { key: String },
 	KeyValue { key: String, value: String },
 	BlockValue { key: String, value: R },
 	Block(R),
 }
 
-impl<R> Attribute<R> {
+impl<R> RsxAttribute<R> {
 	pub fn to_string_placeholder(&self) -> String {
 		match self {
-			Attribute::Key { key } => key.clone(),
-			Attribute::KeyValue { key, value } => {
+			RsxAttribute::Key { key } => key.clone(),
+			RsxAttribute::KeyValue { key, value } => {
 				format!("{}=\"{}\"", key, value)
 			}
-			Attribute::BlockValue { key, .. } => {
+			RsxAttribute::BlockValue { key, .. } => {
 				format!("{}=\"{}\"", key, PLACEHOLDER)
 			}
-			Attribute::Block(_) => PLACEHOLDER.to_string(),
+			RsxAttribute::Block(_) => PLACEHOLDER.to_string(),
 		}
 	}
 }

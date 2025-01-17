@@ -17,9 +17,7 @@ On initialization all of these events will be played back in order, and `_sweet`
 
 **/
 #[derive(Default)]
-pub struct SweetLoader {
-	pub postion_visitor: RsxTreePositionVisitor,
-}
+pub struct SweetLoader {}
 
 impl SweetLoader {
 	pub fn load(self, rsx: impl Rsx) -> ParseResult<()> {

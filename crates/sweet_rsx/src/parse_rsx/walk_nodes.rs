@@ -36,9 +36,9 @@ impl Default for WalkNodesOutput {
 }
 
 
-type SweetNode = sweet_core::rsx::Node<TokenStream>;
-type SweetElement = sweet_core::rsx::Element<TokenStream>;
-type SweetAttribute = sweet_core::rsx::Attribute<TokenStream>;
+type SweetNode = sweet_core::tree::RsxNode<TokenStream>;
+type SweetElement = sweet_core::tree::RsxElement<TokenStream>;
+type SweetAttribute = sweet_core::tree::RsxAttribute<TokenStream>;
 
 impl WalkNodesOutput {
 	#[must_use]

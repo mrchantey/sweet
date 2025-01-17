@@ -25,6 +25,6 @@ fn main() {
 		</div>
 	};
 
-	let str = _foo.to_string_placeholder();
+	let str = _foo.to_info_string();
 	println!("{}", str);
 }

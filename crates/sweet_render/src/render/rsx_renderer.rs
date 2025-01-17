@@ -35,31 +35,38 @@ impl DefaultRsxRenderer {
 #[derive(Default)]
 pub struct RsxRenderVisitor {
 	html: String,
+	position: TreePosition,
 }
-impl RsxTreeVisitor<String> for RsxRenderVisitor {
-	fn visit_node(&mut self, node: &Node<String>) -> ParseResult<()> {
+
+impl PositionVisitor for RsxRenderVisitor {
+	fn position(&self) -> &TreePosition { &self.position }
+	fn position_mut(&mut self) -> &mut TreePosition { &mut self.position }
+}
+
+impl TreeVisitor<RsxNode<String>> for RsxRenderVisitor {
+	fn visit_node(&mut self, node: &RsxNode<String>) -> ParseResult<()> {
 		match node {
-			Node::Doctype => self.html += "<!DOCTYPE html>",
-			Node::Comment(val) => {
+			RsxNode::Doctype => self.html += "<!DOCTYPE html>",
+			RsxNode::Comment(val) => {
 				self.html += "<!-- ";
 				self.html += val;
 				self.html += " -->";
 			}
-			Node::Text(val) => self.html += val,
-			Node::Element(el) => {
+			RsxNode::Text(val) => self.html += val,
+			RsxNode::Element(el) => {
 				self.html += "<";
 				self.html += &el.tag;
 				for attribute in &el.attributes {
 					self.html.push(' ');
 					match attribute {
-						Attribute::Key { key } => self.html += key,
-						Attribute::KeyValue { key, value } => {
+						RsxAttribute::Key { key } => self.html += key,
+						RsxAttribute::KeyValue { key, value } => {
 							self.html += &format!("{}=\"{}\"", key, value)
 						}
-						Attribute::BlockValue { key, value } => {
+						RsxAttribute::BlockValue { key, value } => {
 							self.html += &format!("{}=\"{}\"", key, value)
 						}
-						Attribute::Block(block) => self.html += block,
+						RsxAttribute::Block(block) => self.html += block,
 					};
 				}
 				if el.self_closing {
@@ -68,16 +75,16 @@ impl RsxTreeVisitor<String> for RsxRenderVisitor {
 					self.html.push('>');
 				}
 			}
-			Node::TextBlock(val) => {self.html += val},
-			Node::Component(_, _) => {
+			RsxNode::TextBlock(val) => self.html += val,
+			RsxNode::Component(_, _) => {
 				// components are not html
 			}
 		};
 		Ok(())
 	}
-	fn leave_node(&mut self, node: &Node<String>) -> ParseResult<()> {
+	fn leave_node(&mut self, node: &RsxNode<String>) -> ParseResult<()> {
 		match node {
-			Node::Element(element) => {
+			RsxNode::Element(element) => {
 				if !element.self_closing {
 					self.html += &format!("</{}>", element.tag);
 				} else {
@@ -92,10 +99,6 @@ impl RsxTreeVisitor<String> for RsxRenderVisitor {
 #[cfg(test)]
 mod test {
 	use crate::prelude::*;
-	use sweet_core as sweet;
-	use sweet_core::prelude::*;
-	use sweet_rsx_macros::rsx;
-	use sweet_test::prelude::*;
 
 	#[test]
 	fn doctype() {
@@ -183,6 +186,6 @@ mod test {
 		};
 		// println!("rsx: '{:#?}'", rsx);
 		let out = DefaultRsxRenderer::render(rsx).unwrap();
-		expect(out).to_be("<div onclick=\"_sweet.event(0,event)\" data-sweet-id=\"0\"><p data-sweet-id=\"1\" data-sweet-blocks=\"0-6-4\">hello mars</p></div>");
+		expect(out).to_be("<div onclick=\"_sweet_event\" data-sweet-id=\"0\"><p data-sweet-id=\"1\" data-sweet-blocks=\"0-6-4\">hello mars</p></div>");
 	}
 }

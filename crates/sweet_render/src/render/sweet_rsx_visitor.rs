@@ -2,54 +2,75 @@ use sweet_core::prelude::*;
 
 #[derive(Default)]
 pub struct SweetRsxVisitor {
-	pub position_visitor: RsxTreePositionVisitor,
+	constants: HtmlConstants,
+	position: TreePosition,
 }
-
 impl SweetRsxVisitor {
-	pub const ID_ATTRIBUTE_KEY: &str = "data-sweet-id";
-	pub const BLOCK_ATTRIBUTE_KEY: &str = "data-sweet-blocks";
+	pub fn new(constants: HtmlConstants) -> Self {
+		Self {
+			constants,
+			..Default::default()
+		}
+	}
+	pub fn constants(&self) -> &HtmlConstants { &self.constants }
+	pub fn position(&self) -> &TreePosition { &self.position }
 }
 
-impl RsxTreeMapper<RustParts, String> for SweetRsxVisitor {
-	fn map_nodes(
-		&mut self,
-		mut nodes: Vec<Node<RustParts>>,
-	) -> ParseResult<Vec<Node<String>>> {
-		self.position_visitor.visit_children(&mut nodes)?;
-		let mut nodes = nodes
-			.into_iter()
-			.map(|node| self.map_node(node))
-			.collect::<ParseResult<_>>()?;
-		self.position_visitor.leave_children(&mut nodes)?;
-		Ok(nodes)
-	}
 
+#[derive(Debug, Clone)]
+pub struct HtmlConstants {
+	/// used for encoding the [TreePosition],
+	pub id_attribute_key: &'static str,
+	/// used for describing the location of rust blocks in text nodes,
+	/// defaults to `data-sweet-blocks`
+	pub block_attribute_key: &'static str,
+	/// defaults to `_sweet_event`
+	pub event_handler: &'static str,
+}
+impl HtmlConstants {
+	pub const DEFAULT_ID_ATTRIBUTE_KEY: &'static str = "data-sweet-id";
+	pub const DEFAULT_BLOCK_ATTRIBUTE_KEY: &'static str = "data-sweet-blocks";
+	pub const DEFAULT_EVENT_HANDLER: &'static str = "_sweet_event";
+}
+
+impl Default for HtmlConstants {
+	fn default() -> Self {
+		Self {
+			id_attribute_key: Self::DEFAULT_ID_ATTRIBUTE_KEY,
+			block_attribute_key: Self::DEFAULT_BLOCK_ATTRIBUTE_KEY,
+			event_handler: Self::DEFAULT_EVENT_HANDLER,
+		}
+	}
+}
+
+impl TreeMapper<RsxNode<RustParts>, RsxNode<String>> for SweetRsxVisitor {
+	fn position(&mut self) -> &mut TreePosition { &mut self.position }
 
 	fn map_node(
 		&mut self,
-		mut node: Node<RustParts>,
-	) -> ParseResult<Node<String>> {
-		self.position_visitor.visit_node(&mut node)?;
-		let mut node = match node {
-			Node::Doctype => Node::Doctype,
-			Node::Comment(val) => Node::Comment(val),
-			Node::Element(el) => Node::Element(self.parse_element(el)?),
-			Node::Text(val) => Node::Text(val),
-			Node::TextBlock(RustParts::TextBlock(val)) => Node::TextBlock(val),
-			Node::TextBlock(parts) => {
+		node: RsxNode<RustParts>,
+	) -> ParseResult<RsxNode<String>> {
+		let node = match node {
+			RsxNode::Doctype => RsxNode::Doctype,
+			RsxNode::Comment(val) => RsxNode::Comment(val),
+			RsxNode::Element(el) => RsxNode::Element(self.parse_element(el)?),
+			RsxNode::Text(val) => RsxNode::Text(val),
+			RsxNode::TextBlock(RustParts::TextBlock(val)) => {
+				RsxNode::TextBlock(val)
+			}
+			RsxNode::TextBlock(parts) => {
 				return Err(ParseError::hydration("TextBlock", parts));
 			}
-			Node::Component(RustParts::Component(component), children) => {
+			RsxNode::Component(RustParts::Component(component), children) => {
 				// components arent html, return empty string
 				let mut component_children = self.map_nodes(component.nodes)?;
 				component_children.append(&mut self.map_nodes(children)?);
-				Node::Component(String::new(), component_children)
+				RsxNode::Component(String::new(), component_children)
 			}
-			Node::Component(parts, _) => {
+			RsxNode::Component(parts, _) => {
 				return Err(ParseError::hydration("Component", parts));
 			}
 		};
-		self.position_visitor.leave_node(&mut node)?;
 		Ok(node)
 	}
 }
@@ -57,17 +78,18 @@ impl RsxTreeMapper<RustParts, String> for SweetRsxVisitor {
 impl SweetRsxVisitor {
 	fn parse_element(
 		&mut self,
-		mut el: Element<RustParts>,
-	) -> ParseResult<Element<String>> {
+		mut el: RsxElement<RustParts>,
+	) -> ParseResult<RsxElement<String>> {
 		if el.contains_rust() {
-			el.attributes.push(Attribute::KeyValue {
-				key: Self::ID_ATTRIBUTE_KEY.to_string(),
-				value: (self.position_visitor.current_node_id()).to_string(),
+			el.attributes.push(RsxAttribute::KeyValue {
+				key: self.constants.id_attribute_key.to_string(),
+				// should this be full position or just index?
+				value: (self.position.index()).to_string(),
 			});
 		}
 		if el.contains_text_blocks() {
-			el.attributes.push(Attribute::KeyValue {
-				key: Self::BLOCK_ATTRIBUTE_KEY.to_string(),
+			el.attributes.push(RsxAttribute::KeyValue {
+				key: self.constants.block_attribute_key.to_string(),
 				value: TextBlockEncoder::encode(&el.children),
 			});
 		}
@@ -78,7 +100,7 @@ impl SweetRsxVisitor {
 			.map(|attr| self.parse_attribute(attr))
 			.collect::<ParseResult<Vec<_>>>()?;
 
-		Ok(Element {
+		Ok(RsxElement {
 			tag: el.tag,
 			self_closing: el.self_closing,
 			attributes,
@@ -89,21 +111,18 @@ impl SweetRsxVisitor {
 
 	fn parse_attribute(
 		&self,
-		attribute: Attribute<RustParts>,
-	) -> ParseResult<Attribute<String>> {
+		attribute: RsxAttribute<RustParts>,
+	) -> ParseResult<RsxAttribute<String>> {
 		let attr = match attribute {
-			Attribute::Key { key } => Attribute::Key { key },
-			Attribute::KeyValue { key, value } => {
-				Attribute::KeyValue { key, value }
+			RsxAttribute::Key { key } => RsxAttribute::Key { key },
+			RsxAttribute::KeyValue { key, value } => {
+				RsxAttribute::KeyValue { key, value }
 			}
-			Attribute::BlockValue { key, value } => {
+			RsxAttribute::BlockValue { key, value } => {
 				let is_event = key.starts_with("on");
 				let value = match (is_event, value) {
 					(true, RustParts::Event(_)) => {
-						format!(
-							"_sweet.event({},event)",
-							self.position_visitor.current_node_id()
-						)
+						self.constants.event_handler.to_string()
 					}
 					(true, parts) => {
 						return Err(ParseError::hydration(
@@ -119,12 +138,12 @@ impl SweetRsxVisitor {
 						))
 					}
 				};
-				Attribute::BlockValue { key, value }
+				RsxAttribute::BlockValue { key, value }
 			}
-			Attribute::Block(RustParts::AttributeBlock(block_str)) => {
-				Attribute::Block(block_str)
+			RsxAttribute::Block(RustParts::AttributeBlock(block_str)) => {
+				RsxAttribute::Block(block_str)
 			}
-			Attribute::Block(parts) => {
+			RsxAttribute::Block(parts) => {
 				return Err(ParseError::hydration(
 					"RustParts::AttributeBlock",
 					parts,

@@ -3,7 +3,7 @@ use super::RsxFileVisitor;
 use super::RsxFileVisitorOut;
 use super::WalkNodesOutput;
 use proc_macro2::TokenStream;
-use sweet_core::rsx::RsxTree;
+use sweet_core::tree::RsxTree;
 use syn::visit_mut::VisitMut;
 use syn::Expr;
 use syn::File;
@@ -118,6 +118,6 @@ mod test {
 		let parts = rsx! {<div> the value is {3} </div>};
 		let parts_str = format!("{:?}", parts);
 
-		expect(parts_str).to_be("RsxTree { nodes: [Element(Element { tag: \"div\", attributes: [], children: [Text(\" the value is \"), TextBlock(TextBlock)], self_closing: false })] }");
+		expect(parts_str).to_be("RsxTree { nodes: [Element(RsxElement { tag: \"div\", attributes: [], children: [Text(\" the value is \"), TextBlock(TextBlock)], self_closing: false })] }");
 	}
 }

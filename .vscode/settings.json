@@ -1,27 +1,9 @@
 {
 	// "rust-analyzer.cargo.features": "all",
-	"rust-analyzer.cargo.target": "wasm32-unknown-unknown",
-	"rust-analyzer.files.excludeDirs": [
-		// "crates/sweet_rsx/macros",
-		// "crates/sweet_test/macros",
-		// "crates/sweet-cli"
-	],
+	// "rust-analyzer.cargo.target": "wasm32-unknown-unknown",
 	"deno.enable": true,
 	"search.exclude": {
-		"**/node_modules": true,
-		"**/bower_components": true,
-		"**/*.code-search": true,
-		"**/mod.rs": true,
 		"target/**/*": true,
-	},
-	"files.watcherExclude": {
-		"**/.git/objects/**": true,
-		"**/.git/subtree-cache/**": true,
-		"**/.hg/store/**": true,
-		// "crates/sweet_rsx/macros":true,
-		// "crates/sweet_test/macros":true,
-		// "crates/sweet-cli":true,
-
 	},
 	"files.exclude": {
 		"**/.git": true,
@@ -30,6 +12,5 @@
 		"**/CVS": true,
 		"**/.DS_Store": true,
 		"**/Thumbs.db": true,
-		"**/mod.rs": true,
 	}
 }
