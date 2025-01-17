@@ -36,15 +36,15 @@ impl Default for WalkNodesOutput {
 }
 
 
-type SweetNode = sweet_core::tree::RsxNode<TokenStream>;
-type SweetElement = sweet_core::tree::RsxElement<TokenStream>;
-type SweetAttribute = sweet_core::tree::RsxAttribute<TokenStream>;
+type RsxNode = sweet_core::rsx::RsxNode<TokenStream>;
+type RsxElement = sweet_core::rsx::RsxElement<TokenStream>;
+type RsxAttribute = sweet_core::rsx::RsxAttribute<TokenStream>;
 
 impl WalkNodesOutput {
 	#[must_use]
 	/// the number of actual html nodes will likely be different
 	/// due to fragments, blocks etc
-	pub fn visit_nodes(&mut self, nodes: Vec<Node>) -> Vec<SweetNode> {
+	pub fn visit_nodes(&mut self, nodes: Vec<Node>) -> Vec<RsxNode> {
 		nodes
 			.into_iter()
 			.flat_map(|node| self.visit_node(node))
@@ -54,23 +54,23 @@ impl WalkNodesOutput {
 	/// visit node does not add html to self, giving caller
 	/// a decision. Vec is returned to handle fragments
 	#[must_use]
-	fn visit_node(&mut self, node: Node) -> Vec<SweetNode> {
+	fn visit_node(&mut self, node: Node) -> Vec<RsxNode> {
 		match node {
-			Node::Doctype(_) => vec![SweetNode::Doctype],
+			Node::Doctype(_) => vec![RsxNode::Doctype],
 			Node::Text(text) => {
-				vec![SweetNode::Text(text.value_string())]
+				vec![RsxNode::Text(text.value_string())]
 			}
 			Node::RawText(raw) => {
-				vec![SweetNode::Text(raw.to_string_best())]
+				vec![RsxNode::Text(raw.to_string_best())]
 			}
 			Node::Fragment(NodeFragment { children, .. }) => {
 				self.visit_nodes(children)
 			}
 			Node::Comment(comment) => {
-				vec![SweetNode::Comment(comment.value.value())]
+				vec![RsxNode::Comment(comment.value.value())]
 			}
 			Node::Block(block) => {
-				vec![SweetNode::TextBlock(
+				vec![RsxNode::TextBlock(
 					quote! {RustParts::TextBlock(#block.to_string())},
 				)]
 			}
@@ -120,7 +120,7 @@ impl WalkNodesOutput {
 					};
 
 					let children = self.visit_nodes(children);
-					vec![SweetNode::Component(rust, children)]
+					vec![RsxNode::Component(rust, children)]
 				} else {
 					let attributes = open_tag
 						.attributes
@@ -128,7 +128,7 @@ impl WalkNodesOutput {
 						.map(|attr| self.visit_attribute(attr))
 						.collect();
 					let children = self.visit_nodes(children);
-					vec![SweetNode::Element(SweetElement {
+					vec![RsxNode::Element(RsxElement {
 						tag: tag.clone(),
 						attributes,
 						children,
@@ -156,9 +156,9 @@ impl WalkNodesOutput {
 		self.errors.push(warning.emit_as_expr_tokens());
 	}
 
-	fn visit_attribute(&mut self, attr: NodeAttribute) -> SweetAttribute {
+	fn visit_attribute(&mut self, attr: NodeAttribute) -> RsxAttribute {
 		match attr {
-			NodeAttribute::Block(block) => SweetAttribute::Block(
+			NodeAttribute::Block(block) => RsxAttribute::Block(
 				quote! {RustParts::AttributeBlock(#block.to_string())},
 			),
 			NodeAttribute::Attribute(attr) => {
@@ -171,7 +171,7 @@ impl WalkNodesOutput {
 						// default to a function called onclick
 						Ident::new(&key, key.span()).to_token_stream()
 					};
-					SweetAttribute::BlockValue {
+					RsxAttribute::BlockValue {
 						key,
 						value: quote! {RustParts::Event(Box::new(#tokens))},
 					}
@@ -183,15 +183,15 @@ impl WalkNodesOutput {
 								syn::Lit::Str(s) => s.value(),
 								other => other.to_token_stream().to_string(),
 							};
-							SweetAttribute::KeyValue { key, value }
+							RsxAttribute::KeyValue { key, value }
 						}
-						tokens => SweetAttribute::BlockValue {
+						tokens => RsxAttribute::BlockValue {
 							key,
 							value: quote! {RustParts::AttributeValue(#tokens.to_string())},
 						},
 					}
 				} else {
-					SweetAttribute::Key { key }
+					RsxAttribute::Key { key }
 				}
 			}
 		}

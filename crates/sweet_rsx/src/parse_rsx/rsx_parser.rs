@@ -3,7 +3,7 @@ use super::RsxFileVisitor;
 use super::RsxFileVisitorOut;
 use super::WalkNodesOutput;
 use proc_macro2::TokenStream;
-use sweet_core::tree::RsxTree;
+use sweet_core::rsx::RsxTree;
 use syn::visit_mut::VisitMut;
 use syn::Expr;
 use syn::File;

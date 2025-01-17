@@ -1,18 +1,25 @@
-pub mod hydrate;
-pub mod tree;
-pub use self::hydrate::*;
-pub use self::tree::*;
-pub mod rsx;
-pub use self::rsx::*;
-pub mod rsx_tree;
-pub use self::rsx_tree::*;
-pub mod tree_mapper;
+mod tree_mapper;
 pub use self::tree_mapper::*;
-pub mod tree_visitor;
+mod tree_visitor;
 pub use self::tree_visitor::*;
-pub mod rust_parts;
-pub use self::rust_parts::*;
-pub mod text_block_encoder;
-pub use self::text_block_encoder::*;
-pub mod tree_position;
+mod tree_position;
 pub use self::tree_position::*;
+
+/// The base representation of a tree
+/// Implementing these functions allow for
+/// a tree to be traversed by visitors and mappers
+pub trait Tree {
+	type Node: Node;
+}
+
+pub trait Node: Sized {
+	/// Optionally returns the variant of the node
+	/// for debugging and diffing
+	fn variant(&self) -> &'static str { "unimplemented" }
+	/// Optionally returns the variant of the node
+	/// for debugging and diffing
+	fn info(&self) -> String { "unimplemented".into() }
+	fn children(&self) -> Option<&Vec<Self>>;
+	fn children_mut(&mut self) -> Option<&mut Vec<Self>>;
+	fn take_children(&mut self) -> Option<Vec<Self>>;
+}

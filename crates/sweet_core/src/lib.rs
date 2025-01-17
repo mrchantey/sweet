@@ -5,24 +5,18 @@ pub mod error;
 // nice and handy for commonly used tasks
 pub mod tree;
 pub mod utils;
-pub use utils::log::*;
+pub use utils::log;
 pub use utils::sleep::*;
-
-#[cfg(feature = "quote")]
-#[path = "tree/_rsx_tree_quote.rs"]
-pub mod _rsx_tree_quote;
-
+pub mod rsx;
 
 #[rustfmt::skip]
 pub mod prelude {
 	pub use crate::error::*;
-	#[cfg(feature = "quote")]
-	#[allow(unused_imports)]
-	pub use crate::_rsx_tree_quote::*;
 	pub use crate::tree::*;
 	pub use crate::utils::log::*;
 	pub use crate::utils::sleep::*;
 	pub use crate::utils::*;
+	pub use crate::rsx::*;
 
 	// testing 
 	#[cfg(test)]

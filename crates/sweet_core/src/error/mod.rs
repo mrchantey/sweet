@@ -1,3 +1,2 @@
-pub mod parse_error;
-#[allow(unused_imports)]
-pub use self::parse_error::*;
+mod parse_error;
+pub use parse_error::*;

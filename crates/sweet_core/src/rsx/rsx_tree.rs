@@ -1,11 +1,9 @@
-use super::Node;
+use crate::tree::Node;
 #[cfg(feature = "serde")]
 pub use serde::Deserialize;
 #[cfg(feature = "serde")]
 pub use serde::Serialize;
 use strum_macros::AsRefStr;
-
-
 
 
 /// This struct represents one of the core concepts of sweet rsx!
