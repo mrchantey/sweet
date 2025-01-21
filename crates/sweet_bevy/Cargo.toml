@@ -1,0 +1,36 @@
+[package]
+name = "sweet_bevy"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+readme.workspace = true
+description.workspace = true
+documentation.workspace = true
+repository.workspace = true
+categories.workspace = true
+keywords.workspace = true
+
+
+[dependencies]
+sweet_rsx_macros.workspace = true
+sweet_core.workspace = true
+bevy = { version = "0.15", default-features = false }
+thiserror.workspace = true
+anyhow.workspace = true
+futures.workspace = true
+
+#💡 wasm
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+forky = { workspace = true, features = ["web"] }
+console_error_panic_hook.workspace = true
+console_log.workspace = true
+getrandom.workspace = true
+js-sys.workspace = true
+wasm-bindgen.workspace = true
+wasm-bindgen-futures.workspace = true
+web-sys.workspace = true
+
+
+[dev-dependencies]
+sweet_test = { workspace = true, features = ["bevy"] }

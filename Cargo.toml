@@ -1,6 +1,7 @@
 [workspace]
 resolver = "2" # Important! wgpu/Bevy needs this!
 members = [
+	"crates/sweet_bevy",
 	"crates/sweet_core",
 	"crates/sweet_rsx",
 	"crates/sweet_rsx/macros",
@@ -34,6 +35,7 @@ keywords = ["full-stack", "browser", "web", "test", "e2e"]
 [workspace.dependencies]
 # dont specify version to allow it to be included as a dev dependency but ignored by cargo publish
 sweet = { path = "" }
+sweet_bevy = { path = "crates/sweet_bevy", version = "0.3.0-rc.2" }
 sweet_core = { path = "crates/sweet_core", version = "0.3.0-rc.2" }
 sweet_leptos = { path = "crates/sweet_leptos", version = "0.3.0-rc.2" }
 sweet_render = { path = "crates/sweet_render", version = "0.3.0-rc.2" }

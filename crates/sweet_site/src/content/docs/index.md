@@ -11,7 +11,7 @@ Find your rust dev flow with sweet.
 
 ## Find your flow with:
 
-- 🔥 **Smokin hot reload** instant html reloads
+- 🔥 **Smokin hot reload** instant reloads for non-code changes
 - 🌊 **Stay Hydrated** sweet collects pre-hydration events and plays them back in order, no missed events!.
 -  **Scoped CSS** with component `<style/>` tags
 - 🌐 **No signal, no problem** sweet provides reactivity primitives and easily integrates other frameworks astro-style.
