@@ -34,6 +34,8 @@ pub use sweet_test_macros::test;
 // #[cfg(test)]
 // use libtest_runner::testlib_runner as libtest_runner;
 pub mod backtrace;
+#[cfg(feature = "bevy")]
+pub mod bevy;
 /// Utilities for [libtest](https://github.com/rust-lang/rust/tree/master/library/test)
 pub mod libtest;
 /// Cross platform logging utils
@@ -56,6 +58,8 @@ pub mod wasm;
 
 pub mod prelude {
 	pub use crate::backtrace::*;
+	#[cfg(feature = "bevy")]
+	pub use crate::bevy::*;
 	pub use crate::libtest::*;
 	pub use crate::logging::*;
 	pub use crate::matchers::*;
