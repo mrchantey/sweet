@@ -1,4 +1,5 @@
 use super::RsxNode;
+use super::RsxRust;
 use super::RustParts;
 use crate::error::ParseError;
 use crate::error::ParseResult;
@@ -121,12 +122,12 @@ impl CollapsedNode {
 }
 
 impl CollapsedNode {
-	fn from_nodes(nodes: &Vec<RsxNode<RustParts>>) -> Vec<CollapsedNode> {
+	fn from_nodes<R: RsxRust>(nodes: &Vec<RsxNode<R>>) -> Vec<CollapsedNode> {
 		let mut out = Vec::new();
 		for node in nodes {
 			match node {
-				RsxNode::TextBlock(RustParts::TextBlock(val)) => {
-					out.push(CollapsedNode::RustText(val.clone()))
+				RsxNode::Block(val) => {
+					out.push(CollapsedNode::RustText(R::block_to_string(val)))
 				}
 				RsxNode::Text(val) => {
 					out.push(CollapsedNode::StaticText(val.clone()))
@@ -134,13 +135,6 @@ impl CollapsedNode {
 				RsxNode::Doctype => out.push(CollapsedNode::Break),
 				RsxNode::Comment(_) => out.push(CollapsedNode::Break),
 				RsxNode::Element(_) => out.push(CollapsedNode::Break),
-				RsxNode::Component(RustParts::Component(children), vec) => {
-					out.append(&mut Self::from_nodes(&children.nodes));
-					out.append(&mut Self::from_nodes(vec))
-				}
-				_ => {
-					// ignore invalid nodes
-				}
 			}
 		}
 		return out;
@@ -159,7 +153,9 @@ mod test {
 	use super::*;
 	use crate::prelude::*;
 
-	struct Adjective;
+	struct Adjective {
+		children: Vec<RsxNode<RustParts>>,
+	}
 	impl Component for Adjective {
 		fn render(self) -> impl Rsx {
 			rsx! {"lazy"}
@@ -171,6 +167,7 @@ mod test {
 		let desc = "quick";
 		let color = "brown";
 		let action = "jumps over";
+
 		let tree = rsx! {"The "{desc}" and "{color}<b> fox </b> {action}" the "<Adjective> and fat </Adjective>dog };
 		let collapsed = CollapsedNode::from_nodes(&tree.nodes);
 

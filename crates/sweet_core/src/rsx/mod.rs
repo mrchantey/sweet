@@ -1,6 +1,8 @@
 mod hydrate;
+mod rsx_rust;
 mod rsx_tree;
 pub use hydrate::*;
+pub use rsx_rust::*;
 pub use rsx_tree::*;
 pub use rust_parts::*;
 pub use text_block_encoder::*;
@@ -10,24 +12,24 @@ mod rust_parts;
 mod text_block_encoder;
 
 pub trait Rsx {
-	fn into_rsx_tree(self) -> RsxTree<RustParts>;
+	fn into_rsx_tree(self) -> RsxTree<impl RsxRust>;
 }
 
-impl Rsx for RsxTree<RustParts> {
-	fn into_rsx_tree(self) -> RsxTree<RustParts> { self }
+impl<R: RsxRust> Rsx for RsxTree<R> {
+	fn into_rsx_tree(self) -> RsxTree<impl RsxRust> { self }
 }
 
 impl Rsx for () {
-	fn into_rsx_tree(self) -> RsxTree<RustParts> { Default::default() }
+	fn into_rsx_tree(self) -> RsxTree<impl RsxRust> { RsxTree::<()>::default() }
 }
 impl Rsx for &str {
-	fn into_rsx_tree(self) -> RsxTree<RustParts> {
-		RsxTree::new(vec![RsxNode::Text(self.to_string())])
+	fn into_rsx_tree(self) -> RsxTree<impl RsxRust> {
+		RsxTree::<String>::new(vec![RsxNode::Text(self.to_string())])
 	}
 }
 impl Rsx for String {
-	fn into_rsx_tree(self) -> RsxTree<RustParts> {
-		RsxTree::new(vec![RsxNode::Text(self)])
+	fn into_rsx_tree(self) -> RsxTree<impl RsxRust> {
+		RsxTree::<String>::new(vec![RsxNode::Text(self)])
 	}
 }
 
@@ -39,7 +41,7 @@ pub trait Component {
 }
 
 impl<T: Component> Rsx for T {
-	fn into_rsx_tree(self) -> RsxTree<RustParts> {
+	fn into_rsx_tree(self) -> RsxTree<impl RsxRust> {
 		let component = self.render();
 		component.into_rsx_tree()
 	}

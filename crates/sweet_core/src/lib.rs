@@ -2,9 +2,6 @@
 #![cfg_attr(test, test_runner(sweet_test::test_runner))]
 
 pub mod error;
-// nice and handy for commonly used tasks
-pub mod signal;
-pub mod tree;
 pub mod utils;
 pub use utils::log::*;
 pub use utils::sleep::*;
@@ -13,8 +10,6 @@ pub mod rsx;
 #[rustfmt::skip]
 pub mod prelude {
 	pub use crate::error::*;
-	pub use crate::signal::*;
-	pub use crate::tree::*;
 	pub use crate::utils::log::*;
 	pub use crate::utils::sleep::*;
 	pub use crate::utils::*;

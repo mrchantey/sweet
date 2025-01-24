@@ -4,7 +4,7 @@ use crate::prelude::*;
 /// # Example
 ///
 /// ```rust
-/// # use sweet::prelude::*;
+/// # use sweet_test::prelude::*;
 /// expect(true).to_be_true();
 /// expect("foobar").not().to_start_with("bar");
 /// ```

@@ -9,7 +9,7 @@ pub enum RustParts {
 	/// ie `<div>{value}</div>`
 	TextBlock(String),
 	/// ie `<div {attr_block}></div>`
-	AttributeBlock(String),
+	AttributeBlock2(String),
 	/// ie `<div class={class_name}></div>`
 	AttributeValue(String),
 	/// ie `<div onclick={handle_click}></div>`,

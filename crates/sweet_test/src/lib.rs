@@ -13,7 +13,7 @@
 //! #![cfg_attr(test, test_runner(sweet::test_runner))]
 //!
 //!
-//! # use sweet::prelude::*;
+//! # use sweet_test::prelude::*;
 //!
 //! #[test]
 //! fn it_passes() -> Result<()>{

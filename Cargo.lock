@@ -2165,7 +2165,6 @@ dependencies = [
  "getrandom",
  "js-sys",
  "sweet_core",
- "sweet_rsx_macros",
  "sweet_test",
  "thiserror 2.0.11",
  "wasm-bindgen",
@@ -2193,7 +2192,7 @@ dependencies = [
  "strum_macros",
  "sweet_rsx_macros",
  "sweet_test",
- "syn",
+ "sweet_tree",
  "thiserror 2.0.11",
  "tokio",
  "wasm-bindgen",
@@ -2318,7 +2317,6 @@ dependencies = [
  "pin-project-lite",
  "pretty_env_logger",
  "rayon",
- "sweet",
  "sweet_core",
  "sweet_test_macros",
  "thread_local",
@@ -2336,6 +2334,19 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn",
+]
+
+[[package]]
+name = "sweet_tree"
+version = "0.3.0-rc.2"
+dependencies = [
+ "anyhow",
+ "flume",
+ "serde",
+ "strum",
+ "strum_macros",
+ "sweet_test",
+ "thiserror 2.0.11",
 ]
 
 [[package]]

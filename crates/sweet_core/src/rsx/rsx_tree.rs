@@ -1,9 +1,8 @@
-use crate::tree::Node;
+use crate::prelude::*;
 #[cfg(feature = "serde")]
 pub use serde::Deserialize;
 #[cfg(feature = "serde")]
 pub use serde::Serialize;
-use strum_macros::AsRefStr;
 
 
 /// This struct represents one of the core concepts of sweet rsx!
@@ -24,23 +23,23 @@ use strum_macros::AsRefStr;
 /// of ommiting rust parts for serialization.
 /// may or may not contain rust parts, depending on the value of R.
 /// R will be either unit for serialization or [RustParts](super::RustParts)
-#[derive(Debug, Clone, PartialEq)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct RsxTree<R> {
+// #[derive(Debug, Clone, PartialEq)]
+// #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct RsxTree<R: RsxRust> {
 	pub nodes: Vec<RsxNode<R>>,
 }
-impl<R> Default for RsxTree<R> {
+impl<R: RsxRust> Default for RsxTree<R> {
 	fn default() -> Self { Self { nodes: Vec::new() } }
 }
 
-impl<R> RsxTree<R> {
+impl<R: RsxRust> RsxTree<R> {
 	pub fn new(nodes: Vec<RsxNode<R>>) -> Self { Self { nodes } }
 }
 
 
 const PLACEHOLDER: char = '§';
 
-impl<R> RsxTree<R> {
+impl<R: RsxRust> RsxTree<R> {
 	/// placeholder for rust parts
 
 	pub fn extend(&mut self, other: Self) {
@@ -48,75 +47,69 @@ impl<R> RsxTree<R> {
 		self.nodes.extend(nodes);
 	}
 
-	pub fn to_info_string(&self) -> String {
-		let mut out = String::new();
-		for node in &self.nodes {
-			out.push_str(&node.info());
-		}
-		out
-	}
+	// pub fn build_string(&self) -> String {
+	// 	let mut out = String::new();
+	// 	for node in &self.nodes {
+	// 		out.push_str(&node.info());
+	// 	}
+	// 	out
+	// }
 }
 
 /// a 'collapsed' rstml node
-#[derive(Debug, Clone, PartialEq, AsRefStr)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub enum RsxNode<R> {
+// #[derive(Debug, Clone, PartialEq, AsRefStr)]
+// #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub enum RsxNode<R: RsxRust> {
 	Doctype,
 	Comment(String),
 	Element(RsxElement<R>),
 	/// may have been Text or RawText
 	Text(String),
 	/// a rust block, contents is reconciled by renderer
-	TextBlock(R),
-	/// an rust value that implements [Rsx] contents is reconciled by renderer
-	/// The children here are the 'children' of the component
-	Component(R, Vec<RsxNode<R>>),
+	Block(R::Block),
 }
 
-impl<R> RsxNode<R> {}
-
-impl<R> Node for RsxNode<R> {
-	fn info(&self) -> String {
+impl<R: RsxRust> RsxNode<R> {
+	pub fn build_string(&self) -> String {
 		match self {
 			RsxNode::Doctype => "<!DOCTYPE html>".to_string(),
 			RsxNode::Comment(s) => format!("<!--{}-->", s),
-			RsxNode::Element(e) => e.to_info_string(),
+			RsxNode::Element(e) => e.build_string(),
 			RsxNode::Text(s) => s.clone(),
-			RsxNode::TextBlock(_) => PLACEHOLDER.to_string(),
-			RsxNode::Component(_, c) => c.iter().map(|c| c.info()).collect(),
-		}
-	}
-
-	fn children(&self) -> Option<&Vec<RsxNode<R>>> {
-		match self {
-			RsxNode::Element(e) => Some(&e.children),
-			RsxNode::Component(_, c) => Some(&c),
-			_ => None,
-		}
-	}
-	fn children_mut(&mut self) -> Option<&mut Vec<RsxNode<R>>> {
-		match self {
-			RsxNode::Element(e) => Some(&mut e.children),
-			RsxNode::Component(_, c) => Some(c),
-			_ => None,
-		}
-	}
-	fn take_children(&mut self) -> Option<Vec<RsxNode<R>>> {
-		match self {
-			RsxNode::Element(e) => Some(std::mem::take(&mut e.children)),
-			RsxNode::Component(_, c) => Some(std::mem::take(c)),
-			_ => None,
+			RsxNode::Block(_) => PLACEHOLDER.to_string(),
 		}
 	}
 }
+
+// impl<R: RsxRust> Node for RsxNode<R> {
+
+// 	fn children(&self) -> Option<&Vec<RsxNode<R>>> {
+// 		match self {
+// 			RsxNode::Element(e) => Some(&e.children),
+// 			_ => None,
+// 		}
+// 	}
+// 	fn children_mut(&mut self) -> Option<&mut Vec<RsxNode<R>>> {
+// 		match self {
+// 			RsxNode::Element(e) => Some(&mut e.children),
+// 			_ => None,
+// 		}
+// 	}
+// 	fn take_children(&mut self) -> Option<Vec<RsxNode<R>>> {
+// 		match self {
+// 			RsxNode::Element(e) => Some(std::mem::take(&mut e.children)),
+// 			_ => None,
+// 		}
+// 	}
+// }
 
 
 /// Minimum required info for our use case of html.
 /// Blocks are assumed to be `PartiaEq` because
 /// they are defined as 'the next block in the vec' when reconciling.
-#[derive(Debug, Clone, PartialEq)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct RsxElement<R> {
+// #[derive(Clone, PartialEq)]
+// #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct RsxElement<R: RsxRust> {
 	/// ie `div, span, input`
 	pub tag: String,
 	/// ie `class="my-class"`
@@ -128,7 +121,7 @@ pub struct RsxElement<R> {
 }
 
 
-impl<R> RsxElement<R> {
+impl<R: RsxRust> RsxElement<R> {
 	pub fn new(tag: String, self_closing: bool) -> Self {
 		Self {
 			tag,
@@ -139,9 +132,7 @@ impl<R> RsxElement<R> {
 	}
 
 	pub fn contains_text_blocks(&self) -> bool {
-		self.children
-			.iter()
-			.any(|c| matches!(c, RsxNode::TextBlock(_)))
+		self.children.iter().any(|c| matches!(c, RsxNode::Block(_)))
 	}
 
 	/// Whether any children or attributes are blocks,
@@ -157,7 +148,7 @@ impl<R> RsxElement<R> {
 	}
 
 
-	pub fn to_info_string(&self) -> String {
+	pub fn build_string(&self) -> String {
 		let mut out = String::new();
 		let self_closing = if self.self_closing { "/" } else { "" };
 
@@ -167,7 +158,7 @@ impl<R> RsxElement<R> {
 			out.push_str(&attribute.to_string_placeholder());
 		}
 		for child in &self.children {
-			out.push_str(&child.info());
+			out.push_str(&child.build_string());
 		}
 		if !self.self_closing {
 			out.push_str(&format!("</{}>", self.tag));
@@ -176,16 +167,24 @@ impl<R> RsxElement<R> {
 	}
 }
 
-#[derive(Debug, Clone, PartialEq)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub enum RsxAttribute<R> {
-	Key { key: String },
-	KeyValue { key: String, value: String },
-	BlockValue { key: String, value: R },
-	Block(R),
+// #[derive(Debug, Clone, PartialEq)]
+// #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub enum RsxAttribute<R: RsxRust> {
+	Key {
+		key: String,
+	},
+	KeyValue {
+		key: String,
+		value: String,
+	},
+	BlockValue {
+		key: String,
+		value: R::AttributeBlockValue,
+	},
+	Block(R::AttributeBlock),
 }
 
-impl<R> RsxAttribute<R> {
+impl<R: RsxRust> RsxAttribute<R> {
 	pub fn to_string_placeholder(&self) -> String {
 		match self {
 			RsxAttribute::Key { key } => key.clone(),

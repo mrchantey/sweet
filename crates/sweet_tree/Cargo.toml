@@ -1,0 +1,28 @@
+[package]
+name = "sweet_tree"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+readme.workspace = true
+description.workspace = true
+documentation.workspace = true
+repository.workspace = true
+categories.workspace = true
+keywords.workspace = true
+
+
+[features]
+
+
+[dependencies]
+thiserror.workspace = true
+anyhow.workspace = true
+flume.workspace = true
+strum.workspace = true
+strum_macros.workspace = true
+serde = { workspace = true, optional = true }
+
+
+[dev-dependencies]
+sweet_test.workspace = true

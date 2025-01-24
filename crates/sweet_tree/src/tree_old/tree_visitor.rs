@@ -1,34 +1,66 @@
 use crate::prelude::*;
 
+
 #[allow(unused_variables)]
-pub trait TreeVisitor<N: Node>: PositionVisitor {
-	fn walk_nodes_dfs(&mut self, nodes: &Vec<N>) -> ParseResult<()> {
-		self.position_mut().visit_children();
+pub trait NodeVisitor {
+	type Node;
+	fn visit_node(&mut self, node: Self::Node) -> ParseResult<()> { Ok(()) }
+}
+
+pub trait TreeWalker: TreeVisitor {
+	// type Node: Node;
+	type Children;
+	fn walk_nodes_dfs(
+		&mut self,
+		nodes: impl IntoIterator<Item = Self::Node>,
+	) -> ParseResult<()> {
 		self.visit_children(nodes)?;
-		for node in nodes.iter() {
-			self.position_mut().visit_node();
+		for node in nodes.into_iter() {
 			self.visit_node(node)?;
 			if let Some(children) = node.children() {
 				self.walk_nodes_dfs(children)?;
 			}
 			self.leave_node(node)?;
-			self.position_mut().leave_node();
 		}
 		self.leave_children(nodes)?;
 		self.position_mut().leave_children();
 		Ok(())
 	}
-	fn visit_node(&mut self, node: &N) -> ParseResult<()> { Ok(()) }
-	fn leave_node(&mut self, node: &N) -> ParseResult<()> { Ok(()) }
-	fn visit_children(&mut self, children: &Vec<N>) -> ParseResult<()> {
+}
+
+
+#[allow(unused_variables)]
+pub trait TreeVisitor {
+	type Node: Node;
+	fn walk_nodes_dfs(&mut self, nodes: &Vec<Self::Node>) -> ParseResult<()> {
+		self.visit_children(nodes)?;
+		for node in nodes.iter() {
+			self.visit_node(node)?;
+			if let Some(children) = node.children() {
+				self.walk_nodes_dfs(children)?;
+			}
+			self.leave_node(node)?;
+		}
+		self.leave_children(nodes)?;
 		Ok(())
 	}
-	fn leave_children(&mut self, children: &Vec<N>) -> ParseResult<()> {
+	fn visit_node(&mut self, node: &Self::Node) -> ParseResult<()> { Ok(()) }
+	fn leave_node(&mut self, node: &Self::Node) -> ParseResult<()> { Ok(()) }
+	fn visit_children(
+		&mut self,
+		children: &Vec<Self::Node>,
+	) -> ParseResult<()> {
+		Ok(())
+	}
+	fn leave_children(
+		&mut self,
+		children: &Vec<Self::Node>,
+	) -> ParseResult<()> {
 		Ok(())
 	}
 }
 #[allow(unused_variables)]
-pub trait TreeVisitorMut<N: Node>: PositionVisitor {
+pub trait TreeVisitorMut<N: Node> {
 	fn walk_nodes_dfs(&mut self, nodes: &mut Vec<N>) -> ParseResult<()> {
 		self.position_mut().visit_children();
 		self.visit_children(nodes)?;
@@ -55,7 +87,7 @@ pub trait TreeVisitorMut<N: Node>: PositionVisitor {
 	}
 }
 #[allow(unused_variables)]
-pub trait TreeVisitorOwned<N: Node>: PositionVisitor {
+pub trait TreeVisitorOwned<N: Node> {
 	fn walk_nodes_dfs(&mut self, nodes: Vec<N>) -> ParseResult<()> {
 		self.position_mut().visit_children();
 		let nodes = self.visit_children(nodes)?;
@@ -82,5 +114,3 @@ pub trait TreeVisitorOwned<N: Node>: PositionVisitor {
 	}
 	fn leave_children(&mut self) -> ParseResult<()> { Ok(()) }
 }
-
-

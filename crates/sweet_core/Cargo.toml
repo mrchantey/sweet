@@ -19,6 +19,7 @@ serde = ["dep:serde", "dep:bincode"]
 
 [dependencies]
 thiserror.workspace = true
+sweet_tree.workspace = true
 anyhow.workspace = true
 flume.workspace = true
 strum.workspace = true

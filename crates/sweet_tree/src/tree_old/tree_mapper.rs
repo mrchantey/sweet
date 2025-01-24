@@ -1,9 +1,8 @@
-use super::Node;
 use super::TreePosition;
 use crate::error::ParseResult;
 
 #[allow(unused_variables)]
-pub trait TreeMapper<I: Node, O> {
+pub trait TreeMapper<I, O> {
 	// fn tree_position(&mut self) -> &TreePosition;
 	fn position(&mut self) -> &mut TreePosition;
 

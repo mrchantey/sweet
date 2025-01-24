@@ -3,7 +3,7 @@
 <div align="center">
 
   <p>
-    <strong>full-stack rust</strong>
+    <strong>Tools for reactive structures in rust</strong>
   </p>
 
   <p>

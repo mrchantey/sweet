@@ -12,6 +12,8 @@ use sweet_test_attr::SweetTestAttr;
 /// In the case of sync tests this simply replaces `#[sweet::test]` with `#[test]`.
 ///
 /// ```ignore
+/// # use sweet_test as sweet;
+/// 
 /// #[sweet::test]
 /// fn my_test() {
 /// 	assert_eq!(2 + 2, 4);

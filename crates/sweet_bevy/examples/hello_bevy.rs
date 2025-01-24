@@ -17,7 +17,7 @@ struct MyComponent {
 }
 
 impl Component for MyComponent {
-	fn render(self) -> impl RsxBase {
+	fn render(self) -> impl Rsx {
 		rsx! {
 			<div>
 				{self.initial_value}
