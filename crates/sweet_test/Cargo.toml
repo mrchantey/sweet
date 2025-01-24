@@ -61,10 +61,6 @@ console_error_panic_hook.workspace = true
 getrandom.workspace = true                       # enable js feature
 forky = { workspace = true, features = ["web"] }
 
-[dev-dependencies]
-sweet = { workspace = true, features = ["test"] }
-
-
 [[test]]
 name = "hello_test"
 path = "test_examples/hello_test.rs"

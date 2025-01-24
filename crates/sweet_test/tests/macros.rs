@@ -1,6 +1,6 @@
 //! example usage of async tests
 #![cfg_attr(test, feature(test, custom_test_frameworks))]
-#![cfg_attr(test, test_runner(sweet::test_runner))]
+#![cfg_attr(test, test_runner(sweet_test::test_runner))]
 use anyhow::Result;
 
 #[test]
@@ -10,19 +10,19 @@ fn its_ignored_sync() { panic!("foo") }
 #[should_panic = "cos its fun"]
 fn it_panics_sync() { panic!("foo") }
 
-#[sweet::test]
+#[sweet_test::test]
 async fn it_passes() {}
-#[sweet::test]
+#[sweet_test::test]
 async fn it_returns_ok() -> Result<(), String> { Ok(()) }
 #[test]
 #[ignore = "it returns error"]
 fn it_returns_err() -> Result<(), String> { Err("foo".to_string()) }
 
-#[sweet::test]
+#[sweet_test::test]
 #[ignore = "it returns error"]
 async fn it_returns_err_async() -> Result<(), String> { Err("foo".to_string()) }
 
-#[sweet::test]
+#[sweet_test::test]
 #[should_panic]
 async fn it_panics() { panic!("foo") }
 
@@ -34,11 +34,11 @@ async fn it_tokio_waits_then_panics() {
 	sweet_core::sleep_secs(1).await;
 	panic!("waddup")
 }
-#[sweet::test]
+#[sweet_test::test]
 // #[should_panic]
 async fn it_sleeps() { sweet_core::sleep_secs(1).await; }
 
-#[sweet::test]
+#[sweet_test::test]
 #[should_panic]
 async fn it_sleeps_then_panics() {
 	sweet_core::sleep_secs(1).await;

@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use sweet::prelude::*;
+use crate::prelude::*;
 
 type Func<T> = MockFunc<T, T, fn(T) -> T>;
 
