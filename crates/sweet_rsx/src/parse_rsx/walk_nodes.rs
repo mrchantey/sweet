@@ -1,4 +1,6 @@
 use super::self_closing_elements;
+use super::RsxAttributeTokens;
+use super::RsxNodeTokens;
 use proc_macro2::TokenStream;
 use proc_macro2_diagnostics::Diagnostic;
 use proc_macro2_diagnostics::Level;
@@ -11,7 +13,6 @@ use rstml::node::NodeFragment;
 use rstml::node::NodeName;
 use std::collections::HashSet;
 use syn::spanned::Spanned;
-use syn::Ident;
 
 #[derive(Debug, Clone)]
 pub struct WalkNodesOutput {
@@ -36,44 +37,35 @@ impl Default for WalkNodesOutput {
 }
 
 
-type RsxNode = sweet_core::rsx::RsxNode<TokenStream>;
-type RsxElement = sweet_core::rsx::RsxElement<TokenStream>;
-type RsxAttribute = sweet_core::rsx::RsxAttribute<TokenStream>;
-
 impl WalkNodesOutput {
 	#[must_use]
 	/// the number of actual html nodes will likely be different
 	/// due to fragments, blocks etc
-	pub fn visit_nodes(&mut self, nodes: Vec<Node>) -> Vec<RsxNode> {
+	pub fn visit_nodes<C>(
+		&mut self,
+		nodes: Vec<Node<C>>,
+	) -> Vec<RsxNodeTokens> {
 		nodes
 			.into_iter()
-			.flat_map(|node| self.visit_node(node))
+			.map(|node| self.visit_node(node))
 			.collect()
 	}
 
 	/// visit node does not add html to self, giving caller
 	/// a decision. Vec is returned to handle fragments
 	#[must_use]
-	fn visit_node(&mut self, node: Node) -> Vec<RsxNode> {
+	fn visit_node<C>(&mut self, node: Node<C>) -> RsxNodeTokens {
 		match node {
-			Node::Doctype(_) => vec![RsxNode::Doctype],
-			Node::Text(text) => {
-				vec![RsxNode::Text(text.value_string())]
-			}
-			Node::RawText(raw) => {
-				vec![RsxNode::Text(raw.to_string_best())]
+			Node::Doctype(_) => RsxNodeTokens::Doctype,
+			Node::Text(text) => RsxNodeTokens::Text(text.value_string()),
+			Node::RawText(raw) => RsxNodeTokens::Text(raw.to_string_best()),
+			Node::Comment(comment) => {
+				RsxNodeTokens::Comment(comment.value.value())
 			}
 			Node::Fragment(NodeFragment { children, .. }) => {
-				self.visit_nodes(children)
+				RsxNodeTokens::Fragment(self.visit_nodes(children))
 			}
-			Node::Comment(comment) => {
-				vec![RsxNode::Comment(comment.value.value())]
-			}
-			Node::Block(block) => {
-				vec![RsxNode::TextBlock(
-					quote! {RustParts::TextBlock(#block.to_string())},
-				)]
-			}
+			Node::Block(block) => RsxNodeTokens::Block(block.to_token_stream()),
 			Node::Element(el) => {
 				self.check_self_closing_children(&el);
 				let NodeElement {
@@ -89,38 +81,10 @@ impl WalkNodesOutput {
 				}
 				let tag = open_tag.name.to_string();
 
-
 				let is_component = tag.starts_with(|c: char| c.is_uppercase());
 				if is_component {
-					let props =
-						open_tag.attributes.into_iter().map(
-							|attr| match attr {
-								NodeAttribute::Block(node_block) => {
-									quote! {#node_block}
-								}
-								NodeAttribute::Attribute(attr) => {
-									if let Some(value) = attr.value() {
-										let key = &attr.key;
-										quote! {#key: #value}
-									} else {
-										let key = attr.key;
-										quote! {#key: true}
-									}
-								}
-							},
-						);
-					let ident = syn::Ident::new(&tag, tag.span());
-
-					let rust = quote! { RustParts::Component(
-							#ident{
-								#(#props,)*
-							}
-							.into_rsx_tree()
-						)
-					};
-
-					let children = self.visit_nodes(children);
-					vec![RsxNode::Component(rust, children)]
+					self.visit_component(&tag, &open_tag.attributes, children)
+					// vec![RsxNode::Component(children)]
 				} else {
 					let attributes = open_tag
 						.attributes
@@ -128,16 +92,54 @@ impl WalkNodesOutput {
 						.map(|attr| self.visit_attribute(attr))
 						.collect();
 					let children = self.visit_nodes(children);
-					vec![RsxNode::Element(RsxElement {
+					RsxNodeTokens::Element {
 						tag: tag.clone(),
 						attributes,
 						children,
 						self_closing,
-					})]
+					}
 				}
 			}
 			Node::Custom(_) => unimplemented!("Custom nodes not yet supported"),
 		}
+	}
+
+	fn visit_component<C>(
+		&mut self,
+		tag: &str,
+		attributes: &Vec<NodeAttribute>,
+		children: Vec<Node<C>>,
+	) -> RsxNodeTokens {
+		let props = attributes.into_iter().map(|attr| match attr {
+			NodeAttribute::Block(node_block) => {
+				quote! {#node_block}
+			}
+			NodeAttribute::Attribute(attr) => {
+				if let Some(value) = attr.value() {
+					let key = &attr.key;
+					quote! {#key: #value}
+				} else {
+					let key = &attr.key;
+					quote! {#key: true}
+				}
+			}
+		});
+		let ident = syn::Ident::new(&tag, tag.span());
+		let children_prop = if children.is_empty() {
+			TokenStream::default()
+		} else {
+			let children = self.visit_nodes(children);
+			quote! {children: vec![#(#children),*],}
+		};
+
+		let rust = quote! {
+				#ident{
+					#children_prop
+					#(#props,)*
+				}
+				.into_rsx_tree().nodes
+		};
+		RsxNodeTokens::Component(rust)
 	}
 
 	fn check_self_closing_children<C>(&mut self, element: &NodeElement<C>) {
@@ -156,44 +158,30 @@ impl WalkNodesOutput {
 		self.errors.push(warning.emit_as_expr_tokens());
 	}
 
-	fn visit_attribute(&mut self, attr: NodeAttribute) -> RsxAttribute {
+	fn visit_attribute(&mut self, attr: NodeAttribute) -> RsxAttributeTokens {
 		match attr {
-			NodeAttribute::Block(block) => RsxAttribute::Block(
-				quote! {RustParts::AttributeBlock(#block.to_string())},
-			),
-			NodeAttribute::Attribute(attr) => {
-				let key = attr.key.to_string();
-
-				if key.starts_with("on") {
-					let tokens = if let Some(value) = attr.value() {
-						value.to_token_stream()
-					} else {
-						// default to a function called onclick
-						Ident::new(&key, key.span()).to_token_stream()
-					};
-					RsxAttribute::BlockValue {
-						key,
-						value: quote! {RustParts::Event(Box::new(#tokens))},
-					}
-				} else if let Some(value) = attr.value() {
-					match value {
-						// only literals (string, number, bool) are not rusty
-						syn::Expr::Lit(expr_lit) => {
-							let value = match &expr_lit.lit {
-								syn::Lit::Str(s) => s.value(),
-								other => other.to_token_stream().to_string(),
-							};
-							RsxAttribute::KeyValue { key, value }
-						}
-						tokens => RsxAttribute::BlockValue {
-							key,
-							value: quote! {RustParts::AttributeValue(#tokens.to_string())},
-						},
-					}
-				} else {
-					RsxAttribute::Key { key }
-				}
+			NodeAttribute::Block(block) => {
+				RsxAttributeTokens::Block(block.to_token_stream())
 			}
+			NodeAttribute::Attribute(attr) => match attr.value() {
+				None => RsxAttributeTokens::Key {
+					key: attr.key.to_string(),
+				},
+				Some(syn::Expr::Lit(expr_lit)) => {
+					let value = match &expr_lit.lit {
+						syn::Lit::Str(s) => s.value(),
+						other => other.to_token_stream().to_string(),
+					};
+					RsxAttributeTokens::KeyValue {
+						key: attr.key.to_string(),
+						value,
+					}
+				}
+				Some(tokens) => RsxAttributeTokens::BlockValue {
+					key: attr.key.to_string(),
+					value: tokens.to_token_stream(),
+				},
+			},
 		}
 	}
 }

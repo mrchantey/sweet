@@ -38,7 +38,7 @@ pub struct RsxRenderVisitor {
 	position: TreePosition,
 }
 
-impl PositionVisitor for RsxRenderVisitor {
+impl VisitWithPosition for RsxRenderVisitor {
 	fn position(&self) -> &TreePosition { &self.position }
 	fn position_mut(&mut self) -> &mut TreePosition { &mut self.position }
 }
@@ -75,8 +75,8 @@ impl TreeVisitor<RsxNode<String>> for RsxRenderVisitor {
 					self.html.push('>');
 				}
 			}
-			RsxNode::TextBlock(val) => self.html += val,
-			RsxNode::Component(_, _) => {
+			RsxNode::Block(val) => self.html += val,
+			RsxNode::Component(_) => {
 				// components are not html
 			}
 		};

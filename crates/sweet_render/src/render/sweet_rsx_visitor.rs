@@ -55,20 +55,9 @@ impl TreeMapper<RsxNode<RustParts>, RsxNode<String>> for SweetRsxVisitor {
 			RsxNode::Comment(val) => RsxNode::Comment(val),
 			RsxNode::Element(el) => RsxNode::Element(self.parse_element(el)?),
 			RsxNode::Text(val) => RsxNode::Text(val),
-			RsxNode::TextBlock(RustParts::TextBlock(val)) => {
-				RsxNode::TextBlock(val)
-			}
-			RsxNode::TextBlock(parts) => {
+			RsxNode::Block(RustParts::TextBlock(val)) => RsxNode::Block(val),
+			RsxNode::Block(parts) => {
 				return Err(ParseError::hydration("TextBlock", parts));
-			}
-			RsxNode::Component(RustParts::Component(component), children) => {
-				// components arent html, return empty string
-				let mut component_children = self.map_nodes(component.nodes)?;
-				component_children.append(&mut self.map_nodes(children)?);
-				RsxNode::Component(String::new(), component_children)
-			}
-			RsxNode::Component(parts, _) => {
-				return Err(ParseError::hydration("Component", parts));
 			}
 		};
 		Ok(node)
@@ -140,7 +129,7 @@ impl SweetRsxVisitor {
 				};
 				RsxAttribute::BlockValue { key, value }
 			}
-			RsxAttribute::Block(RustParts::AttributeBlock(block_str)) => {
+			RsxAttribute::Block(RustParts::AttributeBlock2(block_str)) => {
 				RsxAttribute::Block(block_str)
 			}
 			RsxAttribute::Block(parts) => {

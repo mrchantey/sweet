@@ -3,7 +3,6 @@ use super::RsxFileVisitor;
 use super::RsxFileVisitorOut;
 use super::WalkNodesOutput;
 use proc_macro2::TokenStream;
-use sweet_core::rsx::RsxTree;
 use syn::visit_mut::VisitMut;
 use syn::Expr;
 use syn::File;
@@ -54,7 +53,6 @@ impl RsxParser {
 		let (nodes, rstml_errors) = parse_rstml(tokens.clone());
 		let mut output = WalkNodesOutput::default();
 		let nodes = output.visit_nodes(nodes);
-		let tree = RsxTree::new(nodes);
 
 		let WalkNodesOutput {
 			errors,
@@ -77,7 +75,13 @@ impl RsxParser {
 		*tokens = syn::parse_quote! {{
 			use sweet::prelude::*;
 			#errors
-			#tree as RsxTree::<RustParts>
+
+			#[allow(unused_braces)]
+			{
+				RsxTree {
+					nodes: Vec::from([#(#nodes),*]),
+				} as RsxTree::<RustParts>
+			}
 		}};
 		Ok(output)
 	}

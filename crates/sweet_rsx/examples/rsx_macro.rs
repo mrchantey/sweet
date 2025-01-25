@@ -15,16 +15,26 @@ impl Component for MyComponent {
 }
 
 
-fn main() {
-	let onclick = |_| {};
+// fn main() {
+// 	let onclick = |_| {};
 
-	let _foo = rsx! {
-		<div onclick>
+// 	let _foo = rsx! {
+// 		<div onclick>
+// 			<p>hello</p>
+// 			<MyComponent value=7/>
+// 		</div>
+// 	};
+
+// 	let str = _foo.to_info_string();
+// 	println!("{}", str);
+// }
+fn main() {
+	let foo = rsx! {
+		<div>
 			<p>hello</p>
-			<MyComponent value=7/>
 		</div>
 	};
 
-	let str = _foo.to_info_string();
+	let str = foo.build_string();
 	println!("{}", str);
 }
