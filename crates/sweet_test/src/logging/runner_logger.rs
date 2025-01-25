@@ -34,7 +34,7 @@ impl RunnerLogger {
 			clear();
 		}
 		if !config.quiet {
-			sweet_core::log!("\n{}\n\n{config}", Self::SWEET_AS)
+			sweet_utils::log!("\n{}\n\n{config}", Self::SWEET_AS)
 		}
 
 		#[cfg(not(target_arch = "wasm32"))]
@@ -58,7 +58,7 @@ impl RunnerLogger {
 			}
 		}
 	}
-	pub fn on_result(&mut self,mut result: TestDescAndResult) -> Result<()> {
+	pub fn on_result(&mut self, mut result: TestDescAndResult) -> Result<()> {
 		if !self.config.quiet {
 			self.case_logger.on_result(&mut result)?;
 		}
@@ -81,7 +81,7 @@ impl RunnerLogger {
 		let result_count = ResultCount::from_case_results(&self.cases);
 
 		if !self.config.quiet {
-			sweet_core::log_val(&self.case_results(&result_count));
+			sweet_utils::log_val(&self.case_results(&result_count));
 		}
 		self.on_results_printed();
 		if !self.config.watch && !result_count.succeeded() {

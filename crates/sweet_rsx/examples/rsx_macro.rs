@@ -38,3 +38,12 @@ fn main() {
 	let str = foo.build_string();
 	println!("{}", str);
 }
+
+
+fn boo() {
+	let desc = "quick";
+	let color = "brown";
+	let action = "jumps over";
+
+	let tree = rsx! {"The "{desc}" and "{color}<b> fox </b> {action}" the "<Adjective> and fat </Adjective>dog };
+}

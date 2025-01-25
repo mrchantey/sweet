@@ -2190,9 +2190,7 @@ dependencies = [
  "serde",
  "strum",
  "strum_macros",
- "sweet_rsx_macros",
  "sweet_test",
- "sweet_tree",
  "thiserror 2.0.11",
  "tokio",
  "wasm-bindgen",
@@ -2317,8 +2315,8 @@ dependencies = [
  "pin-project-lite",
  "pretty_env_logger",
  "rayon",
- "sweet_core",
  "sweet_test_macros",
+ "sweet_utils",
  "thread_local",
  "tokio",
  "wasm-bindgen",
@@ -2337,16 +2335,24 @@ dependencies = [
 ]
 
 [[package]]
-name = "sweet_tree"
+name = "sweet_utils"
 version = "0.3.0-rc.2"
 dependencies = [
  "anyhow",
- "flume",
+ "console_error_panic_hook",
+ "console_log",
+ "forky",
+ "getrandom",
+ "js-sys",
  "serde",
  "strum",
  "strum_macros",
  "sweet_test",
  "thiserror 2.0.11",
+ "tokio",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "web-sys",
 ]
 
 [[package]]

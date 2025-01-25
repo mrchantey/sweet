@@ -9,7 +9,7 @@ members = [
 	"crates/sweet_render",
 	"crates/sweet_server",
 	"crates/sweet_site",
-	"crates/sweet_tree",
+	"crates/sweet_utils",
 	"crates/sweet_test/macros",
 	"crates/sweet_test",
 	"crates/sweet-cli",
@@ -38,7 +38,7 @@ keywords = ["full-stack", "browser", "web", "test", "e2e"]
 sweet = { path = "" }
 sweet_bevy = { path = "crates/sweet_bevy", version = "0.3.0-rc.2" }
 sweet_core = { path = "crates/sweet_core", version = "0.3.0-rc.2" }
-sweet_tree = { path = "crates/sweet_tree", version = "0.3.0-rc.2" }
+sweet_utils = { path = "crates/sweet_utils", version = "0.3.0-rc.2" }
 sweet_leptos = { path = "crates/sweet_leptos", version = "0.3.0-rc.2" }
 sweet_render = { path = "crates/sweet_render", version = "0.3.0-rc.2" }
 sweet_rsx = { path = "crates/sweet_rsx", version = "0.3.0-rc.2" }

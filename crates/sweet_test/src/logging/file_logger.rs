@@ -56,7 +56,7 @@ impl FileResult {
 		let status = self.status();
 		let prefix = status.status_prefix();
 		let file = pretty_file_path(&self.file);
-		sweet_core::log!("{} {}{}", prefix, file, status.message());
+		sweet_utils::log!("{} {}{}", prefix, file, status.message());
 	}
 }
 

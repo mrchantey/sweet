@@ -16,7 +16,7 @@ bevy = ["dep:bevy"]
 
 [dependencies]
 #💡 internal 
-sweet_core.workspace = true
+sweet_utils.workspace = true
 sweet_test_macros.workspace = true
 forky.workspace = true
 

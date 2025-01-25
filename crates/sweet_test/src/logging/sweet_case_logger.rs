@@ -20,7 +20,7 @@ impl SweetCaseLogger {
 
 		let message = case.result.message();
 
-		sweet_core::log!("{status} {file}\t{name}{message}");
+		sweet_utils::log!("{status} {file}\t{name}{message}");
 	}
 
 	fn case_pretty_path(&self, desc: &TestDesc) -> String {

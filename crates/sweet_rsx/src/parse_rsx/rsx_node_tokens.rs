@@ -1,9 +1,6 @@
 use proc_macro2::TokenStream;
 use quote::quote;
 use quote::ToTokens;
-use sweet_core::tree_old::Node;
-use sweet_core::tree_old::TreeVisitor;
-use sweet_core::tree_old::TreeVisitorMut;
 
 pub enum RsxNodeTokens {
 	Doctype,
@@ -20,31 +17,31 @@ pub enum RsxNodeTokens {
 	Component(TokenStream),
 }
 
-impl Node for RsxNodeTokens {
-	fn children(&self) -> Option<&Vec<Self>> {
-		match self {
-			RsxNodeTokens::Element { children, .. } => Some(children),
-			RsxNodeTokens::Fragment(vec) => Some(vec),
-			_ => None,
-		}
-	}
-	fn children_mut(&mut self) -> Option<&mut Vec<Self>> {
-		match self {
-			RsxNodeTokens::Element { children, .. } => Some(children),
-			RsxNodeTokens::Fragment(vec) => Some(vec),
-			_ => None,
-		}
-	}
-	fn take_children(&mut self) -> Option<Vec<Self>> {
-		match self {
-			RsxNodeTokens::Element { children, .. } => {
-				Some(std::mem::take(children))
-			}
-			RsxNodeTokens::Fragment(vec) => Some(std::mem::take(vec)),
-			_ => None,
-		}
-	}
-}
+// impl Node for RsxNodeTokens {
+// 	fn children(&self) -> Option<&Vec<Self>> {
+// 		match self {
+// 			RsxNodeTokens::Element { children, .. } => Some(children),
+// 			RsxNodeTokens::Fragment(vec) => Some(vec),
+// 			_ => None,
+// 		}
+// 	}
+// 	fn children_mut(&mut self) -> Option<&mut Vec<Self>> {
+// 		match self {
+// 			RsxNodeTokens::Element { children, .. } => Some(children),
+// 			RsxNodeTokens::Fragment(vec) => Some(vec),
+// 			_ => None,
+// 		}
+// 	}
+// 	fn take_children(&mut self) -> Option<Vec<Self>> {
+// 		match self {
+// 			RsxNodeTokens::Element { children, .. } => {
+// 				Some(std::mem::take(children))
+// 			}
+// 			RsxNodeTokens::Fragment(vec) => Some(std::mem::take(vec)),
+// 			_ => None,
+// 		}
+// 	}
+// }
 
 pub enum RsxAttributeTokens {
 	Key { key: String },
@@ -129,59 +126,59 @@ impl ToTokens for RsxAttributeTokens {
 }
 
 
-pub struct ParseStringNodeTokens {
-	position: TreePosition,
-}
+// pub struct ParseStringNodeTokens {
+// 	position: TreePosition,
+// }
 
-impl TreeVisitorMut<RsxNodeTokens> for ParseStringNodeTokens {
-	fn visit_node(
-		&mut self,
-		node: &mut RsxNodeTokens,
-	) -> sweet_core::prelude::ParseResult<()> {
-		match node {
-			RsxNodeTokens::Block(token_stream) => {
-				*token_stream = quote! {#token_stream.to_string()}
-			}
-			RsxNodeTokens::Element { attributes, .. } => {
-				for attribute in attributes {
-					match attribute {
-						RsxAttributeTokens::BlockValue { value, .. } => {
-							*value = quote! {#value.to_string()}
-						}
-						RsxAttributeTokens::Block(token_stream) => {
-							*token_stream = quote! {#token_stream.to_string()}
-						}
-						_ => {}
-					}
-				}
-			}
-			_ => {}
-		}
+// impl TreeVisitorMut<RsxNodeTokens> for ParseStringNodeTokens {
+// 	fn visit_node(
+// 		&mut self,
+// 		node: &mut RsxNodeTokens,
+// 	) -> sweet_core::prelude::ParseResult<()> {
+// 		match node {
+// 			RsxNodeTokens::Block(token_stream) => {
+// 				*token_stream = quote! {#token_stream.to_string()}
+// 			}
+// 			RsxNodeTokens::Element { attributes, .. } => {
+// 				for attribute in attributes {
+// 					match attribute {
+// 						RsxAttributeTokens::BlockValue { value, .. } => {
+// 							*value = quote! {#value.to_string()}
+// 						}
+// 						RsxAttributeTokens::Block(token_stream) => {
+// 							*token_stream = quote! {#token_stream.to_string()}
+// 						}
+// 						_ => {}
+// 					}
+// 				}
+// 			}
+// 			_ => {}
+// 		}
 
-		Ok(())
-	}
+// 		Ok(())
+// 	}
 
-	fn leave_node(
-		&mut self,
-		node: &mut RsxNodeTokens,
-	) -> sweet_core::prelude::ParseResult<()> {
-		Ok(())
-	}
+// 	fn leave_node(
+// 		&mut self,
+// 		node: &mut RsxNodeTokens,
+// 	) -> sweet_core::prelude::ParseResult<()> {
+// 		Ok(())
+// 	}
 
-	fn visit_children(
-		&mut self,
-		children: &mut Vec<RsxNodeTokens>,
-	) -> sweet_core::prelude::ParseResult<()> {
-		Ok(())
-	}
+// 	fn visit_children(
+// 		&mut self,
+// 		children: &mut Vec<RsxNodeTokens>,
+// 	) -> sweet_core::prelude::ParseResult<()> {
+// 		Ok(())
+// 	}
 
-	fn leave_children(
-		&mut self,
-		children: &mut Vec<RsxNodeTokens>,
-	) -> sweet_core::prelude::ParseResult<()> {
-		Ok(())
-	}
-}
+// 	fn leave_children(
+// 		&mut self,
+// 		children: &mut Vec<RsxNodeTokens>,
+// 	) -> sweet_core::prelude::ParseResult<()> {
+// 		Ok(())
+// 	}
+// }
 
 
 

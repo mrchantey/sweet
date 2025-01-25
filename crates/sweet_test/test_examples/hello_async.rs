@@ -10,18 +10,18 @@ async fn returns_err() -> Result<(), String> { Err("foo".to_string()) }
 #[tokio::test]
 #[should_panic]
 async fn dummy2() {
-	sweet_core::sleep_secs(1).await;
+	sweet_utils::sleep_secs(1).await;
 	panic!("waddup")
 }
 #[sweet_test::test]
 // #[should_panic]
-async fn dummy3() { sweet_core::sleep_secs(1).await; }
+async fn dummy3() { sweet_utils::sleep_secs(1).await; }
 #[sweet_test::test]
 // #[should_panic]
-async fn dummy4() { sweet_core::sleep_secs(1).await; }
+async fn dummy4() { sweet_utils::sleep_secs(1).await; }
 #[sweet_test::test]
 #[should_panic]
 async fn dummy5() {
-	sweet_core::sleep_secs(1).await;
+	sweet_utils::sleep_secs(1).await;
 	panic!("whaya");
 }
