@@ -55,6 +55,29 @@ pub enum RsxNodeTokens<T> {
 	Component(TokenStream),
 }
 
+impl<T> RsxNodeTokens<T> {
+	/// attempts to read the `slot="some_name"` attribute from the element
+	/// returns "default" if no slot is found
+	pub fn slot_name(&self) -> &str {
+		match self {
+			RsxNodeTokens::Element { attributes, .. } => {
+				for attr in attributes {
+					match attr {
+						RsxAttributeTokens::KeyValue { key, value } => {
+							if key == "slot" {
+								return value;
+							}
+						}
+						_ => {}
+					}
+				}
+			}
+			_ => {}
+		}
+		"default"
+	}
+}
+
 impl<T: RsxRustTokens> ToTokens for RsxNodeTokens<T> {
 	fn to_tokens(&self, tokens: &mut TokenStream) {
 		match self {

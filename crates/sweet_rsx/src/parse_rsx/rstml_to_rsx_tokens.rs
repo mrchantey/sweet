@@ -11,6 +11,7 @@ use rstml::node::NodeAttribute;
 use rstml::node::NodeElement;
 use rstml::node::NodeFragment;
 use rstml::node::NodeName;
+use std::collections::HashMap;
 use std::collections::HashSet;
 use sweet_core::tokens::RsxRustTokens;
 use syn::spanned::Spanned;
@@ -125,12 +126,7 @@ impl<T: RsxRustTokens> RstmlToRsx<T> {
 			}
 		});
 		let ident = syn::Ident::new(&tag, tag.span());
-		let children_slot = if children.is_empty() {
-			TokenStream::default()
-		} else {
-			let children = self.map_nodes(children);
-			quote! {.with_slots("default",vec![#(#children),*])}
-		};
+		let children_slot = self.map_slots(children);
 
 		let rust = quote! {
 				#ident{
@@ -155,6 +151,27 @@ impl<T: RsxRustTokens> RstmlToRsx<T> {
 			"Element is processed as empty, and cannot have any child",
 		);
 		self.errors.push(warning.emit_as_expr_tokens());
+	}
+
+	fn map_slots<C>(&mut self, children: Vec<Node<C>>) -> TokenStream {
+		if children.is_empty() {
+			TokenStream::default()
+		} else {
+			let children = self.map_nodes(children);
+			let mut slot_buckets = HashMap::new();
+			for child in children.iter() {
+				let slot_name = child.slot_name();
+				slot_buckets
+					.entry(slot_name)
+					.or_insert_with(Vec::new)
+					.push(child);
+			}
+			let with_slots = slot_buckets.into_iter().map(
+				|(name, children)| quote!(.with_slots(#name,vec![#(#children),*])),
+			);
+
+			quote! {#(#with_slots)*}
+		}
 	}
 
 	fn map_attribute(&mut self, attr: NodeAttribute) -> RsxAttributeTokens<T> {

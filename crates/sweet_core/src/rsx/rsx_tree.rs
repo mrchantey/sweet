@@ -105,26 +105,16 @@ impl<R: RsxRust> RsxNode<R> {
 						.find_map(|a| match a {
 							RsxAttribute::KeyValue { key, value } => {
 								if key == "name" {
-									Some(value.clone())
+									Some(value.as_str())
 								} else {
 									None
 								}
 							}
-							RsxAttribute::BlockValue { key, value } => {
-								if key == "name" {
-									let value =
-										R::attribute_block_value_to_string(
-											value,
-										);
-									Some(value)
-								} else {
-									None
-								}
-							}
+							// even block values are not allowed because we need slot names at macro time
 							_ => None,
 						})
 						// unnamed slots are called 'default'
-						.unwrap_or("default".to_string());
+						.unwrap_or("default");
 					if slot_name == name {
 						element.children.extend(nodes);
 						return None;
@@ -252,7 +242,11 @@ impl<R: RsxRust> RsxAttribute<R> {
 		match self {
 			RsxAttribute::Key { key } => key.clone(),
 			RsxAttribute::KeyValue { key, value } => {
-				format!("{}=\"{}\"", key, value)
+				if key == "slot" {
+					String::default()
+				} else {
+					format!("{}=\"{}\"", key, value)
+				}
 			}
 			RsxAttribute::BlockValue { key, value } => {
 				format!(

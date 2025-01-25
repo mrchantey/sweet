@@ -162,4 +162,31 @@ mod test {
 		expect(parts.build_string())
 			.to_be("<div><h1>welcome</h1><p><b>foo</b></p></div>");
 	}
+	#[test]
+	fn component_slots() {
+		struct Layout;
+		impl Component for Layout {
+			fn render(self) -> RsxNodes {
+				rsx! {
+					<article>
+						<h1>welcome</h1>
+						<p><slot name="tagline"/></p>
+						<main>
+							<slot/>
+						</main>
+					</article>
+				}
+			}
+		}
+		let parts =
+			rsx! {
+				<Layout>
+					<b slot="tagline">what a cool article</b>
+					<div>direct child</div>
+				</Layout>
+			};
+
+		expect(parts.build_string())
+			.to_be("<article><h1>welcome</h1><p><b >what a cool article</b></p><main><div>direct child</div></main></article>");
+	}
 }
