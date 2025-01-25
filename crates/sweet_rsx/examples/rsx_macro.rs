@@ -7,7 +7,7 @@ struct MyComponent {
 	value: u32,
 }
 impl Component for MyComponent {
-	fn render(self) -> RsxNode {
+	fn render(self) -> impl Rsx {
 		rsx! {
 			<div>{self.value}<slot/></div>
 		}

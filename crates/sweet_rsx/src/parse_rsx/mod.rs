@@ -139,7 +139,7 @@ mod test {
 			value: usize,
 		}
 		impl Component for Child {
-			fn render(self) -> RsxNode {
+			fn render(self) -> impl Rsx {
 				rsx! {<p>hello {self.value}</p>}
 			}
 		}
@@ -152,7 +152,7 @@ mod test {
 	fn component_children() {
 		struct Layout;
 		impl Component for Layout {
-			fn render(self) -> RsxNode {
+			fn render(self) -> impl Rsx {
 				rsx! {
 					<div>
 						<h1>welcome</h1>
@@ -170,7 +170,7 @@ mod test {
 	fn component_slots() {
 		struct Layout;
 		impl Component for Layout {
-			fn render(self) -> RsxNode {
+			fn render(self) -> impl Rsx {
 				rsx! {
 					<article>
 						<h1>welcome</h1>

@@ -155,7 +155,7 @@ mod test {
 
 	struct Adjective;
 	impl Component for Adjective {
-		fn render(self) -> RsxNode {
+		fn render(self) -> impl Rsx {
 			rsx! {"lazy"<slot/>}
 		}
 	}

@@ -59,8 +59,8 @@ use sweet::prelude::set_target_text;
 pub struct Counter{
   pub initial_value: usize
 }
-impl Component for Counter{
-  fn rsx(self) -> Rsx {
+impl Component for Counter {
+  fn rsx(self) -> impl Rsx {
     let mut count = 0;
 
     let onclick = |e| {

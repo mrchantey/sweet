@@ -21,6 +21,11 @@ pub enum RsxNode {
 	Element(RsxElement),
 }
 
+impl Default for RsxNode {
+	fn default() -> Self { Self::Fragment(Vec::new()) }
+}
+
+
 impl RsxNode {
 	/// A method used by macros to insert nodes into a slot
 	/// # Panics
