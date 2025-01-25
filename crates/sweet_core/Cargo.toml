@@ -15,11 +15,12 @@ keywords.workspace = true
 [features]
 tokens = ["dep:quote", "dep:syn", "dep:proc-macro2"]
 serde = ["dep:serde", "dep:bincode"]
+flume = ["dep:flume"]
 
 [dependencies]
 thiserror.workspace = true
 anyhow.workspace = true
-flume.workspace = true
+flume = { workspace = true, optional = true }
 strum.workspace = true
 strum_macros.workspace = true
 

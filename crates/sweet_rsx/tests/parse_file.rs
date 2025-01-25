@@ -5,6 +5,7 @@
 #[cfg(not(target_arch = "wasm32"))]
 mod test {
 	use forky::prelude::*;
+	use sweet_core::string_rsx::StringRsx;
 	use sweet_rsx::prelude::*;
 	use sweet_test::prelude::*;
 
@@ -12,7 +13,8 @@ mod test {
 	fn works() {
 		let file = include_str!("../../../examples/counter.rs");
 
-		let (file, out) = RsxParser::default().parse_file(file).unwrap();
+		let (file, out) =
+			RsxParser::<StringRsx>::default().parse_file(file).unwrap();
 		let file_str = prettyplease::unparse(&file);
 
 		let path =
@@ -21,7 +23,7 @@ mod test {
 
 		expect(out.errors.len()).to_be(0);
 		expect(out.macros.len()).to_be(3);
-		expect(&file_str).to_start_with(RsxParser::SHEBANG);
+		expect(&file_str).to_start_with(RsxParser::<StringRsx>::SHEBANG);
 		expect(&file_str).not().to_contain("rsx!");
 	}
 }
