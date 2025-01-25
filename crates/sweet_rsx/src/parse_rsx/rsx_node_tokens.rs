@@ -71,7 +71,6 @@ fn children_to_tokens<T: RsxRustTokens>(
 		RsxNodeTokens::Component(component) => quote!(vec.extend(#component)),
 		RsxNodeTokens::Block(block) => {
 			let block = T::map_block(block);
-			// unimplemented!("this may be one or many?")
 			quote!(vec.push(RsxNode::Block(#block)))
 		}
 		_ => quote!(vec.push(#child)),
@@ -100,16 +99,16 @@ impl<T: RsxRustTokens> ToTokens for RsxAttributeTokens<T> {
 				quote!(RsxAttribute::Key { key: #key.to_string() })
 			}
 			RsxAttributeTokens::KeyValue { key, value } => {
-				quote!(RsxAttribute::KeyValue { key: #key.to_string(), value: #value.to_string() })
-		}
-		RsxAttributeTokens::BlockValue { key,value } => {
-			let value = T::map_attribute_value(key, value);
-			quote!(RsxAttribute::BlockValue { key: #key.to_string(),value: #value })
-		}
-		RsxAttributeTokens::Block(block) => {
-			let block = T::map_attribute_block(block);
-			quote!(RsxAttribute::Block(#block))
-		}
+					quote!(RsxAttribute::KeyValue { key: #key.to_string(), value: #value.to_string() })
+			}
+			RsxAttributeTokens::BlockValue { key,value } => {
+				let value = T::map_attribute_value(key, value);
+				quote!(RsxAttribute::BlockValue { key: #key.to_string(),value: #value })
+			}
+			RsxAttributeTokens::Block(block) => {
+				let block = T::map_attribute_block(block);
+				quote!(RsxAttribute::Block(#block))
+			}
 	}
 		.to_tokens(tokens);
 	}

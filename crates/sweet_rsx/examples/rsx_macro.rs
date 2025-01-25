@@ -1,37 +1,24 @@
 use sweet_core as sweet;
-use sweet_core::prelude::*;
+use sweet_core::string_rsx::*;
 use sweet_rsx_macros::rsx;
 
 /// its my component
 struct MyComponent {
 	value: u32,
+	children: Children,
 }
 impl Component for MyComponent {
-	fn render(self) -> impl Rsx {
+	fn render(self) -> RsxNodes {
 		rsx! {
 			<div>{self.value}</div>
 		}
 	}
 }
 
-
-// fn main() {
-// 	let onclick = |_| {};
-
-// 	let _foo = rsx! {
-// 		<div onclick>
-// 			<p>hello</p>
-// 			<MyComponent value=7/>
-// 		</div>
-// 	};
-
-// 	let str = _foo.to_info_string();
-// 	println!("{}", str);
-// }
 fn main() {
 	let foo = rsx! {
 		<div>
-			<p>hello</p>
+			<p>hello <MyComponent value=38><div>some child</div></MyComponent></p>
 		</div>
 	};
 

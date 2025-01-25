@@ -16,7 +16,7 @@ use sweet_core::tokens::RsxRustTokens;
 use syn::spanned::Spanned;
 
 #[derive(Debug, Clone)]
-pub struct WalkNodes<T> {
+pub struct RstmlToRsx<T> {
 	// Additional error and warning messages.
 	pub errors: Vec<TokenStream>,
 	// Collect elements to provide semantic highlight based on element tag.
@@ -28,7 +28,7 @@ pub struct WalkNodes<T> {
 	phantom: std::marker::PhantomData<T>,
 }
 
-impl<T> Default for WalkNodes<T> {
+impl<T> Default for RstmlToRsx<T> {
 	fn default() -> Self {
 		Self {
 			errors: Vec::new(),
@@ -40,7 +40,7 @@ impl<T> Default for WalkNodes<T> {
 }
 
 
-impl<T:RsxRustTokens> WalkNodes<T> {
+impl<T: RsxRustTokens> RstmlToRsx<T> {
 	#[must_use]
 	/// the number of actual html nodes will likely be different
 	/// due to fragments, blocks etc
@@ -54,10 +54,7 @@ impl<T:RsxRustTokens> WalkNodes<T> {
 	/// visit node does not add html to self, giving caller
 	/// a decision. Vec is returned to handle fragments
 	#[must_use]
-	fn map_node<C>(
-		&mut self,
-		node: Node<C>,
-	) -> RsxNodeTokens<T> {
+	fn map_node<C>(&mut self, node: Node<C>) -> RsxNodeTokens<T> {
 		match node {
 			Node::Doctype(_) => RsxNodeTokens::Doctype,
 			Node::Text(text) => RsxNodeTokens::Text(text.value_string()),
@@ -86,13 +83,13 @@ impl<T:RsxRustTokens> WalkNodes<T> {
 
 				let is_component = tag.starts_with(|c: char| c.is_uppercase());
 				if is_component {
-					self.visit_component(&tag, &open_tag.attributes, children)
+					self.map_component(&tag, &open_tag.attributes, children)
 					// vec![RsxNode::Component(children)]
 				} else {
 					let attributes = open_tag
 						.attributes
 						.into_iter()
-						.map(|attr| self.visit_attribute(attr))
+						.map(|attr| self.map_attribute(attr))
 						.collect();
 					let children = self.map_nodes(children);
 					RsxNodeTokens::Element {
@@ -107,7 +104,7 @@ impl<T:RsxRustTokens> WalkNodes<T> {
 		}
 	}
 
-	fn visit_component<C>(
+	fn map_component<C>(
 		&mut self,
 		tag: &str,
 		attributes: &Vec<NodeAttribute>,
@@ -161,7 +158,7 @@ impl<T:RsxRustTokens> WalkNodes<T> {
 		self.errors.push(warning.emit_as_expr_tokens());
 	}
 
-	fn visit_attribute(&mut self, attr: NodeAttribute) -> RsxAttributeTokens<T> {
+	fn map_attribute(&mut self, attr: NodeAttribute) -> RsxAttributeTokens<T> {
 		match attr {
 			NodeAttribute::Block(block) => {
 				RsxAttributeTokens::Block(block.to_token_stream())

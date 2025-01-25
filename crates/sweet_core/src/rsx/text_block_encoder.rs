@@ -1,6 +1,5 @@
 use super::RsxNode;
 use super::RsxRust;
-use super::RustParts;
 use crate::error::ParseError;
 use crate::error::ParseResult;
 
@@ -39,7 +38,7 @@ impl TextBlockEncoder {
 	/// ```
 	/// Output:
 	/// 0-4,2.2-5,1
-	pub fn encode(nodes: &Vec<RsxNode<RustParts>>) -> String {
+	pub fn encode<R: RsxRust>(nodes: &Vec<RsxNode<R>>) -> String {
 		let collapsed = CollapsedNode::from_nodes(nodes);
 		Self::encode_text_block_positions(&collapsed)
 	}
@@ -150,69 +149,69 @@ pub struct TextBlockPosition {
 
 #[cfg(test)]
 mod test {
-	// use super::*;
-	// use crate::prelude::*;
-	// use sweet_rsx_macros::rsx;
+	use super::*;
+	use crate::prelude::*;
+	use crate::string_rsx::*;
+	use sweet_rsx_macros::rsx;
 
-	// struct Adjective {
-	// 	children: Vec<RsxNode<RustParts>>,
-	// }
-	// impl Component for Adjective {
-	// 	fn render(self) -> impl Rsx {
-	// 		RsxTree::new(vec![RsxNode::<RustParts>::Text("lazy".into())])
-	// 	}
-	// }
+	struct Adjective {
+		children: Children,
+	}
+	impl Component for Adjective {
+		fn render(self) -> RsxNodes {
+			rsx! {"lazy"}
+		}
+	}
 
-	// #[test]
-	// fn roundtrip() {
-	// 	let desc = "quick";
-	// 	let color = "brown";
-	// 	let action = "jumps over";
+	#[test]
+	fn roundtrip() {
+		let desc = "quick";
+		let color = "brown";
+		let action = "jumps over";
 
-	// 	// let tree = rsx! {"The "{desc}" and "{color}<b> fox </b> {action}" the "<Adjective> and fat </Adjective>dog };
-	// 	let tree = rsx! {"The "{desc}" and "{color}<b> fox </b> {action}" the "<Adjective> and fat </Adjective>dog };
-	// 	let collapsed = CollapsedNode::from_nodes(&tree.nodes);
+		// let tree = rsx! {"The "{desc}" and "{color}<b> fox </b> {action}" the "<Adjective> and fat </Adjective>dog };
+		let tree = rsx! {"The "{desc}" and "{color}<b> fox </b> {action}" the "<Adjective> and fat </Adjective>dog };
+		let collapsed = CollapsedNode::from_nodes(&tree.nodes);
 
-	// 	expect(&collapsed).to_be(&vec![
-	// 		CollapsedNode::StaticText("The ".into()),
-	// 		CollapsedNode::RustText("quick".into()),
-	// 		CollapsedNode::StaticText(" and ".into()),
-	// 		CollapsedNode::RustText("brown".into()),
-	// 		CollapsedNode::Break,
-	// 		CollapsedNode::RustText("jumps over".into()),
-	// 		CollapsedNode::StaticText(" the ".into()),
-	// 		CollapsedNode::StaticText("lazy".into()),
-	// 		CollapsedNode::StaticText(" and fat ".into()),
-	// 		CollapsedNode::StaticText("dog".into()),
-	// 	]);
+		expect(&collapsed).to_be(&vec![
+			CollapsedNode::StaticText("The ".into()),
+			CollapsedNode::RustText("quick".into()),
+			CollapsedNode::StaticText(" and ".into()),
+			CollapsedNode::RustText("brown".into()),
+			CollapsedNode::Break,
+			CollapsedNode::RustText("jumps over".into()),
+			CollapsedNode::StaticText(" the ".into()),
+			CollapsedNode::StaticText("lazy".into()),
+			CollapsedNode::StaticText(" and fat ".into()),
+			CollapsedNode::StaticText("dog".into()),
+		]);
 
-	// 	// println!(
-	// 	// 	"{}",
-	// 	// 	collapsed.iter().map(|n| n.as_str()).collect::<String>()
-	// 	// );
-	// 	let encoded = TextBlockEncoder::encode_text_block_positions(&collapsed);
-	// 	// println!("{}", encoded);
-	// 	expect(&encoded).to_be("0-4-5,0-14-5,1-0-10");
+		// println!(
+		// 	"{}",
+		// 	collapsed.iter().map(|n| n.as_str()).collect::<String>()
+		// );
+		let encoded = TextBlockEncoder::encode_text_block_positions(&collapsed);
+		// println!("{}", encoded);
+		expect(&encoded).to_be("0-4-5,0-14-5,1-0-10");
 
-	// 	let decoded = TextBlockEncoder::decode(&encoded).unwrap();
+		let decoded = TextBlockEncoder::decode(&encoded).unwrap();
 
-
-	// 	expect(&decoded).to_be(&vec![
-	// 		TextBlockPosition {
-	// 			child_index: 0,
-	// 			text_index: 4,
-	// 			len: 5,
-	// 		},
-	// 		TextBlockPosition {
-	// 			child_index: 0,
-	// 			text_index: 14,
-	// 			len: 5,
-	// 		},
-	// 		TextBlockPosition {
-	// 			child_index: 1,
-	// 			text_index: 0,
-	// 			len: 10,
-	// 		},
-	// 	]);
-	// }
+		expect(&decoded).to_be(&vec![
+			TextBlockPosition {
+				child_index: 0,
+				text_index: 4,
+				len: 5,
+			},
+			TextBlockPosition {
+				child_index: 0,
+				text_index: 14,
+				len: 5,
+			},
+			TextBlockPosition {
+				child_index: 1,
+				text_index: 0,
+				len: 10,
+			},
+		]);
+	}
 }

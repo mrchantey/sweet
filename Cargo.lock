@@ -2190,6 +2190,7 @@ dependencies = [
  "serde",
  "strum",
  "strum_macros",
+ "sweet_rsx_macros",
  "sweet_test",
  "syn",
  "thiserror 2.0.11",

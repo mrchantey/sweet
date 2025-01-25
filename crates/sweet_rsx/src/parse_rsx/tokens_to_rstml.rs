@@ -20,7 +20,7 @@ pub fn self_closing_elements() -> HashSet<&'static str> {
 }
 
 
-pub fn parse_rstml(tokens: TokenStream) -> (Vec<Node>, Vec<Diagnostic>) {
+pub fn tokens_to_rstml(tokens: TokenStream) -> (Vec<Node>, Vec<Diagnostic>) {
 	let empty_elements = self_closing_elements();
 	let config = ParserConfig::new()
 		.recover_block(true)

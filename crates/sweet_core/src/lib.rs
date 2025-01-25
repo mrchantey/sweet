@@ -3,9 +3,11 @@
 
 pub mod error;
 pub mod rsx;
+pub mod string_rsx;
 #[cfg(feature = "tokens")]
 pub mod tokens;
 pub mod tree;
+
 
 #[rustfmt::skip]
 pub mod prelude {

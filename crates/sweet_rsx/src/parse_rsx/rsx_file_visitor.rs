@@ -8,7 +8,7 @@ use syn::visit_mut::VisitMut;
 pub struct RsxFileVisitor<'a, T> {
 	parser: &'a mut RsxParser<T>,
 	/// The rsx macros found in the function
-	macros: Vec<WalkNodes<T>>,
+	macros: Vec<RstmlToRsx<T>>,
 	/// Errors that occurred while parsing the rsx macro
 	errors: Vec<syn::Error>,
 }
@@ -16,7 +16,7 @@ pub struct RsxFileVisitor<'a, T> {
 /// Output from a fully parsed file with multiple rsx macros.
 pub struct RsxFileVisitorOut<T> {
 	/// the transformed rust macros
-	pub macros: Vec<WalkNodes<T>>,
+	pub macros: Vec<RstmlToRsx<T>>,
 	pub errors: Vec<syn::Error>,
 }
 

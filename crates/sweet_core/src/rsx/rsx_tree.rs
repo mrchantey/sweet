@@ -154,12 +154,16 @@ impl<R: RsxRust> RsxElement<R> {
 
 	pub fn build_string(&self) -> String {
 		let mut out = String::new();
-		let self_closing = if self.self_closing { "/" } else { "" };
-
-		out.push_str(&format!("<{}{}>", self.tag, self_closing));
+		out.push_str(&format!("<{}", self.tag));
 		for attribute in &self.attributes {
 			out.push(' ');
 			out.push_str(&attribute.build_string());
+		}
+		if self.self_closing {
+			out.push_str("/>");
+			return out;
+		} else {
+			out.push('>');
 		}
 		for child in &self.children {
 			out.push_str(&child.build_string());

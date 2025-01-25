@@ -15,7 +15,7 @@ use proc_macro::TokenStream;
 pub fn rsx(tokens: TokenStream) -> TokenStream { RsxMacro::parse(tokens) }
 
 
-use sweet_core::prelude::StringRsx;
+use sweet_core::string_rsx::StringRsx;
 use sweet_rsx::prelude::RsxParser;
 struct RsxMacro;
 
