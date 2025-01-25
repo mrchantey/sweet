@@ -60,6 +60,7 @@ impl<T: RsxRustTokens> RsxParser<T> {
 		let (nodes, rstml_errors) = tokens_to_rstml(tokens.clone());
 		let mut output = RstmlToRsx::default();
 		let nodes = output.map_nodes(nodes);
+		let tree = RsxTreeTokens::new(nodes);
 
 		let RstmlToRsx {
 			errors,
@@ -79,17 +80,9 @@ impl<T: RsxRustTokens> RsxParser<T> {
 			Default::default()
 		};
 
-		let ident = T::ident();
 		*tokens = syn::parse_quote! {{
-			use sweet::prelude::*;
 			#errors
-
-			#[allow(unused_braces)]
-			{
-				RsxTree {
-					nodes: Vec::from([#(#nodes),*]),
-				} as RsxTree::<#ident>
-			}
+			#tree
 		}};
 		output
 	}
@@ -150,5 +143,23 @@ mod test {
 
 		expect(parts.build_string())
 			.to_be("<div> the child is <p>hello 38</p>! </div>");
+	}
+	#[test]
+	fn component_children() {
+		struct Layout;
+		impl Component for Layout {
+			fn render(self) -> RsxNodes {
+				rsx! {
+					<div>
+						<h1>welcome</h1>
+						<p><slot/></p>
+					</div>
+				}
+			}
+		}
+		let parts = rsx! {<Layout><b>foo</b></Layout>};
+
+		expect(parts.build_string())
+			.to_be("<div><h1>welcome</h1><p><b>foo</b></p></div>");
 	}
 }

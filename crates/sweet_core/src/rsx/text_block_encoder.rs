@@ -154,12 +154,10 @@ mod test {
 	use crate::string_rsx::*;
 	use sweet_rsx_macros::rsx;
 
-	struct Adjective {
-		children: Children,
-	}
+	struct Adjective;
 	impl Component for Adjective {
 		fn render(self) -> RsxNodes {
-			rsx! {"lazy"}
+			rsx! {"lazy"<slot/>}
 		}
 	}
 
@@ -182,7 +180,8 @@ mod test {
 			CollapsedNode::RustText("jumps over".into()),
 			CollapsedNode::StaticText(" the ".into()),
 			CollapsedNode::StaticText("lazy".into()),
-			CollapsedNode::StaticText(" and fat ".into()),
+			CollapsedNode::Break,
+			// CollapsedNode::StaticText(" and fat ".into()),
 			CollapsedNode::StaticText("dog".into()),
 		]);
 

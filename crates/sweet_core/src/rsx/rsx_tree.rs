@@ -3,7 +3,6 @@ use crate::prelude::*;
 pub use serde::Deserialize;
 #[cfg(feature = "serde")]
 pub use serde::Serialize;
-
 /// This struct represents one of the core concepts of sweet rsx!
 ///
 /// It is a type that represents a tree of html, but with the
@@ -50,6 +49,22 @@ impl<R: RsxRust> RsxTree<R> {
 		let Self { nodes } = other;
 		self.nodes.extend(nodes);
 	}
+	/// A method used by macros to insert nodes into a slot
+	/// # Panics
+	/// If the slot is not found
+	pub fn with_slots(
+		mut self,
+		name: &str,
+		mut nodes: Vec<RsxNode<R>>,
+	) -> Self {
+		for node in self.nodes.iter_mut() {
+			match node.try_insert_slots(name, nodes) {
+				Some(returned_nodes) => nodes = returned_nodes,
+				None => return self,
+			}
+		}
+		panic!("slot not found: {name}");
+	}
 
 	// pub fn build_string(&self) -> String {
 	// 	let mut out = String::new();
@@ -74,6 +89,60 @@ pub enum RsxNode<R: RsxRust> {
 }
 
 impl<R: RsxRust> RsxNode<R> {
+	// try to insert nodes into a slot, returning any nodes that were not inserted
+	// If the slot is not a direct child, recursively search children
+	pub fn try_insert_slots(
+		&mut self,
+		name: &str,
+		mut nodes: Vec<Self>,
+	) -> Option<Vec<Self>> {
+		match self {
+			RsxNode::Element(element) => {
+				if element.tag == "slot" {
+					let slot_name = element
+						.attributes
+						.iter()
+						.find_map(|a| match a {
+							RsxAttribute::KeyValue { key, value } => {
+								if key == "name" {
+									Some(value.clone())
+								} else {
+									None
+								}
+							}
+							RsxAttribute::BlockValue { key, value } => {
+								if key == "name" {
+									let value =
+										R::attribute_block_value_to_string(
+											value,
+										);
+									Some(value)
+								} else {
+									None
+								}
+							}
+							_ => None,
+						})
+						// unnamed slots are called 'default'
+						.unwrap_or("default".to_string());
+					if slot_name == name {
+						element.children.extend(nodes);
+						return None;
+					}
+				}
+				// if we didnt find the slot, recursively search children
+				for child in &mut element.children {
+					match child.try_insert_slots(name, nodes) {
+						Some(returned_nodes) => nodes = returned_nodes,
+						None => return None,
+					}
+				}
+				Some(nodes)
+			}
+			_ => Some(nodes),
+		}
+	}
+
 	pub fn build_string(&self) -> String {
 		match self {
 			RsxNode::Doctype => "<!DOCTYPE html>".to_string(),
@@ -84,29 +153,6 @@ impl<R: RsxRust> RsxNode<R> {
 		}
 	}
 }
-
-// impl<R: RsxRust> Node for RsxNode<R> {
-
-// 	fn children(&self) -> Option<&Vec<RsxNode<R>>> {
-// 		match self {
-// 			RsxNode::Element(e) => Some(&e.children),
-// 			_ => None,
-// 		}
-// 	}
-// 	fn children_mut(&mut self) -> Option<&mut Vec<RsxNode<R>>> {
-// 		match self {
-// 			RsxNode::Element(e) => Some(&mut e.children),
-// 			_ => None,
-// 		}
-// 	}
-// 	fn take_children(&mut self) -> Option<Vec<RsxNode<R>>> {
-// 		match self {
-// 			RsxNode::Element(e) => Some(std::mem::take(&mut e.children)),
-// 			_ => None,
-// 		}
-// 	}
-// }
-
 
 /// Minimum required info for our use case of html.
 /// Blocks are assumed to be `PartiaEq` because
@@ -154,6 +200,15 @@ impl<R: RsxRust> RsxElement<R> {
 
 	pub fn build_string(&self) -> String {
 		let mut out = String::new();
+		// slots are a kind of fragment, just return children
+		if self.tag == "slot" {
+			for child in &self.children {
+				out.push_str(&child.build_string());
+			}
+			return out;
+		}
+
+
 		out.push_str(&format!("<{}", self.tag));
 		for attribute in &self.attributes {
 			out.push(' ');

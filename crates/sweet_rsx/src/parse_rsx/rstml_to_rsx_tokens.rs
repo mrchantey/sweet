@@ -125,19 +125,18 @@ impl<T: RsxRustTokens> RstmlToRsx<T> {
 			}
 		});
 		let ident = syn::Ident::new(&tag, tag.span());
-		let children_prop = if children.is_empty() {
+		let children_slot = if children.is_empty() {
 			TokenStream::default()
 		} else {
 			let children = self.map_nodes(children);
-			quote! {children: vec![#(#children),*],}
+			quote! {.with_slots("default",vec![#(#children),*])}
 		};
 
 		let rust = quote! {
 				#ident{
-					#children_prop
 					#(#props,)*
 				}
-				.into_rsx_tree().nodes
+				.into_rsx_tree()#children_slot.nodes
 		};
 		RsxNodeTokens::Component(rust)
 	}

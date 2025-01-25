@@ -3,6 +3,42 @@ use quote::quote;
 use quote::ToTokens;
 use sweet_core::tokens::RsxRustTokens;
 
+
+
+pub struct RsxTreeTokens<T> {
+	pub nodes: Vec<RsxNodeTokens<T>>,
+}
+impl<T> RsxTreeTokens<T> {
+	pub fn new(nodes: Vec<RsxNodeTokens<T>>) -> Self { Self { nodes } }
+}
+
+impl<T: RsxRustTokens> ToTokens for RsxTreeTokens<T> {
+	fn to_tokens(&self, tokens: &mut TokenStream) {
+		let ident = T::ident();
+		let nodes = children_to_tokens(&self.nodes);
+
+		// println!(
+		// 	"nodes: {}",
+		// 	nodes
+		// 		.map(|node| node.to_string())
+		// 		.collect::<Vec<_>>()
+		// 		.join("\n")
+		// );
+		quote! {
+			use sweet::prelude::*;
+
+			#[allow(unused_braces)]
+			{
+				RsxTree {
+					nodes: #nodes,
+				} as RsxTree::<#ident>
+			}
+		}
+		.to_tokens(tokens);
+	}
+}
+
+
 pub enum RsxNodeTokens<T> {
 	Phantom(std::marker::PhantomData<T>),
 	Doctype,
