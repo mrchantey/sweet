@@ -22,21 +22,6 @@ impl RsxRust for StringRsx {
 }
 
 
-pub type RsxNodes = crate::prelude::RsxTree<StringRsx>;
-pub type Children = Vec<RsxNode<StringRsx>>;
-
-pub trait Component {
-	fn render(self) -> RsxNodes;
-}
-
-impl<T: Component> Rsx for T {
-	type Node = StringRsx;
-	fn into_rsx_tree(self) -> crate::prelude::RsxTree<Self::Node> {
-		self.render()
-	}
-}
-
-
 #[cfg(feature = "tokens")]
 use proc_macro2::TokenStream;
 #[cfg(feature = "tokens")]
@@ -48,7 +33,7 @@ impl RsxRustTokens for StringRsx {
 		quote! {sweet::string_rsx::StringRsx}
 	}
 
-	fn map_block(block: &TokenStream) -> TokenStream {
+	fn map_node_block(block: &TokenStream) -> TokenStream {
 		quote! { RsxNode::TextBlock{
 				initial: #block.to_string(),
 				register_effect: Box::new(|| {}),
@@ -57,15 +42,29 @@ impl RsxRustTokens for StringRsx {
 	}
 
 	fn map_attribute_block(block: &TokenStream) -> TokenStream {
-		quote! { #block.to_string() }
+		quote! { RsxAttribute::Block{
+				initial: #block
+				register_effect: Box::new(|| {}),
+			}
+		}
 	}
 
 	fn map_attribute_value(key: &str, value: &TokenStream) -> TokenStream {
 		if key.starts_with("on") {
+			// events unsupported for string_rsx
 			let str = format!("{key}_handler");
-			quote! { #str.to_string() }
+			quote! { RsxAttribute::KeyValue{
+					key: #key.to_string(),
+					value: #str.to_string()
+				}
+			}
 		} else {
-			quote! { #value.to_string() }
+			quote! { RsxAttributeBlockValue{
+					key: #key.to_string(),
+					initial: #value.to_string(),
+					register_effect: Box::new(|| {}),
+				}
+			}
 		}
 	}
 }

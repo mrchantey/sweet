@@ -1,5 +1,5 @@
 use sweet_core as sweet;
-use sweet_core::string_rsx::*;
+use sweet_core::prelude::*;
 use sweet_rsx_macros::rsx;
 
 /// its my component
@@ -7,7 +7,7 @@ struct MyComponent {
 	value: u32,
 }
 impl Component for MyComponent {
-	fn render(self) -> RsxNodes {
+	fn render(self) -> RsxNode {
 		rsx! {
 			<div>{self.value}<slot/></div>
 		}
@@ -26,5 +26,5 @@ fn main() {
 		str,
 		"<div><p>hello <div>38<div>some child</div></div></p></div>"
 	);
-	println!("{}", str);
+	println!("success! {}", str);
 }

@@ -1,5 +1,4 @@
 use super::RsxNode;
-use super::RsxRust;
 use crate::error::ParseError;
 use crate::error::ParseResult;
 
@@ -38,8 +37,8 @@ impl TextBlockEncoder {
 	/// ```
 	/// Output:
 	/// 0-4,2.2-5,1
-	pub fn encode<R: RsxRust>(nodes: &Vec<RsxNode<R>>) -> String {
-		let collapsed = CollapsedNode::from_nodes(nodes);
+	pub fn encode(node: &RsxNode) -> String {
+		let collapsed = CollapsedNode::from_node(node);
 		Self::encode_text_block_positions(&collapsed)
 	}
 
@@ -121,23 +120,21 @@ impl CollapsedNode {
 }
 
 impl CollapsedNode {
-	fn from_nodes<R: RsxRust>(nodes: &Vec<RsxNode<R>>) -> Vec<CollapsedNode> {
+	fn from_node(node: &RsxNode) -> Vec<CollapsedNode> {
 		let mut out = Vec::new();
-		for node in nodes {
-			match node {
-				RsxNode::Fragment(nodes) => {
-					out.extend(Self::from_nodes(nodes));
-				}
-				RsxNode::TextBlock { initial, .. } => {
-					out.push(CollapsedNode::RustText(initial.clone()))
-				}
-				RsxNode::Text(val) => {
-					out.push(CollapsedNode::StaticText(val.clone()))
-				}
-				RsxNode::Doctype => out.push(CollapsedNode::Break),
-				RsxNode::Comment(_) => out.push(CollapsedNode::Break),
-				RsxNode::Element(_) => out.push(CollapsedNode::Break),
+		match node {
+			RsxNode::Fragment(nodes) => {
+				out.extend(nodes.into_iter().flat_map(Self::from_node));
 			}
+			RsxNode::TextBlock { initial, .. } => {
+				out.push(CollapsedNode::RustText(initial.clone()))
+			}
+			RsxNode::Text(val) => {
+				out.push(CollapsedNode::StaticText(val.clone()))
+			}
+			RsxNode::Doctype => out.push(CollapsedNode::Break),
+			RsxNode::Comment(_) => out.push(CollapsedNode::Break),
+			RsxNode::Element(_) => out.push(CollapsedNode::Break),
 		}
 		return out;
 	}
@@ -154,12 +151,11 @@ pub struct TextBlockPosition {
 mod test {
 	use super::*;
 	use crate::prelude::*;
-	use crate::string_rsx::*;
 	use sweet_rsx_macros::rsx;
 
 	struct Adjective;
 	impl Component for Adjective {
-		fn render(self) -> RsxNodes {
+		fn render(self) -> RsxNode {
 			rsx! {"lazy"<slot/>}
 		}
 	}
@@ -172,7 +168,7 @@ mod test {
 
 		// let tree = rsx! {"The "{desc}" and "{color}<b> fox </b> {action}" the "<Adjective> and fat </Adjective>dog };
 		let tree = rsx! {"The "{desc}" and "{color}<b> fox </b> {action}" the "<Adjective> and fat </Adjective>dog };
-		let collapsed = CollapsedNode::from_nodes(&tree.nodes);
+		let collapsed = CollapsedNode::from_node(&tree);
 
 		expect(&collapsed).to_be(&vec![
 			CollapsedNode::StaticText("The ".into()),

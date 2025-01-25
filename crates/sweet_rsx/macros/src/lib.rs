@@ -1,6 +1,6 @@
 use proc_macro::TokenStream;
 
-/// This macro expands to an [RsxTree](sweet_core::prelude::RsxTree).
+/// This macro expands to an [RsxNode](sweet_core::prelude::RsxNode).
 ///
 /// The type of node is determied by the feature flags, current options are:
 /// - [`StringRsx`](sweet_core::rsx::StringRsx)

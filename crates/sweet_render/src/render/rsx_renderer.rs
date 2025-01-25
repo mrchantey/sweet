@@ -21,10 +21,9 @@ pub struct DefaultRsxRenderer;
 impl DefaultRsxRenderer {
 	pub fn render(rsx: impl Rsx) -> ParseResult<String> {
 		// 1. parser converts to rsx tree
-		let rsx_tree = rsx.into_rsx_tree();
+		let rsx_tree = rsx.into_rsx();
 		// 2. sweet visitor converts rusty parts to valid html
-		let mut html_nodes =
-			SweetRsxVisitor::default().map_nodes(rsx_tree.nodes)?;
+		let mut html_nodes = SweetRsxVisitor::default().map_nodes(rsx_tree)?;
 		// 3. render visitor flattens tree into html string
 		let mut render_visitor = RsxRenderVisitor::default();
 		render_visitor.walk_nodes_dfs(&mut html_nodes)?;

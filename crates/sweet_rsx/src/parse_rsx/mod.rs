@@ -60,7 +60,6 @@ impl<T: RsxRustTokens> RsxParser<T> {
 		let (nodes, rstml_errors) = tokens_to_rstml(tokens.clone());
 		let mut output = RstmlToRsx::default();
 		let nodes = output.map_nodes(nodes);
-		let tree = RsxTreeTokens::new(nodes);
 
 		let RstmlToRsx {
 			errors,
@@ -82,7 +81,11 @@ impl<T: RsxRustTokens> RsxParser<T> {
 
 		*tokens = syn::parse_quote! {{
 			#errors
-			#tree
+			use sweet::prelude::*;
+			#[allow(unused_braces)]
+			{
+				RsxNode::Fragment(Vec::from([#(#nodes),*]))
+			}
 		}};
 		output
 	}
@@ -104,7 +107,8 @@ pub fn macro_or_err(expr: &Expr) -> syn::Result<&syn::Macro> {
 }
 #[cfg(test)]
 mod test {
-	use sweet_core::string_rsx::*;
+	use sweet_core::prelude::*;
+	use sweet_core::rsx::Component;
 	use sweet_core::{
 		self as sweet,
 	};
@@ -135,7 +139,7 @@ mod test {
 			value: usize,
 		}
 		impl Component for Child {
-			fn render(self) -> RsxNodes {
+			fn render(self) -> RsxNode {
 				rsx! {<p>hello {self.value}</p>}
 			}
 		}
@@ -148,7 +152,7 @@ mod test {
 	fn component_children() {
 		struct Layout;
 		impl Component for Layout {
-			fn render(self) -> RsxNodes {
+			fn render(self) -> RsxNode {
 				rsx! {
 					<div>
 						<h1>welcome</h1>
@@ -166,7 +170,7 @@ mod test {
 	fn component_slots() {
 		struct Layout;
 		impl Component for Layout {
-			fn render(self) -> RsxNodes {
+			fn render(self) -> RsxNode {
 				rsx! {
 					<article>
 						<h1>welcome</h1>
@@ -178,13 +182,12 @@ mod test {
 				}
 			}
 		}
-		let parts =
-			rsx! {
-				<Layout>
-					<b slot="tagline">what a cool article</b>
-					<div>direct child</div>
-				</Layout>
-			};
+		let parts = rsx! {
+			<Layout>
+				<b slot="tagline">what a cool article</b>
+				<div>direct child</div>
+			</Layout>
+		};
 
 		expect(parts.build_string())
 			.to_be("<article><h1>welcome</h1><p><b >what a cool article</b></p><main><div>direct child</div></main></article>");

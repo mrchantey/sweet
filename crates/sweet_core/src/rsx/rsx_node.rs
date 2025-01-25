@@ -1,86 +1,15 @@
-use crate::prelude::*;
 #[cfg(feature = "serde")]
 pub use serde::Deserialize;
 #[cfg(feature = "serde")]
 pub use serde::Serialize;
 /// This struct represents one of the core concepts of sweet rsx!
 ///
-/// It is a type that represents a tree of html, but with the
-/// rusty parts represented as <R>.
-///
-/// This allows us to convert between hydrated and serialized html trees.
-///
-/// There are currently three types being used (in order of process step):
-/// - [RsxTree<TokenStream>]: for macros and preprocessing
-/// - [RsxTree<RustParts>]: for rendering
-/// - [RsxTree<()>]: for serialization
-///
-/// Here we have actual rust code, stored as boxed closures and strings,
-///
-/// A data structure for rsx trees, with the option
-/// of ommiting rust parts for serialization.
-/// may or may not contain rust parts, depending on the value of R.
-/// R will be either unit for serialization or [RustParts](super::RustParts)
 // #[derive(Debug, Clone, PartialEq)]
 // #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct RsxTree<R: RsxRust> {
-	pub nodes: Vec<RsxNode<R>>,
-}
-impl<R: RsxRust> Default for RsxTree<R> {
-	fn default() -> Self { Self { nodes: Vec::new() } }
-}
-
-impl<R: RsxRust> RsxTree<R> {
-	pub fn new(nodes: Vec<RsxNode<R>>) -> Self { Self { nodes } }
-
-	pub fn build_string(&self) -> String {
-		let mut out = String::new();
-		for node in &self.nodes {
-			out.push_str(&node.build_string());
-		}
-		out
-	}
-}
-
-impl<R: RsxRust> RsxTree<R> {
-	/// placeholder for rust parts
-
-	pub fn extend(&mut self, other: Self) {
-		let Self { nodes } = other;
-		self.nodes.extend(nodes);
-	}
-	/// A method used by macros to insert nodes into a slot
-	/// # Panics
-	/// If the slot is not found
-	pub fn with_slots(
-		mut self,
-		name: &str,
-		mut nodes: Vec<RsxNode<R>>,
-	) -> Self {
-		for node in self.nodes.iter_mut() {
-			match node.try_insert_slots(name, nodes) {
-				Some(returned_nodes) => nodes = returned_nodes,
-				None => return self,
-			}
-		}
-		panic!("slot not found: {name}");
-	}
-
-	// pub fn build_string(&self) -> String {
-	// 	let mut out = String::new();
-	// 	for node in &self.nodes {
-	// 		out.push_str(&node.info());
-	// 	}
-	// 	out
-	// }
-}
-
-/// a 'collapsed' rstml node
-// #[derive(Debug, Clone, PartialEq, AsRefStr)]
-// #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub enum RsxNode<R: RsxRust> {
-	Fragment(Vec<RsxNode<R>>),
-	/// a rust block
+pub enum RsxNode {
+	/// A transparent node that simply contains children
+	Fragment(Vec<RsxNode>),
+	/// a rust block that returns text
 	TextBlock {
 		initial: String,
 		register_effect: Box<dyn FnOnce()>,
@@ -89,10 +18,22 @@ pub enum RsxNode<R: RsxRust> {
 	Comment(String),
 	/// may have been Text or RawText
 	Text(String),
-	Element(RsxElement<R>),
+	Element(RsxElement),
 }
 
-impl<R: RsxRust> RsxNode<R> {
+impl RsxNode {
+	/// A method used by macros to insert nodes into a slot
+	/// # Panics
+	/// If the slot is not found
+	pub fn with_slots(mut self, name: &str, nodes: Vec<RsxNode>) -> Self {
+		match self.try_insert_slots(name, nodes) {
+			Some(_) => {
+				panic!("slot not found: {name}");
+			}
+			None => return self,
+		}
+	}
+
 	// try to insert nodes into a slot, returning any nodes that were not inserted
 	// If the slot is not a direct child, recursively search children
 	pub fn try_insert_slots(
@@ -101,6 +42,15 @@ impl<R: RsxRust> RsxNode<R> {
 		mut nodes: Vec<Self>,
 	) -> Option<Vec<Self>> {
 		match self {
+			RsxNode::Fragment(fragment) => {
+				for node in fragment.iter_mut() {
+					match node.try_insert_slots(name, nodes) {
+						Some(returned_nodes) => nodes = returned_nodes,
+						None => return None,
+					}
+				}
+				Some(nodes)
+			}
 			RsxNode::Element(element) => {
 				if element.tag == "slot" {
 					let slot_name = element
@@ -156,19 +106,19 @@ impl<R: RsxRust> RsxNode<R> {
 /// they are defined as 'the next block in the vec' when reconciling.
 // #[derive(Debug, Clone)]
 // #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct RsxElement<R: RsxRust> {
+pub struct RsxElement {
 	/// ie `div, span, input`
 	pub tag: String,
 	/// ie `class="my-class"`
-	pub attributes: Vec<RsxAttribute<R>>,
+	pub attributes: Vec<RsxAttribute>,
 	/// ie `<div>childtext<childel/>{childblock}</div>`
-	pub children: Vec<RsxNode<R>>,
+	pub children: Vec<RsxNode>,
 	/// ie `<input/>`
 	pub self_closing: bool,
 }
 
 
-impl<R: RsxRust> RsxElement<R> {
+impl RsxElement {
 	pub fn new(tag: String, self_closing: bool) -> Self {
 		Self {
 			tag,
@@ -191,7 +141,8 @@ impl<R: RsxRust> RsxElement<R> {
 			|| self.attributes.iter().any(|a| {
 				matches!(
 					a,
-					RsxAttribute::Block(_) | RsxAttribute::BlockValue { .. }
+					RsxAttribute::Block { .. }
+						| RsxAttribute::BlockValue { .. }
 				)
 			})
 	}
@@ -231,7 +182,7 @@ impl<R: RsxRust> RsxElement<R> {
 
 // #[derive(Debug, Clone, PartialEq)]
 // #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub enum RsxAttribute<R: RsxRust> {
+pub enum RsxAttribute {
 	Key {
 		key: String,
 	},
@@ -241,12 +192,16 @@ pub enum RsxAttribute<R: RsxRust> {
 	},
 	BlockValue {
 		key: String,
-		value: R::AttributeBlockValue,
+		initial: String,
+		register_effect: Box<dyn FnOnce()>,
 	},
-	Block(R::AttributeBlock),
+	Block {
+		initial: Vec<RsxAttribute>,
+		register_effect: Box<dyn FnOnce()>,
+	},
 }
 
-impl<R: RsxRust> RsxAttribute<R> {
+impl RsxAttribute {
 	pub fn build_string(&self) -> String {
 		match self {
 			RsxAttribute::Key { key } => key.clone(),
@@ -257,14 +212,12 @@ impl<R: RsxRust> RsxAttribute<R> {
 					format!("{}=\"{}\"", key, value)
 				}
 			}
-			RsxAttribute::BlockValue { key, value } => {
-				format!(
-					"{}=\"{}\"",
-					key,
-					R::attribute_block_value_to_string(value)
-				)
+			RsxAttribute::BlockValue { key, initial, .. } => {
+				format!("{}=\"{}\"", key, initial)
 			}
-			RsxAttribute::Block(block) => R::attribute_block_to_string(block),
+			RsxAttribute::Block { initial, .. } => {
+				initial.iter().map(|a| a.build_string()).collect::<String>()
+			}
 		}
 	}
 }

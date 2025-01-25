@@ -23,7 +23,7 @@ impl SweetLoader {
 	pub fn load(self, rsx: impl Rsx) -> ParseResult<()> {
 		console_error_panic_hook::set_once();
 
-		let rsx = rsx.into_rsx_tree();
+		let rsx = rsx.into_rsx();
 		for _item in rsx.nodes.into_iter() {
 			// match item {
 			// 	RustParts::DynNodeId => todo!(),

@@ -3,42 +3,6 @@ use quote::quote;
 use quote::ToTokens;
 use sweet_core::tokens::RsxRustTokens;
 
-
-
-pub struct RsxTreeTokens<T> {
-	pub nodes: Vec<RsxNodeTokens<T>>,
-}
-impl<T> RsxTreeTokens<T> {
-	pub fn new(nodes: Vec<RsxNodeTokens<T>>) -> Self { Self { nodes } }
-}
-
-impl<T: RsxRustTokens> ToTokens for RsxTreeTokens<T> {
-	fn to_tokens(&self, tokens: &mut TokenStream) {
-		let ident = T::ident();
-		let nodes = children_to_tokens(&self.nodes);
-
-		// println!(
-		// 	"nodes: {}",
-		// 	nodes
-		// 		.map(|node| node.to_string())
-		// 		.collect::<Vec<_>>()
-		// 		.join("\n")
-		// );
-		quote! {
-			use sweet::prelude::*;
-
-			#[allow(unused_braces)]
-			{
-				RsxTree {
-					nodes: #nodes,
-				} as RsxTree::<#ident>
-			}
-		}
-		.to_tokens(tokens);
-	}
-}
-
-
 pub enum RsxNodeTokens<T> {
 	Phantom(std::marker::PhantomData<T>),
 	Doctype,
@@ -89,10 +53,7 @@ impl<T: RsxRustTokens> ToTokens for RsxNodeTokens<T> {
 			RsxNodeTokens::Comment(comment) => {
 				quote!(RsxNode::Comment(#comment.to_string()))
 			}
-			RsxNodeTokens::Block(block) => {
-				let block = T::map_block(block);
-				quote!(RsxNode::Block(#block))
-			}
+			RsxNodeTokens::Block(block) => T::map_node_block(block),
 			RsxNodeTokens::Element {
 				tag,
 				attributes,
@@ -108,7 +69,7 @@ impl<T: RsxRustTokens> ToTokens for RsxNodeTokens<T> {
 				}))
 			}
 			RsxNodeTokens::Fragment(vec) => {
-				quote!(#(#vec),*)
+				quote!(RsxNode::Fragment(Vec::from([#(#vec),*])))
 			}
 			RsxNodeTokens::Component(token_stream) => quote!(#token_stream),
 		}
@@ -127,9 +88,9 @@ fn children_to_tokens<T: RsxRustTokens>(
 			let children = children_to_tokens(children);
 			quote!(vec.extend(#children);)
 		}
-		RsxNodeTokens::Component(component) => quote!(vec.extend(#component)),
+		RsxNodeTokens::Component(component) => quote!(vec.push(#component)),
 		RsxNodeTokens::Block(block) => {
-			let block = T::map_block(block);
+			let block = T::map_node_block(block);
 			quote!(vec.push(#block))
 		}
 		_ => quote!(vec.push(#child)),
@@ -154,21 +115,22 @@ impl<T: RsxRustTokens> ToTokens for RsxAttributeTokens<T> {
 	fn to_tokens(&self, tokens: &mut TokenStream) {
 		match self {
 			RsxAttributeTokens::Phantom(_) => unreachable!(),
-			RsxAttributeTokens::Key{key} => {
-				quote!(RsxAttribute::Key { key: #key.to_string() })
+			RsxAttributeTokens::Key { key } => {
+				quote!(RsxAttribute::Key {
+					key: #key.to_string()
+				})
 			}
 			RsxAttributeTokens::KeyValue { key, value } => {
-					quote!(RsxAttribute::KeyValue { key: #key.to_string(), value: #value.to_string() })
+				quote!(RsxAttribute::KeyValue {
+					key: #key.to_string(),
+					value: #value.to_string()
+				})
 			}
-			RsxAttributeTokens::BlockValue { key,value } => {
-				let value = T::map_attribute_value(key, value);
-				quote!(RsxAttribute::BlockValue { key: #key.to_string(),value: #value })
+			RsxAttributeTokens::BlockValue { key, value } => {
+				T::map_attribute_value(key, value)
 			}
-			RsxAttributeTokens::Block(block) => {
-				let block = T::map_attribute_block(block);
-				quote!(RsxAttribute::Block(#block))
-			}
-	}
+			RsxAttributeTokens::Block(block) => T::map_attribute_block(block),
+		}
 		.to_tokens(tokens);
 	}
 }

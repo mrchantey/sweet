@@ -132,7 +132,7 @@ impl<T: RsxRustTokens> RstmlToRsx<T> {
 				#ident{
 					#(#props,)*
 				}
-				.into_rsx_tree()#children_slot.nodes
+				.into_rsx()#children_slot
 		};
 		RsxNodeTokens::Component(rust)
 	}

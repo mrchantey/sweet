@@ -12,7 +12,7 @@ impl Server {
 	// }
 
 	pub fn run_once(self, rsx: impl Rsx) {
-		let parts = rsx.into_rsx_tree();
+		let parts = rsx.into_rsx();
 		println!("todo run server for {:?}", parts);
 	}
 }
