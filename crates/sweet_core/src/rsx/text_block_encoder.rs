@@ -125,8 +125,11 @@ impl CollapsedNode {
 		let mut out = Vec::new();
 		for node in nodes {
 			match node {
-				RsxNode::Block(val) => {
-					out.push(CollapsedNode::RustText(R::block_to_string(val)))
+				RsxNode::Fragment(nodes) => {
+					out.extend(Self::from_nodes(nodes));
+				}
+				RsxNode::TextBlock { initial, .. } => {
+					out.push(CollapsedNode::RustText(initial.clone()))
 				}
 				RsxNode::Text(val) => {
 					out.push(CollapsedNode::StaticText(val.clone()))

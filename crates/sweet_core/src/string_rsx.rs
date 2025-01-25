@@ -7,7 +7,7 @@ use crate::prelude::*;
 pub struct StringRsx;
 
 impl RsxRust for StringRsx {
-	type Block = String;
+	type NodeBlock = String;
 	type AttributeBlock = String;
 	type AttributeBlockValue = String;
 	fn attribute_block_to_string(block: &Self::AttributeBlock) -> String {
@@ -18,7 +18,7 @@ impl RsxRust for StringRsx {
 	) -> String {
 		block.clone()
 	}
-	fn block_to_string(block: &Self::Block) -> String { block.clone() }
+	fn block_to_string(block: &Self::NodeBlock) -> String { block.clone() }
 }
 
 
@@ -49,7 +49,11 @@ impl RsxRustTokens for StringRsx {
 	}
 
 	fn map_block(block: &TokenStream) -> TokenStream {
-		quote! { #block.to_string() }
+		quote! { RsxNode::TextBlock{
+				initial: #block.to_string(),
+				register_effect: Box::new(|| {}),
+			 }
+		}
 	}
 
 	fn map_attribute_block(block: &TokenStream) -> TokenStream {

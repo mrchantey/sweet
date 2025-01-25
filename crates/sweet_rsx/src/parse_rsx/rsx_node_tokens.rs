@@ -130,7 +130,7 @@ fn children_to_tokens<T: RsxRustTokens>(
 		RsxNodeTokens::Component(component) => quote!(vec.extend(#component)),
 		RsxNodeTokens::Block(block) => {
 			let block = T::map_block(block);
-			quote!(vec.push(RsxNode::Block(#block)))
+			quote!(vec.push(#block))
 		}
 		_ => quote!(vec.push(#child)),
 	});

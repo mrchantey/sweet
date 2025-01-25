@@ -4,6 +4,7 @@ use proc_macro2::TokenStream;
 /// see [RsxNodeTokens]
 pub trait RsxRustTokens {
 	fn ident() -> TokenStream;
+	// must return a valid RsxNode
 	fn map_block(block: &TokenStream) -> TokenStream;
 	fn map_attribute_block(block: &TokenStream) -> TokenStream;
 	fn map_attribute_value(key: &str, value: &TokenStream) -> TokenStream;

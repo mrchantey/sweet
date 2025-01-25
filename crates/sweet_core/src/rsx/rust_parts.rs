@@ -22,11 +22,11 @@ pub enum RustParts {
 
 
 impl RsxRust for RustParts {
-	type Block = String;
+	type NodeBlock = String;
 	type AttributeBlock = String;
 	type AttributeBlockValue = String;
 
-	fn block_to_string(block: &Self::Block) -> String { block.clone() }
+	fn block_to_string(block: &Self::NodeBlock) -> String { block.clone() }
 	fn attribute_block_to_string(block: &Self::AttributeBlock) -> String {
 		block.clone()
 	}

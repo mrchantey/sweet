@@ -79,13 +79,17 @@ impl<R: RsxRust> RsxTree<R> {
 // #[derive(Debug, Clone, PartialEq, AsRefStr)]
 // #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum RsxNode<R: RsxRust> {
+	Fragment(Vec<RsxNode<R>>),
+	/// a rust block
+	TextBlock {
+		initial: String,
+		register_effect: Box<dyn FnOnce()>,
+	},
 	Doctype,
 	Comment(String),
-	Element(RsxElement<R>),
 	/// may have been Text or RawText
 	Text(String),
-	/// a rust block, contents is reconciled by renderer
-	Block(R::Block),
+	Element(RsxElement<R>),
 }
 
 impl<R: RsxRust> RsxNode<R> {
@@ -139,7 +143,10 @@ impl<R: RsxRust> RsxNode<R> {
 			RsxNode::Comment(s) => format!("<!--{}-->", s),
 			RsxNode::Element(e) => e.build_string(),
 			RsxNode::Text(s) => s.clone(),
-			RsxNode::Block(block) => R::block_to_string(block),
+			RsxNode::TextBlock { initial, .. } => initial.clone(),
+			RsxNode::Fragment(nodes) => {
+				nodes.iter().map(|n| n.build_string()).collect::<String>()
+			}
 		}
 	}
 }
@@ -172,7 +179,9 @@ impl<R: RsxRust> RsxElement<R> {
 	}
 
 	pub fn contains_text_blocks(&self) -> bool {
-		self.children.iter().any(|c| matches!(c, RsxNode::Block(_)))
+		self.children
+			.iter()
+			.any(|c| matches!(c, RsxNode::TextBlock { .. }))
 	}
 
 	/// Whether any children or attributes are blocks,

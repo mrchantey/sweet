@@ -2,10 +2,11 @@
 #![cfg_attr(test, test_runner(sweet_test::test_runner))]
 
 pub mod error;
-pub mod rsx;
-pub mod string_rsx;
 #[cfg(feature = "flume")]
 pub mod flume_rsx;
+pub mod rsx;
+pub mod signals_rsx;
+pub mod string_rsx;
 #[cfg(feature = "tokens")]
 pub mod tokens;
 pub mod tree;
