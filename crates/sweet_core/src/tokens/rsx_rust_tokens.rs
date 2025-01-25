@@ -3,6 +3,7 @@ use proc_macro2::TokenStream;
 /// Instructions for converting the rust parts of an rsx node to tokens
 /// see [RsxNodeTokens]
 pub trait RsxRustTokens {
+	/// not currently used but may be in the future
 	fn ident() -> TokenStream;
 	/// must return a valid RsxNode, ie RsxNode::TextBlock(some_string)
 	fn map_node_block(block: &TokenStream) -> TokenStream;

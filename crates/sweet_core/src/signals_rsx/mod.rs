@@ -2,105 +2,121 @@ mod signal;
 // use crate::rsx::RsxAttribute;
 // use crate::rsx::RsxNode;
 // use crate::rsx::RsxRust;
+use crate::prelude::*;
 pub use signal::*;
 
-pub struct SignalRsx;
+pub struct SignalsRsx;
 
+
+
+impl SignalsRsx {
+	pub fn register_node_block<M>(
+		block: impl 'static + Clone + IntoRsx<M>,
+	) -> Box<dyn FnOnce()> {
+		Box::new(move || {
+			effect(move || {
+				let node = block.clone().into_rsx();
+				println!("would update node: {}", node.build_string());
+				// todo!();
+			});
+		})
+	}
+	pub fn register_attribute_block(
+		mut block: impl 'static + FnMut() -> RsxAttribute,
+	) -> Box<dyn FnOnce()> {
+		Box::new(move || {
+			effect(move || {
+				let attrs = block();
+				println!("would update attributes: {}", attrs.build_string());
+				todo!();
+			});
+		})
+	}
+	pub fn register_attribute_block_value<T: ToString>(
+		key: &str,
+		mut block: impl 'static + FnMut() -> T,
+	) -> Box<dyn FnOnce()> {
+		let key = key.to_string();
+		Box::new(move || {
+			effect(move || {
+				let value = block().to_string();
+				println!("would update attribute {key}: {value}");
+				todo!();
+			});
+		})
+	}
+}
 
 // yes it looks right but i think these types will always be the same
+#[cfg(feature = "tokens")]
+use proc_macro2::TokenStream;
+#[cfg(feature = "tokens")]
+use quote::quote;
+
+#[cfg(feature = "tokens")]
+impl RsxRustTokens for SignalsRsx {
+	fn ident() -> TokenStream {
+		quote! {sweet::signals_rsx::SignalsRsx}
+	}
+
+	fn map_node_block(block: &TokenStream) -> TokenStream {
+		let ident = Self::ident();
+		quote! {
+			{
+				let block = #block;
+				RsxNode::TextBlock{
+					register_effect: #ident::register_node_block(block.clone()),
+					initial: block.into_rsx().build_string(),
+				}
+			}
+		}
+	}
+
+	fn map_attribute_block(block: &TokenStream) -> TokenStream {
+		let ident = Self::ident();
+		quote! { RsxAttribute::Block{
+				initial: #block
+				register_effect: #ident::register_attribute_block(#block),
+			}
+		}
+	}
+
+	fn map_attribute_value(key: &str, value: &TokenStream) -> TokenStream {
+		if key.starts_with("on") {
+			// events unsupported for string_rsx
+			let str = format!("{key}_handler");
+			quote! { RsxAttribute::KeyValue{
+					key: #key.to_string(),
+					value: #str.to_string()
+				}
+			}
+		} else {
+			let ident = Self::ident();
+			quote! { RsxAttributeBlockValue{
+					key: #key.to_string(),
+					initial: #value.to_string(),
+					register_effect: #ident::register_attribute_block_value(#key, #value),
+				}
+			}
+		}
+	}
+}
+
+#[cfg(test)]
+mod test {
+	use super::signal;
+	use crate::prelude::*;
+	// use sweet::prelude::*;
+	use sweet_rsx_macros::rsx;
 
 
-// impl RsxRust for SignalRsx {
-// 	type NodeBlock = NodeBlockEffect;
-// 	type AttributeBlock = AttributeBlockEffect;
-// 	type AttributeBlockValue = AttributeBlockValueEffect;
+	#[test]
+	fn works() {
+		let (get, set) = signal(7);
 
-// 	fn block_to_string(block: &Self::NodeBlock) -> String {
-// 		block.initial.build_string()
-// 	}
-
-// 	fn attribute_block_to_string(block: &Self::AttributeBlock) -> String {
-// 		block
-// 			.initial
-// 			.iter()
-// 			.map(|attr| attr.build_string())
-// 			.collect()
-// 	}
-
-// 	fn attribute_block_value_to_string(
-// 		block: &Self::AttributeBlockValue,
-// 	) -> String {
-// 		block.initial.clone()
-// 	}
-// }
-
-
-// pub struct NodeBlockEffect {
-// 	pub initial: RsxNode<SignalRsx>,
-// 	pub register_effect: Box<dyn FnOnce()>,
-// }
-
-// impl NodeBlockEffect {
-// 	pub fn new<T: Into<RsxNode<SignalRsx>>>(
-// 		mut func: impl FnMut() -> T + 'static,
-// 	) -> Self {
-// 		Self {
-// 			initial: func().into(),
-// 			register_effect: Box::new(move || {
-// 				effect(move || {
-// 					let node: RsxNode<SignalRsx> = func().into();
-// 					let node_str = node.build_string();
-// 					println!("would update node: {:?}", node_str);
-// 					todo!();
-// 				})
-// 			}),
-// 		}
-// 	}
-// }
-
-
-// pub struct AttributeBlockEffect {
-// 	pub initial: Vec<RsxAttribute<SignalRsx>>,
-// 	pub register_effect: Box<dyn FnOnce()>,
-// }
-
-// impl AttributeBlockEffect {
-// 	pub fn new(
-// 		mut func: impl FnMut() -> Vec<RsxAttribute<SignalRsx>> + 'static,
-// 	) -> Self {
-// 		Self {
-// 			initial: func(),
-// 			register_effect: Box::new(move || {
-// 				effect(move || {
-// 					let attributes = func();
-// 					println!("would update attributes: {:?}", attributes.len());
-// 					todo!();
-// 				})
-// 			}),
-// 		}
-// 	}
-// }
-
-
-// pub struct AttributeBlockValueEffect {
-// 	pub initial: String,
-// 	pub register_effect: Box<dyn FnOnce()>,
-// }
-// impl AttributeBlockValueEffect {
-// 	pub fn new<T: Into<String>>(
-// 		key: &str,
-// 		mut func: impl FnMut() -> T + 'static,
-// 	) -> Self {
-// 		let key = key.to_string();
-// 		Self {
-// 			initial: func().into(),
-// 			register_effect: Box::new(move || {
-// 				effect(move || {
-// 					let value: String = func().into();
-// 					println!("would update attribute: {key}: {value}");
-// 					todo!();
-// 				})
-// 			}),
-// 		}
-// 	}
-// }
+		let rsx = rsx! {<div>{get}</div>};
+		rsx.register_effects();
+		set(8);
+		set(9);
+	}
+}

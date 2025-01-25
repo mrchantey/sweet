@@ -15,7 +15,10 @@ use proc_macro::TokenStream;
 pub fn rsx(tokens: TokenStream) -> TokenStream { RsxMacro::parse(tokens) }
 
 
-use sweet_core::string_rsx::StringRsx;
+#[cfg(feature = "signals")]
+use sweet_core::signals_rsx::SignalsRsx as RsxParserStrategy;
+#[cfg(not(feature = "signals"))]
+use sweet_core::string_rsx::StringRsx as RsxParserStrategy;
 use sweet_rsx::prelude::RsxParser;
 struct RsxMacro;
 
@@ -23,7 +26,8 @@ struct RsxMacro;
 impl RsxMacro {
 	pub fn parse(tokens: proc_macro::TokenStream) -> proc_macro::TokenStream {
 		let mut tokens: proc_macro2::TokenStream = tokens.into();
-		let _output = RsxParser::<StringRsx>::default().parse_rsx(&mut tokens);
+		let _output =
+			RsxParser::<RsxParserStrategy>::default().parse_rsx(&mut tokens);
 		// ignore output because errors are included in the token stream
 
 		tokens.into()

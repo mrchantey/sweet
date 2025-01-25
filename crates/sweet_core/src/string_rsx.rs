@@ -6,22 +6,6 @@ use crate::prelude::*;
 #[derive(Debug)]
 pub struct StringRsx;
 
-impl RsxRust for StringRsx {
-	type NodeBlock = String;
-	type AttributeBlock = String;
-	type AttributeBlockValue = String;
-	fn attribute_block_to_string(block: &Self::AttributeBlock) -> String {
-		block.clone()
-	}
-	fn attribute_block_value_to_string(
-		block: &Self::AttributeBlockValue,
-	) -> String {
-		block.clone()
-	}
-	fn block_to_string(block: &Self::NodeBlock) -> String { block.clone() }
-}
-
-
 #[cfg(feature = "tokens")]
 use proc_macro2::TokenStream;
 #[cfg(feature = "tokens")]

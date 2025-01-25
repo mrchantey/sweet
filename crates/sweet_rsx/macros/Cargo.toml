@@ -11,6 +11,10 @@ repository.workspace = true
 categories.workspace = true
 keywords.workspace = true
 
+[features]
+default = ["signals"]
+signals = []
+
 
 [lib]
 proc-macro = true

@@ -1,4 +1,3 @@
-
 use std::cell::RefCell;
 use std::rc::Rc;
 
@@ -36,6 +35,7 @@ impl<T: Clone> Signal<T> {
 		}
 	}
 }
+
 
 pub fn effect<F>(callback: F)
 where

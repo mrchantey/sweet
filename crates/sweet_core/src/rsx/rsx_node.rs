@@ -92,6 +92,36 @@ impl RsxNode {
 		}
 	}
 
+	pub fn register_effects(self) {
+		match self {
+			RsxNode::TextBlock {
+				register_effect, ..
+			} => register_effect(),
+			RsxNode::Element(e) => {
+				for a in e.attributes {
+					match a {
+						RsxAttribute::Block {
+							register_effect, ..
+						} => register_effect(),
+						RsxAttribute::BlockValue {
+							register_effect, ..
+						} => register_effect(),
+						_ => {}
+					}
+				}
+				for c in e.children {
+					c.register_effects();
+				}
+			}
+			RsxNode::Fragment(nodes) => {
+				for n in nodes {
+					n.register_effects();
+				}
+			}
+			_ => {}
+		}
+	}
+
 	pub fn build_string(&self) -> String {
 		match self {
 			RsxNode::Doctype => "<!DOCTYPE html>".to_string(),
