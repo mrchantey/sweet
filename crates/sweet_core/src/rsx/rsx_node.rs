@@ -1,7 +1,4 @@
-#[cfg(feature = "serde")]
-pub use serde::Deserialize;
-#[cfg(feature = "serde")]
-pub use serde::Serialize;
+use crate::prelude::*;
 /// This struct represents one of the core concepts of sweet rsx!
 ///
 // #[derive(Debug, Clone, PartialEq)]
@@ -25,8 +22,34 @@ impl Default for RsxNode {
 	fn default() -> Self { Self::Fragment(Vec::new()) }
 }
 
+impl RenderHtml for RsxNode {
+	fn render_html_with_buf(&self, html: &mut String) {
+		self.into_html()
+			.iter()
+			.for_each(|n| n.render_html_with_buf(html));
+	}
+}
+
 
 impl RsxNode {
+	pub fn into_html(&self) -> Vec<HtmlNode> {
+		match self {
+			RsxNode::Doctype => vec![HtmlNode::Doctype],
+			RsxNode::Comment(s) => {
+				vec![HtmlNode::Comment(HtmlCommentNode(s.clone()))]
+			}
+			RsxNode::Text(s) => vec![HtmlNode::Text(HtmlTextNode(s.clone()))],
+			RsxNode::TextBlock { initial, .. } => {
+				vec![HtmlNode::Text(HtmlTextNode(initial.clone()))]
+			}
+			RsxNode::Element(e) => vec![HtmlNode::Element(e.into_html())],
+			RsxNode::Fragment(nodes) => {
+				nodes.iter().map(|n| n.into_html()).flatten().collect()
+			}
+		}
+	}
+
+
 	/// A method used by macros to insert nodes into a slot
 	/// # Panics
 	/// If the slot is not found
@@ -121,19 +144,6 @@ impl RsxNode {
 			_ => {}
 		}
 	}
-
-	pub fn build_string(&self) -> String {
-		match self {
-			RsxNode::Doctype => "<!DOCTYPE html>".to_string(),
-			RsxNode::Comment(s) => format!("<!--{}-->", s),
-			RsxNode::Element(e) => e.build_string(),
-			RsxNode::Text(s) => s.clone(),
-			RsxNode::TextBlock { initial, .. } => initial.clone(),
-			RsxNode::Fragment(nodes) => {
-				nodes.iter().map(|n| n.build_string()).collect::<String>()
-			}
-		}
-	}
 }
 
 /// Minimum required info for our use case of html.
@@ -163,6 +173,25 @@ impl RsxElement {
 		}
 	}
 
+	pub fn into_html(&self) -> HtmlElementNode {
+		HtmlElementNode {
+			tag: self.tag.clone(),
+			self_closing: self.self_closing,
+			attributes: self
+				.attributes
+				.iter()
+				.map(|a| a.into_html())
+				.flatten()
+				.collect(),
+			children: self
+				.children
+				.iter()
+				.map(|c| c.into_html())
+				.flatten()
+				.collect(),
+		}
+	}
+
 	pub fn contains_text_blocks(&self) -> bool {
 		self.children
 			.iter()
@@ -181,38 +210,6 @@ impl RsxElement {
 				)
 			})
 	}
-
-
-	pub fn build_string(&self) -> String {
-		let mut out = String::new();
-		// slots are a kind of fragment, just return children
-		if self.tag == "slot" {
-			for child in &self.children {
-				out.push_str(&child.build_string());
-			}
-			return out;
-		}
-
-
-		out.push_str(&format!("<{}", self.tag));
-		for attribute in &self.attributes {
-			out.push(' ');
-			out.push_str(&attribute.build_string());
-		}
-		if self.self_closing {
-			out.push_str("/>");
-			return out;
-		} else {
-			out.push('>');
-		}
-		for child in &self.children {
-			out.push_str(&child.build_string());
-		}
-		if !self.self_closing {
-			out.push_str(&format!("</{}>", self.tag));
-		}
-		out
-	}
 }
 
 // #[derive(Debug, Clone, PartialEq)]
@@ -230,28 +227,40 @@ pub enum RsxAttribute {
 		initial: String,
 		register_effect: Box<dyn FnOnce()>,
 	},
+	// kind of like a fragment, but for attributes
 	Block {
 		initial: Vec<RsxAttribute>,
 		register_effect: Box<dyn FnOnce()>,
 	},
 }
 
+impl RenderHtml for RsxAttribute {
+	fn render_html_with_buf(&self, html: &mut String) {
+		self.into_html()
+			.iter()
+			.for_each(|n| n.render_html_with_buf(html));
+	}
+}
+
 impl RsxAttribute {
-	pub fn build_string(&self) -> String {
+	pub fn into_html(&self) -> Vec<HtmlAttribute> {
 		match self {
-			RsxAttribute::Key { key } => key.clone(),
-			RsxAttribute::KeyValue { key, value } => {
-				if key == "slot" {
-					String::default()
-				} else {
-					format!("{}=\"{}\"", key, value)
-				}
-			}
+			RsxAttribute::Key { key } => vec![HtmlAttribute {
+				key: key.clone(),
+				value: None,
+			}],
+			RsxAttribute::KeyValue { key, value } => vec![HtmlAttribute {
+				key: key.clone(),
+				value: Some(value.clone()),
+			}],
 			RsxAttribute::BlockValue { key, initial, .. } => {
-				format!("{}=\"{}\"", key, initial)
+				vec![HtmlAttribute {
+					key: key.clone(),
+					value: Some(initial.clone()),
+				}]
 			}
 			RsxAttribute::Block { initial, .. } => {
-				initial.iter().map(|a| a.build_string()).collect::<String>()
+				initial.iter().map(|a| a.into_html()).flatten().collect()
 			}
 		}
 	}

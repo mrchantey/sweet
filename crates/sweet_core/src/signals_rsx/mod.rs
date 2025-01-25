@@ -16,7 +16,7 @@ impl SignalsRsx {
 		Box::new(move || {
 			effect(move || {
 				let node = block.clone().into_rsx();
-				println!("would update node: {}", node.build_string());
+				println!("would update node: {}", node.render_html());
 				// todo!();
 			});
 		})
@@ -27,7 +27,7 @@ impl SignalsRsx {
 		Box::new(move || {
 			effect(move || {
 				let attrs = block();
-				println!("would update attributes: {}", attrs.build_string());
+				println!("would update attributes: {}", attrs.render_html());
 				todo!();
 			});
 		})
@@ -66,7 +66,7 @@ impl RsxRustTokens for SignalsRsx {
 				let block = #block;
 				RsxNode::TextBlock{
 					register_effect: #ident::register_node_block(block.clone()),
-					initial: block.into_rsx().build_string(),
+					initial: block.into_rsx().render_html(),
 				}
 			}
 		}

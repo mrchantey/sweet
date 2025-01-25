@@ -118,19 +118,15 @@ mod test {
 	#[test]
 	fn compiles() {
 		let world = "mars";
-		let _rsx = rsx! {
-		<div onclick=onclick>
-			<p>hello {world}</p>
-			</div>
-		};
+		let _rsx = rsx! {<div onclick=onclick><p>hello {world}</p></div>};
 	}
 	#[test]
-	fn build_string() {
+	fn render_html() {
 		#[allow(unused)]
 		let onclick = |_: u32| {};
-		let parts = rsx! {<div onclick=onclick> the value is {3} </div>};
+		let node = rsx! {<div onclick=onclick> the value is {3} </div>};
 
-		expect(parts.build_string())
+		expect(node.render_html())
 			.to_be("<div onclick=\"onclick_handler\"> the value is 3</div>");
 	}
 	#[test]
@@ -143,9 +139,9 @@ mod test {
 				rsx! {<p>hello {self.value}</p>}
 			}
 		}
-		let parts = rsx! {<div> the child is <Child value=38/>! </div>};
+		let node = rsx! {<div> the child is <Child value=38/>! </div>};
 
-		expect(parts.build_string())
+		expect(node.render_html())
 			.to_be("<div> the child is <p>hello 38</p>! </div>");
 	}
 	#[test]
@@ -161,9 +157,9 @@ mod test {
 				}
 			}
 		}
-		let parts = rsx! {<Layout><b>foo</b></Layout>};
+		let node = rsx! {<Layout><b>foo</b></Layout>};
 
-		expect(parts.build_string())
+		expect(node.render_html())
 			.to_be("<div><h1>welcome</h1><p><b>foo</b></p></div>");
 	}
 	#[test]
@@ -182,14 +178,14 @@ mod test {
 				}
 			}
 		}
-		let parts = rsx! {
+		let node = rsx! {
 			<Layout>
 				<b slot="tagline">what a cool article</b>
 				<div>direct child</div>
 			</Layout>
 		};
 
-		expect(parts.build_string())
-			.to_be("<article><h1>welcome</h1><p><b >what a cool article</b></p><main><div>direct child</div></main></article>");
+		expect(node.render_html())
+			.to_be("<article><h1>welcome</h1><p><b>what a cool article</b></p><main><div>direct child</div></main></article>");
 	}
 }

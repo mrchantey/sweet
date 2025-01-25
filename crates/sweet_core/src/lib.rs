@@ -10,10 +10,12 @@ pub mod string_rsx;
 #[cfg(feature = "tokens")]
 pub mod tokens;
 pub mod tree;
+pub mod renderer;
 
 
 #[rustfmt::skip]
 pub mod prelude {
+	pub use crate::renderer::*;
 	pub use crate::error::*;
 	pub use crate::tree::*;
 	pub use crate::rsx::*;
