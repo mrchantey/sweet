@@ -3,6 +3,8 @@
 
 pub mod error;
 pub mod rsx;
+#[cfg(feature = "tokens")]
+pub mod tokens;
 pub mod tree;
 
 #[rustfmt::skip]
@@ -10,6 +12,8 @@ pub mod prelude {
 	pub use crate::error::*;
 	pub use crate::tree::*;
 	pub use crate::rsx::*;
+	#[cfg(feature = "tokens")]
+	pub use crate::tokens::*;
 
 	// testing 
 	#[cfg(test)]

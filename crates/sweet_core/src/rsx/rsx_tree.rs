@@ -4,7 +4,6 @@ pub use serde::Deserialize;
 #[cfg(feature = "serde")]
 pub use serde::Serialize;
 
-
 /// This struct represents one of the core concepts of sweet rsx!
 ///
 /// It is a type that represents a tree of html, but with the
@@ -34,10 +33,15 @@ impl<R: RsxRust> Default for RsxTree<R> {
 
 impl<R: RsxRust> RsxTree<R> {
 	pub fn new(nodes: Vec<RsxNode<R>>) -> Self { Self { nodes } }
+
+	pub fn build_string(&self) -> String {
+		let mut out = String::new();
+		for node in &self.nodes {
+			out.push_str(&node.build_string());
+		}
+		out
+	}
 }
-
-
-const PLACEHOLDER: char = '§';
 
 impl<R: RsxRust> RsxTree<R> {
 	/// placeholder for rust parts
@@ -76,7 +80,7 @@ impl<R: RsxRust> RsxNode<R> {
 			RsxNode::Comment(s) => format!("<!--{}-->", s),
 			RsxNode::Element(e) => e.build_string(),
 			RsxNode::Text(s) => s.clone(),
-			RsxNode::Block(_) => PLACEHOLDER.to_string(),
+			RsxNode::Block(block) => R::block_to_string(block),
 		}
 	}
 }
@@ -107,7 +111,7 @@ impl<R: RsxRust> RsxNode<R> {
 /// Minimum required info for our use case of html.
 /// Blocks are assumed to be `PartiaEq` because
 /// they are defined as 'the next block in the vec' when reconciling.
-// #[derive(Clone, PartialEq)]
+// #[derive(Debug, Clone)]
 // #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct RsxElement<R: RsxRust> {
 	/// ie `div, span, input`
@@ -155,7 +159,7 @@ impl<R: RsxRust> RsxElement<R> {
 		out.push_str(&format!("<{}{}>", self.tag, self_closing));
 		for attribute in &self.attributes {
 			out.push(' ');
-			out.push_str(&attribute.to_string_placeholder());
+			out.push_str(&attribute.build_string());
 		}
 		for child in &self.children {
 			out.push_str(&child.build_string());
@@ -185,16 +189,20 @@ pub enum RsxAttribute<R: RsxRust> {
 }
 
 impl<R: RsxRust> RsxAttribute<R> {
-	pub fn to_string_placeholder(&self) -> String {
+	pub fn build_string(&self) -> String {
 		match self {
 			RsxAttribute::Key { key } => key.clone(),
 			RsxAttribute::KeyValue { key, value } => {
 				format!("{}=\"{}\"", key, value)
 			}
-			RsxAttribute::BlockValue { key, .. } => {
-				format!("{}=\"{}\"", key, PLACEHOLDER)
+			RsxAttribute::BlockValue { key, value } => {
+				format!(
+					"{}=\"{}\"",
+					key,
+					R::attribute_block_value_to_string(value)
+				)
 			}
-			RsxAttribute::Block(_) => PLACEHOLDER.to_string(),
+			RsxAttribute::Block(block) => R::attribute_block_to_string(block),
 		}
 	}
 }

@@ -16,6 +16,7 @@ keywords.workspace = true
 proc-macro = true
 
 [dependencies]
+sweet_core.workspace = true
 sweet_rsx.workspace = true
 syn.workspace = true
 quote.workspace = true

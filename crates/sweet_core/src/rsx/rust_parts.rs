@@ -19,6 +19,27 @@ pub enum RustParts {
 	Component(RsxTree<RustParts>),
 }
 
+
+
+impl RsxRust for RustParts {
+	type Block = String;
+	type AttributeBlock = String;
+	type AttributeBlockValue = String;
+
+	fn block_to_string(block: &Self::Block) -> String { block.clone() }
+	fn attribute_block_to_string(block: &Self::AttributeBlock) -> String {
+		block.clone()
+	}
+	fn attribute_block_value_to_string(
+		block: &Self::AttributeBlockValue,
+	) -> String {
+		block.clone()
+	}
+}
+
+
+
+
 impl std::fmt::Debug for RustParts {
 	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
 		f.debug_struct(self.as_ref()).finish()

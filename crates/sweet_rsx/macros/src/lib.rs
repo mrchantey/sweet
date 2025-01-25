@@ -1,7 +1,9 @@
 use proc_macro::TokenStream;
-mod rsx;
 
-/// This macro expands to an [RsxTree<RustParts>](sweet_core::prelude::RsxTree)
+/// This macro expands to an [RsxTree](sweet_core::prelude::RsxTree).
+///
+/// The type of node is determied by the feature flags, current options are:
+/// - [`StringRsx`](sweet_core::rsx::StringRsx)
 /// ```
 /// # use sweet::prelude::*;
 /// let tree = rsx! {<div> the value is {3}</div>};
@@ -10,4 +12,20 @@ mod rsx;
 /// ```
 ///
 #[proc_macro]
-pub fn rsx(tokens: TokenStream) -> TokenStream { rsx::RsxMacro::parse(tokens) }
+pub fn rsx(tokens: TokenStream) -> TokenStream { RsxMacro::parse(tokens) }
+
+
+use sweet_core::prelude::StringRsx;
+use sweet_rsx::prelude::RsxParser;
+struct RsxMacro;
+
+
+impl RsxMacro {
+	pub fn parse(tokens: proc_macro::TokenStream) -> proc_macro::TokenStream {
+		let mut tokens: proc_macro2::TokenStream = tokens.into();
+		let _output = RsxParser::<StringRsx>::default().parse_rsx(&mut tokens);
+		// ignore output because errors are included in the token stream
+
+		tokens.into()
+	}
+}

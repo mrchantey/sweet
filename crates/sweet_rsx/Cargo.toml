@@ -13,7 +13,7 @@ keywords.workspace = true
 
 
 [dependencies]
-sweet_core = { workspace = true, features = ["serde", "quote"] }
+sweet_core = { workspace = true, features = ["serde", "tokens"] }
 anyhow.workspace = true
 
 syn = { workspace = true, features = ["visit"] }

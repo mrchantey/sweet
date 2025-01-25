@@ -1,12 +1,14 @@
 mod hydrate;
 mod rsx_rust;
 mod rsx_tree;
+mod string_rsx;
 pub use hydrate::*;
 pub use rsx_rust::*;
 pub use rsx_tree::*;
 pub use rust_parts::*;
+pub use string_rsx::*;
 pub use text_block_encoder::*;
-#[cfg(feature = "quote")]
+#[cfg(feature = "tokens")]
 mod rsx_tree_quote;
 mod rust_parts;
 mod text_block_encoder;
@@ -24,12 +26,12 @@ impl Rsx for () {
 }
 impl Rsx for &str {
 	fn into_rsx_tree(self) -> RsxTree<impl RsxRust> {
-		RsxTree::<String>::new(vec![RsxNode::Text(self.to_string())])
+		RsxTree::<StringRsx>::new(vec![RsxNode::Text(self.to_string())])
 	}
 }
 impl Rsx for String {
 	fn into_rsx_tree(self) -> RsxTree<impl RsxRust> {
-		RsxTree::<String>::new(vec![RsxNode::Text(self)])
+		RsxTree::<StringRsx>::new(vec![RsxNode::Text(self)])
 	}
 }
 

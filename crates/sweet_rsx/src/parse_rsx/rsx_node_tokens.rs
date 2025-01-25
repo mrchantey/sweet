@@ -1,58 +1,28 @@
 use proc_macro2::TokenStream;
 use quote::quote;
 use quote::ToTokens;
+use sweet_core::tokens::RsxRustTokens;
 
-pub enum RsxNodeTokens {
+pub enum RsxNodeTokens<T> {
+	Phantom(std::marker::PhantomData<T>),
 	Doctype,
 	Text(String),
 	Comment(String),
 	Block(TokenStream),
 	Element {
 		tag: String,
-		attributes: Vec<RsxAttributeTokens>,
-		children: Vec<RsxNodeTokens>,
+		attributes: Vec<RsxAttributeTokens<T>>,
+		children: Vec<RsxNodeTokens<T>>,
 		self_closing: bool,
 	},
-	Fragment(Vec<RsxNodeTokens>),
+	Fragment(Vec<RsxNodeTokens<T>>),
 	Component(TokenStream),
 }
 
-// impl Node for RsxNodeTokens {
-// 	fn children(&self) -> Option<&Vec<Self>> {
-// 		match self {
-// 			RsxNodeTokens::Element { children, .. } => Some(children),
-// 			RsxNodeTokens::Fragment(vec) => Some(vec),
-// 			_ => None,
-// 		}
-// 	}
-// 	fn children_mut(&mut self) -> Option<&mut Vec<Self>> {
-// 		match self {
-// 			RsxNodeTokens::Element { children, .. } => Some(children),
-// 			RsxNodeTokens::Fragment(vec) => Some(vec),
-// 			_ => None,
-// 		}
-// 	}
-// 	fn take_children(&mut self) -> Option<Vec<Self>> {
-// 		match self {
-// 			RsxNodeTokens::Element { children, .. } => {
-// 				Some(std::mem::take(children))
-// 			}
-// 			RsxNodeTokens::Fragment(vec) => Some(std::mem::take(vec)),
-// 			_ => None,
-// 		}
-// 	}
-// }
-
-pub enum RsxAttributeTokens {
-	Key { key: String },
-	KeyValue { key: String, value: String },
-	BlockValue { key: String, value: TokenStream },
-	Block(TokenStream),
-}
-
-impl ToTokens for RsxNodeTokens {
+impl<T: RsxRustTokens> ToTokens for RsxNodeTokens<T> {
 	fn to_tokens(&self, tokens: &mut TokenStream) {
 		match self {
+			RsxNodeTokens::Phantom(_) => unreachable!(),
 			RsxNodeTokens::Doctype => quote!(RsxNode::Doctype),
 			RsxNodeTokens::Text(text) => {
 				quote!(RsxNode::Text(#text.to_string()))
@@ -61,6 +31,7 @@ impl ToTokens for RsxNodeTokens {
 				quote!(RsxNode::Comment(#comment.to_string()))
 			}
 			RsxNodeTokens::Block(block) => {
+				let block = T::map_block(block);
 				quote!(RsxNode::Block(#block))
 			}
 			RsxNodeTokens::Element {
@@ -69,7 +40,7 @@ impl ToTokens for RsxNodeTokens {
 				children,
 				self_closing,
 			} => {
-				let children = flatten_children(children);
+				let children = children_to_tokens(children);
 				quote!(RsxNode::Element(RsxElement {
 					tag: #tag.to_string(),
 					attributes: vec![#(#attributes),*],
@@ -86,15 +57,20 @@ impl ToTokens for RsxNodeTokens {
 	}
 }
 
-
-fn flatten_children(children: &Vec<RsxNodeTokens>) -> TokenStream {
+/// Map children to tokens,
+/// flattening fragments and components
+fn children_to_tokens<T: RsxRustTokens>(
+	children: &Vec<RsxNodeTokens<T>>,
+) -> TokenStream {
 	let add = children.into_iter().map(|child| match child {
+		RsxNodeTokens::Phantom(_) => unreachable!(),
 		RsxNodeTokens::Fragment(children) => {
-			let children = flatten_children(children);
+			let children = children_to_tokens(children);
 			quote!(vec.extend(#children);)
 		}
 		RsxNodeTokens::Component(component) => quote!(vec.extend(#component)),
 		RsxNodeTokens::Block(block) => {
+			let block = T::map_block(block);
 			// unimplemented!("this may be one or many?")
 			quote!(vec.push(RsxNode::Block(#block)))
 		}
@@ -108,116 +84,33 @@ fn flatten_children(children: &Vec<RsxNodeTokens>) -> TokenStream {
 	})
 }
 
-impl ToTokens for RsxAttributeTokens {
+pub enum RsxAttributeTokens<T> {
+	Phantom(std::marker::PhantomData<T>),
+	Key { key: String },
+	KeyValue { key: String, value: String },
+	BlockValue { key: String, value: TokenStream },
+	Block(TokenStream),
+}
+
+impl<T: RsxRustTokens> ToTokens for RsxAttributeTokens<T> {
 	fn to_tokens(&self, tokens: &mut TokenStream) {
 		match self {
-		RsxAttributeTokens::Key{key} => {
+			RsxAttributeTokens::Phantom(_) => unreachable!(),
+			RsxAttributeTokens::Key{key} => {
 				quote!(RsxAttribute::Key { key: #key.to_string() })
 			}
-		RsxAttributeTokens::KeyValue { key, value } => {
+			RsxAttributeTokens::KeyValue { key, value } => {
 				quote!(RsxAttribute::KeyValue { key: #key.to_string(), value: #value.to_string() })
 		}
 		RsxAttributeTokens::BlockValue { key,value } => {
-				quote!(RsxAttribute::BlockValue { key: #key.to_string(),value: #value })
+			let value = T::map_attribute_value(key, value);
+			quote!(RsxAttribute::BlockValue { key: #key.to_string(),value: #value })
 		}
-		RsxAttributeTokens::Block(r) => quote!(RsxAttribute::Block(#r)),		}
+		RsxAttributeTokens::Block(block) => {
+			let block = T::map_attribute_block(block);
+			quote!(RsxAttribute::Block(#block))
+		}
+	}
 		.to_tokens(tokens);
 	}
 }
-
-
-// pub struct ParseStringNodeTokens {
-// 	position: TreePosition,
-// }
-
-// impl TreeVisitorMut<RsxNodeTokens> for ParseStringNodeTokens {
-// 	fn visit_node(
-// 		&mut self,
-// 		node: &mut RsxNodeTokens,
-// 	) -> sweet_core::prelude::ParseResult<()> {
-// 		match node {
-// 			RsxNodeTokens::Block(token_stream) => {
-// 				*token_stream = quote! {#token_stream.to_string()}
-// 			}
-// 			RsxNodeTokens::Element { attributes, .. } => {
-// 				for attribute in attributes {
-// 					match attribute {
-// 						RsxAttributeTokens::BlockValue { value, .. } => {
-// 							*value = quote! {#value.to_string()}
-// 						}
-// 						RsxAttributeTokens::Block(token_stream) => {
-// 							*token_stream = quote! {#token_stream.to_string()}
-// 						}
-// 						_ => {}
-// 					}
-// 				}
-// 			}
-// 			_ => {}
-// 		}
-
-// 		Ok(())
-// 	}
-
-// 	fn leave_node(
-// 		&mut self,
-// 		node: &mut RsxNodeTokens,
-// 	) -> sweet_core::prelude::ParseResult<()> {
-// 		Ok(())
-// 	}
-
-// 	fn visit_children(
-// 		&mut self,
-// 		children: &mut Vec<RsxNodeTokens>,
-// 	) -> sweet_core::prelude::ParseResult<()> {
-// 		Ok(())
-// 	}
-
-// 	fn leave_children(
-// 		&mut self,
-// 		children: &mut Vec<RsxNodeTokens>,
-// 	) -> sweet_core::prelude::ParseResult<()> {
-// 		Ok(())
-// 	}
-// }
-
-
-
-// fn visit_attribute(&mut self, attr: NodeAttribute) -> RsxAttributeTokens {
-// 	match attr {
-// 		NodeAttribute::Block(block) => RsxAttributeTokens::Block(
-// 			quote! {RustParts::AttributeBlock(#block)},
-// 		),
-// 		NodeAttribute::Attribute(attr) => {
-// 			let key = attr.key.to_string();
-
-// 			if key.starts_with("on") {
-// 				let tokens = if let Some(value) = attr.value() {
-// 					value.to_token_stream()
-// 				} else {
-// 					// default to a function called onclick
-// 					Ident::new(&key, key.span()).to_token_stream()
-// 				};
-// 				RsxAttribute::BlockValue {
-// 					key,
-// 					value: quote! {RustParts::Event(Box::new(#tokens))},
-// 				}
-// 			} else if let Some(value) = attr.value() {
-// 				match value {
-// 					// only literals (string, number, bool) are not rusty
-// 					syn::Expr::Lit(expr_lit) => {
-// 						let value = match &expr_lit.lit {
-// 							syn::Lit::Str(s) => s.value(),
-// 							other => other.to_token_stream().to_string(),
-// 						};
-// 						RsxAttribute::KeyValue { key, value }
-// 					}
-// 					tokens => RsxAttribute::BlockValue {
-// 						key,
-// 						value: quote! {RustParts::AttributeValue(#tokens.to_string())},
-// 					},
-// 				}
-// 			} else {
-// 				RsxAttribute::Key { key }
-// 			}
-// 		}
-// 	}
