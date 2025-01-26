@@ -11,6 +11,7 @@ pub trait RenderHtml {
 }
 
 /// Unlike RsxNode, this struct contains only real html nodes
+#[derive(Debug, Clone)]
 pub enum HtmlNode {
 	Doctype,
 	Comment(String),
@@ -27,10 +28,7 @@ impl HtmlNode {
 	) -> Option<&mut HtmlElementNode> {
 		match self {
 			HtmlNode::Element(e) => {
-				if e.attributes
-					.iter()
-					.any(|a| a.key == key && a.value.as_deref() == val)
-				{
+				if e.query_selector_attr(key, val) {
 					return Some(e);
 				}
 				for child in &mut e.children {
@@ -64,12 +62,35 @@ impl RenderHtml for HtmlNode {
 		}
 	}
 }
-
+#[derive(Debug, Clone)]
 pub struct HtmlElementNode {
 	pub tag: String,
 	pub self_closing: bool,
 	pub attributes: Vec<HtmlAttribute>,
 	pub children: Vec<HtmlNode>,
+}
+
+impl HtmlElementNode {
+	/// returns true if any attribute matches the key and value
+	pub fn query_selector_attr(
+		&mut self,
+		key: &str,
+		val: Option<&str>,
+	) -> bool {
+		self.attributes
+			.iter()
+			.any(|a| a.key == key && a.value.as_deref() == val)
+	}
+
+	/// returns none if the attribute is not found or it has no value
+	pub fn get_attribute_value(&self, key: &str) -> Option<&str> {
+		for attr in &self.attributes {
+			if attr.key == key {
+				return attr.value.as_deref();
+			}
+		}
+		None
+	}
 }
 
 impl RenderHtml for HtmlElementNode {
@@ -103,7 +124,7 @@ impl RenderHtml for HtmlElementNode {
 		html.push_str(&format!("</{}>", self.tag));
 	}
 }
-
+#[derive(Debug, Clone)]
 pub struct HtmlAttribute {
 	pub key: String,
 	pub value: Option<String>,

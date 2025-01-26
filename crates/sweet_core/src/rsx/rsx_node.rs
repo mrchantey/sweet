@@ -176,33 +176,42 @@ impl RsxNode {
 		}
 	}
 
-	pub fn register_effects(self) -> RsxContext {
+	/// takes all the register_effect functions
+	pub fn register_effects(&mut self) -> RsxContext {
 		let mut cx = RsxContext::default();
 		self.register_effects_recursive(&mut cx);
 		cx
 	}
 
-	fn register_effects_recursive(self, cx: &mut RsxContext) {
+	fn register_effects_recursive(&mut self, cx: &mut RsxContext) {
 		let desc = self.into_discriminant();
 		cx.before_visit_next(&desc);
+
+		fn call_effect(cx: &RsxContext, register_effect: &mut RegisterEffect) {
+			let func = std::mem::replace(register_effect, Box::new(|_| {}));
+			func(cx);
+		}
+
 		match self {
 			RsxNode::Block {
 				register_effect, ..
-			} => register_effect(cx),
+			} => {
+				call_effect(cx, register_effect);
+			}
 			RsxNode::Element(e) => {
-				for a in e.attributes {
+				for a in &mut e.attributes {
 					match a {
 						RsxAttribute::Block {
 							register_effect, ..
-						} => register_effect(cx),
+						} => call_effect(cx, register_effect),
 						RsxAttribute::BlockValue {
 							register_effect, ..
-						} => register_effect(cx),
+						} => call_effect(cx, register_effect),
 						_ => {}
 					}
 				}
 				cx.before_element_children();
-				for c in e.children {
+				for c in &mut e.children {
 					c.register_effects_recursive(cx);
 				}
 				cx.after_element_children();

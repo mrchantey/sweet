@@ -51,9 +51,12 @@ impl FileResult {
 		if self.results.len() != self.total {
 			return;
 		}
-
-		// its finished so log
+		
+		// its finished so log if not skipped
 		let status = self.status();
+		if let TestResult::Ignore(_) = status {
+			return;
+		}
 		let prefix = status.status_prefix();
 		let file = pretty_file_path(&self.file);
 		sweet_utils::log!("{} {}{}", prefix, file, status.message());
