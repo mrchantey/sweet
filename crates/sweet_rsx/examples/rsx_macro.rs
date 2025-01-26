@@ -21,7 +21,7 @@ fn main() {
 		</div>
 	};
 
-	let str = foo.render_html();
+	let str = foo.render();
 	assert_eq!(
 		str,
 		"<div><p>hello <div>38<div>some child</div></div></p></div>"

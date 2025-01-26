@@ -128,13 +128,13 @@ impl<T: RsxRustTokens> RstmlToRsx<T> {
 		let ident = syn::Ident::new(&tag, tag.span());
 		let children_slot = self.map_slots(children);
 
-		let rust = quote! {
+		let rsx_node = quote! {
 				#ident{
 					#(#props,)*
 				}
 				.into_rsx()#children_slot
 		};
-		RsxNodeTokens::Component(rust)
+		RsxNodeTokens::Component(rsx_node)
 	}
 
 	fn check_self_closing_children<C>(&mut self, element: &NodeElement<C>) {

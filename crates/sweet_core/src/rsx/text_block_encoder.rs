@@ -1,26 +1,15 @@
+use super::RsxElement;
 use super::RsxNode;
 use crate::error::ParseError;
 use crate::error::ParseResult;
 
 /// This module is for handling rsx text blocks in html text node.
 ///
-/// ## The Problem
-///
-/// consider the following rsx:
-/// ``` ignore
-/// # use sweet_rsx_macros::rsx;
-/// # use crate as sweet;
-/// let desc = "quick";
-/// let color = "brown";
-/// let action = "jumps over";
-/// let Adjective = rsx!{ lazy };
-/// let Phrase = rsx!{ <div>The {desc} and {color} <b>fox</b> {action} the <Adjective/> dog</div> };
-/// ```
-/// This will flatten to the following html:
-/// ```html
-/// <div>The quick and brown <b>fox</b> jumps over the lazy dog</div>
-/// ```
-/// This encoder will encode the text block positions in the text node.
+/// The tricky part of resumability encoding the *minimal* amount of information
+/// in html, the first version of quik relied heavily on using `<-- COMMENTS -->` to
+/// break up text nodes but this bloats html size very quickly.
+/// Instead this encoder uses the bare minimum information more closely resembling
+/// the quik 2.0 proposal https://www.builder.io/blog/qwik-2-coming-soon
 pub struct TextBlockEncoder;
 
 impl TextBlockEncoder {
@@ -37,8 +26,8 @@ impl TextBlockEncoder {
 	/// ```
 	/// Output:
 	/// 0-4,2.2-5,1
-	pub fn encode(node: &RsxNode) -> String {
-		let collapsed = CollapsedNode::from_node(node);
+	pub fn encode(el: &RsxElement) -> String {
+		let collapsed = CollapsedNode::from_element(el);
 		Self::encode_text_block_positions(&collapsed)
 	}
 
@@ -120,14 +109,17 @@ impl CollapsedNode {
 }
 
 impl CollapsedNode {
+	fn from_element(el: &RsxElement) -> Vec<CollapsedNode> {
+		el.children.iter().flat_map(Self::from_node).collect()
+	}
 	fn from_node(node: &RsxNode) -> Vec<CollapsedNode> {
 		let mut out = Vec::new();
 		match node {
 			RsxNode::Fragment(nodes) => {
 				out.extend(nodes.into_iter().flat_map(Self::from_node));
 			}
-			RsxNode::TextBlock { initial, .. } => {
-				out.push(CollapsedNode::RustText(initial.clone()))
+			RsxNode::Block { initial, .. } => {
+				out.push(CollapsedNode::RustText(initial.render()));
 			}
 			RsxNode::Text(val) => {
 				out.push(CollapsedNode::StaticText(val.clone()))
@@ -142,8 +134,11 @@ impl CollapsedNode {
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct TextBlockPosition {
+	/// the actual node index of the html parent element
 	pub child_index: usize,
+	/// the starting index of the text block
 	pub text_index: usize,
+	/// the length of the text block
 	pub len: usize,
 }
 

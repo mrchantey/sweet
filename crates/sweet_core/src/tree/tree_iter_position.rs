@@ -32,7 +32,6 @@ impl<'a, T: Tree> Iterator for TreeIterPositionBfs<'a, T> {
 		if let Some((position, val)) = self.queue.pop_front() {
 			let mut child_positions = position.clone();
 			child_positions.push_child();
-			child_positions.node_count += 1;
 
 			let children = val
 				.children()
@@ -106,21 +105,26 @@ impl TreePosition {
 		*self.path.last_mut().expect("tree is empty") += 1;
 		self.node_count += 1;
 	}
-	/// `path.push(0)`
+	/// `path.last++, index--`
 	/// # Panics
-	/// if there are no positions, or if the last position is already 0
-	pub fn push_child(&mut self) { self.path.push(0); }
-	// /// `path.last++, index--`
-	// /// # Panics
-	// /// if there are no positions
-	// pub fn prev_sibling(&mut self) {
-	// 	*self.path.last_mut().expect("tree is empty") += 1;
-	// 	// self.node_count -= 1;
-	// }
-	// /// `path.pop()`
-	// /// # Panics
-	// /// if there are no positions
-	// pub fn pop_child(&mut self) { self.path.pop(); }
+	/// if there are no positions
+	pub fn prev_sibling(&mut self) {
+		*self.path.last_mut().expect("tree is empty") -= 1;
+		self.node_count -= 1;
+	}
+	/// `path.push(0)`
+	pub fn push_child(&mut self) {
+		self.path.push(0);
+		self.node_count += 1;
+	}
+	/// `path.pop()`
+	/// # Panics
+	/// - if there are no positions
+	/// - if the last child index causes node count to be negative
+	pub fn pop_child(&mut self) {
+		let num_children = self.path.pop().unwrap() + 1;
+		self.node_count -= num_children;
+	}
 
 	/// Convert to a comma separated value string, with the first index
 	/// representing the **node count**, not index.
@@ -196,5 +200,58 @@ mod test {
 		// let node = create_tree()
 		// 	.iter_with_positions_bfs()
 		// 	.collect::<Node<&i32>>();
+	}
+
+
+	#[test]
+	fn tree_position() {
+		/*
+		Simulate the following tree
+		```
+		p0
+			p1
+			p2
+				p3
+		p4
+		```
+		*/
+		let p0 = TreePosition {
+			node_count: 1,
+			path: vec![0],
+		};
+		let p1 = TreePosition {
+			node_count: 2,
+			path: vec![0, 0],
+		};
+		let p2 = TreePosition {
+			node_count: 3,
+			path: vec![0, 1],
+		};
+		let p3 = TreePosition {
+			node_count: 4,
+			path: vec![0, 1, 0],
+		};
+
+		let p4 = TreePosition {
+			node_count: 3,
+			path: vec![0, 1],
+		};
+
+
+		let mut pos = TreePosition::default();
+		pos.push_child(); // go to 0
+		expect(&pos).to_be(&p0);
+		pos.push_child(); // go to 1
+		expect(&pos).to_be(&p1);
+		pos.next_sibling(); // go to 2
+		expect(&pos).to_be(&p2);
+		pos.prev_sibling(); // go to 1
+		expect(&pos).to_be(&p1);
+		pos.next_sibling(); // go to 2
+		expect(&pos).to_be(&p2);
+		pos.push_child(); // go to 3
+		expect(&pos).to_be(&p3);
+		pos.pop_child(); // go to 2
+		expect(&pos).to_be(&p4);
 	}
 }

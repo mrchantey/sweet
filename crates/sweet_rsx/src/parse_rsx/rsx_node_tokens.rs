@@ -127,7 +127,11 @@ impl<T: RsxRustTokens> ToTokens for RsxAttributeTokens<T> {
 				})
 			}
 			RsxAttributeTokens::BlockValue { key, value } => {
-				T::map_attribute_value(key, value)
+				if key.starts_with("on") {
+					T::map_event(key, value)
+				} else {
+					T::map_attribute_value(key, value)
+				}
 			}
 			RsxAttributeTokens::Block(block) => T::map_attribute_block(block),
 		}

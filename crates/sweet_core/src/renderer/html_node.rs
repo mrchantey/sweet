@@ -1,33 +1,39 @@
+/// A trait for rendering a value to HTML
+pub trait RenderHtml {
+	/// Convert a value, usually [HtmlNode] to a string of HTML
+	fn render(&self) -> String {
+		let mut html = String::new();
+		self.render_html_with_buf(&mut html);
+		html
+	}
+
+	fn render_html_with_buf(&self, html: &mut String);
+}
+
 pub enum HtmlNode {
 	Doctype,
-	Comment(HtmlCommentNode),
-	Text(HtmlTextNode),
+	Comment(String),
+	Text(String),
 	Element(HtmlElementNode),
+}
+
+
+impl RenderHtml for Vec<HtmlNode> {
+	fn render_html_with_buf(&self, html: &mut String) {
+		for node in self {
+			node.render_html_with_buf(html);
+		}
+	}
 }
 
 impl RenderHtml for HtmlNode {
 	fn render_html_with_buf(&self, html: &mut String) {
 		match self {
 			HtmlNode::Doctype => html.push_str("<!DOCTYPE html>"),
-			HtmlNode::Comment(node) => node.render_html_with_buf(html),
-			HtmlNode::Text(node) => node.render_html_with_buf(html),
+			HtmlNode::Comment(val) => html.push_str(&format!("<!--{}-->", val)),
+			HtmlNode::Text(val) => html.push_str(val),
 			HtmlNode::Element(node) => node.render_html_with_buf(html),
 		}
-	}
-}
-
-pub struct HtmlTextNode(pub String);
-
-impl RenderHtml for HtmlTextNode {
-	fn render_html_with_buf(&self, html: &mut String) {
-		html.push_str(&self.0);
-	}
-}
-
-pub struct HtmlCommentNode(pub String);
-impl RenderHtml for HtmlCommentNode {
-	fn render_html_with_buf(&self, html: &mut String) {
-		html.push_str(&format!("<!--{}-->", self.0));
 	}
 }
 
@@ -93,20 +99,11 @@ impl RenderHtml for HtmlAttribute {
 	}
 }
 
-pub trait RenderHtml {
-	fn render_html(&self) -> String {
-		let mut html = String::new();
-		self.render_html_with_buf(&mut html);
-		html
-	}
 
-	fn render_html_with_buf(&self, html: &mut String);
-}
-
-impl RenderHtml for Vec<HtmlNode> {
+impl RenderHtml for Vec<HtmlAttribute> {
 	fn render_html_with_buf(&self, html: &mut String) {
-		for node in self {
-			node.render_html_with_buf(html);
+		for attr in self {
+			attr.render_html_with_buf(html);
 		}
 	}
 }

@@ -10,40 +10,70 @@ pub struct SignalsRsx;
 
 
 impl SignalsRsx {
-	pub fn register_node_block<M>(
+	pub fn map_node_block<M>(
 		block: impl 'static + Clone + IntoRsx<M>,
-	) -> Box<dyn FnOnce()> {
-		Box::new(move || {
-			effect(move || {
-				let node = block.clone().into_rsx();
-				println!("would update node: {}", node.render_html());
-				// todo!();
-			});
-		})
+	) -> RsxNode {
+		RsxNode::Block {
+			initial: Box::new(block.clone().into_rsx()),
+			register_effect: Box::new(move |cx| {
+				let cx = cx.clone();
+				effect(move || {
+					let node = block.clone().into_rsx();
+					println!(
+						"would update node for {}\n{}:{}",
+						cx,
+						node.as_ref(),
+						node.render()
+					);
+					// todo!();
+				});
+			}),
+		}
 	}
-	pub fn register_attribute_block(
+	pub fn map_attribute_block(
 		mut block: impl 'static + FnMut() -> RsxAttribute,
-	) -> Box<dyn FnOnce()> {
-		Box::new(move || {
-			effect(move || {
-				let attrs = block();
-				println!("would update attributes: {}", attrs.render_html());
-				todo!();
-			});
-		})
+	) -> RsxAttribute {
+		RsxAttribute::Block {
+			initial: vec![block()],
+			register_effect: Box::new(move |cx| {
+				let cx = cx.clone();
+				effect(move || {
+					let attrs = block();
+					println!(
+						"would update attributes for {cx}\n{}",
+						attrs.render()
+					);
+					todo!();
+				});
+			}),
+		}
 	}
-	pub fn register_attribute_block_value<T: ToString>(
+	pub fn map_attribute_value<M>(
 		key: &str,
-		mut block: impl 'static + FnMut() -> T,
-	) -> Box<dyn FnOnce()> {
+		block: impl 'static + Clone + IntoRsxAttributeValue<M>,
+	) -> RsxAttribute {
 		let key = key.to_string();
-		Box::new(move || {
-			effect(move || {
-				let value = block().to_string();
-				println!("would update attribute {key}: {value}");
-				todo!();
-			});
-		})
+		RsxAttribute::BlockValue {
+			key: key.clone(),
+			initial: block.clone().into_attribute_value(),
+			register_effect: Box::new(move |cx| {
+				let cx = cx.clone();
+				effect(move || {
+					let value = block.clone().into_attribute_value();
+					println!("would update attribute for {cx}\n{key}: {value}");
+					todo!();
+				});
+			}),
+		}
+	}
+	pub fn map_event<T: ToString>(
+		key: &str,
+		// todo event types
+		_block: impl 'static + Clone + FnMut(T),
+	) -> RsxAttribute {
+		let key = key.to_string();
+		let str = format!("{key}_handler");
+		RsxAttribute::KeyValue { key, value: str }
 	}
 }
 
@@ -57,48 +87,6 @@ use quote::quote;
 impl RsxRustTokens for SignalsRsx {
 	fn ident() -> TokenStream {
 		quote! {sweet::signals_rsx::SignalsRsx}
-	}
-
-	fn map_node_block(block: &TokenStream) -> TokenStream {
-		let ident = Self::ident();
-		quote! {
-			{
-				let block = #block;
-				RsxNode::TextBlock{
-					register_effect: #ident::register_node_block(block.clone()),
-					initial: block.into_rsx().render_html(),
-				}
-			}
-		}
-	}
-
-	fn map_attribute_block(block: &TokenStream) -> TokenStream {
-		let ident = Self::ident();
-		quote! { RsxAttribute::Block{
-				initial: #block
-				register_effect: #ident::register_attribute_block(#block),
-			}
-		}
-	}
-
-	fn map_attribute_value(key: &str, value: &TokenStream) -> TokenStream {
-		if key.starts_with("on") {
-			// events unsupported for string_rsx
-			let str = format!("{key}_handler");
-			quote! { RsxAttribute::KeyValue{
-					key: #key.to_string(),
-					value: #str.to_string()
-				}
-			}
-		} else {
-			let ident = Self::ident();
-			quote! { RsxAttributeBlockValue{
-					key: #key.to_string(),
-					initial: #value.to_string(),
-					register_effect: #ident::register_attribute_block_value(#key, #value),
-				}
-			}
-		}
 	}
 }
 
@@ -114,7 +102,9 @@ mod test {
 	fn works() {
 		let (get, set) = signal(7);
 
-		let rsx = rsx! {<div>{get}</div>};
+		let rsx = rsx! {<div>value is {get}</div>};
+		expect(rsx.render_with_options(&mut RenderOptions::resumable()))
+			.to_be("<div data-sweet-id=\"0\" data-sweet-blocks=\"0-9-1\">value is 7</div>");
 		rsx.register_effects();
 		set(8);
 		set(9);
