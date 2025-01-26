@@ -23,8 +23,7 @@ impl SweetLoader {
 	pub fn load(self, rsx: impl Rsx) -> ParseResult<()> {
 		console_error_panic_hook::set_once();
 
-		let rsx = rsx.into_rsx();
-		for _item in rsx.nodes.into_iter() {
+		let _rsx = rsx.into_rsx();
 			// match item {
 			// 	RustParts::DynNodeId => todo!(),
 			// 	RustParts::TextBlock(_) => todo!(),
@@ -33,7 +32,6 @@ impl SweetLoader {
 			// 	RustParts::Event(fn_mut) => todo!(),
 			// 	RustParts::Component(rsx_parts) => todo!(),
 			// }
-		}
 		// let (send, recv) = flume::unbounded();
 		// let Hydrated { events, blocks } = page.hydrate(send)?;
 		// self.handle_events(events)?;

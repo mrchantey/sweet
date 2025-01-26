@@ -168,8 +168,10 @@ categories.workspace = true
 keywords.workspace = true
 
 [features]
-default = ["server", "rsx", "macros", "render"]
+default = ["core", "macros"]
+# default = ["server", "rsx", "macros", "render"]
 
+core = ["dep:sweet_core"]
 render = ["dep:sweet_render"]
 macros = ["dep:sweet_rsx_macros"]
 rsx = ["dep:sweet_rsx"]
@@ -178,7 +180,8 @@ bevy = ["sweet_test?/bevy"]
 test = ["dep:sweet_test"]
 
 [dependencies]
-sweet_core.workspace = true
+sweet_utils.workspace = true
+sweet_core = { workspace = true, optional = true }
 sweet_test = { workspace = true, optional = true }
 sweet_render = { workspace = true, optional = true }
 sweet_rsx = { workspace = true, optional = true }

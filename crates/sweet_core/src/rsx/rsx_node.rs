@@ -260,14 +260,18 @@ impl RsxElement {
 			.collect::<Vec<_>>();
 
 		if options.resumable {
-			attributes.push(HtmlAttribute {
-				key: options.html_constants.id_attribute_key.to_string(),
-				value: Some(options.cx.rsx_id().to_string()),
-			});
-			attributes.push(HtmlAttribute {
-				key: options.html_constants.block_attribute_key.to_string(),
-				value: Some(TextBlockEncoder::encode(&self)),
-			});
+			if self.contains_rust() {
+				attributes.push(HtmlAttribute {
+					key: options.html_constants.id_attribute_key.to_string(),
+					value: Some(options.cx.rsx_id().to_string()),
+				});
+			}
+			if self.contains_blocks() {
+				attributes.push(HtmlAttribute {
+					key: options.html_constants.block_attribute_key.to_string(),
+					value: Some(TextBlockEncoder::encode(&self)),
+				});
+			}
 		}
 
 		HtmlElementNode {
@@ -288,7 +292,8 @@ impl RsxElement {
 		}
 	}
 
-	pub fn contains_text_blocks(&self) -> bool {
+	/// non-recursive check for blocks in children
+	pub fn contains_blocks(&self) -> bool {
 		self.children
 			.iter()
 			.any(|c| matches!(c, RsxNode::Block { .. }))
@@ -297,7 +302,7 @@ impl RsxElement {
 	/// Whether any children or attributes are blocks,
 	/// used to determine whether the node requires an id
 	pub fn contains_rust(&self) -> bool {
-		self.contains_text_blocks()
+		self.contains_blocks()
 			|| self.attributes.iter().any(|a| {
 				matches!(
 					a,

@@ -2137,6 +2137,7 @@ dependencies = [
  "sweet_rsx_macros",
  "sweet_server",
  "sweet_test",
+ "sweet_utils",
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
@@ -2256,7 +2257,9 @@ dependencies = [
  "sweet_core",
  "sweet_rsx_macros",
  "sweet_test",
+ "sweet_utils",
  "syn",
+ "web-sys",
 ]
 
 [[package]]

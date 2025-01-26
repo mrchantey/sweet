@@ -26,5 +26,5 @@ fn main() {
 		str,
 		"<div><p>hello <div>38<div>some child</div></div></p></div>"
 	);
-	println!("success! {}", str);
+	sweet_utils::log!("success! {}", str);
 }

@@ -1,5 +1,5 @@
+#[cfg(feature = "core")]
 pub use sweet_core as core;
-pub use sweet_core::noop;
 #[cfg(feature = "render")]
 pub use sweet_render as render;
 #[cfg(feature = "rsx")]
@@ -14,11 +14,12 @@ pub use sweet_test as test;
 pub use sweet_test::sweet_test_macros::*;
 #[cfg(feature = "test")]
 pub use sweet_test::test_runner;
+pub use sweet_utils as utils;
+pub use sweet_utils::noop;
 
 pub mod prelude {
+	#[cfg(feature = "core")]
 	pub use sweet_core::prelude::*;
-	#[cfg(feature = "render")]
-	pub use sweet_render::prelude::*;
 	#[cfg(feature = "rsx")]
 	pub use sweet_rsx::prelude::*;
 	#[cfg(feature = "macros")]
@@ -27,4 +28,6 @@ pub mod prelude {
 	pub use sweet_server::prelude::*;
 	#[cfg(feature = "test")]
 	pub use sweet_test::prelude::*;
+	#[cfg(feature = "render")]
+	pub use sweet_utils::prelude::*;
 }
