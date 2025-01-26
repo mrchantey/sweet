@@ -17,32 +17,6 @@ impl SweetRsxVisitor {
 }
 
 
-#[derive(Debug, Clone)]
-pub struct HtmlConstants {
-	/// used for encoding the [TreePosition],
-	pub id_attribute_key: &'static str,
-	/// used for describing the location of rust blocks in text nodes,
-	/// defaults to `data-sweet-blocks`
-	pub block_attribute_key: &'static str,
-	/// defaults to `_sweet_event`
-	pub event_handler: &'static str,
-}
-impl HtmlConstants {
-	pub const DEFAULT_ID_ATTRIBUTE_KEY: &'static str = "data-sweet-id";
-	pub const DEFAULT_BLOCK_ATTRIBUTE_KEY: &'static str = "data-sweet-blocks";
-	pub const DEFAULT_EVENT_HANDLER: &'static str = "_sweet_event";
-}
-
-impl Default for HtmlConstants {
-	fn default() -> Self {
-		Self {
-			id_attribute_key: Self::DEFAULT_ID_ATTRIBUTE_KEY,
-			block_attribute_key: Self::DEFAULT_BLOCK_ATTRIBUTE_KEY,
-			event_handler: Self::DEFAULT_EVENT_HANDLER,
-		}
-	}
-}
-
 impl TreeMapper<RsxNode<RustParts>, RsxNode<String>> for SweetRsxVisitor {
 	fn position(&mut self) -> &mut TreePosition { &mut self.position }
 

@@ -94,6 +94,13 @@ impl TreePosition {
 		}
 	}
 
+	/// An inverse of the path used to map fro a root to the position
+	pub fn breadcrumbs(&self) -> Vec<usize> {
+		let mut path = self.path.clone();
+		path.reverse();
+		path
+	}
+
 	pub fn path(&self) -> &Vec<usize> { &self.path }
 	/// The node count - 1
 	/// # Panics

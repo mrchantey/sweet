@@ -10,11 +10,39 @@ pub trait RenderHtml {
 	fn render_html_with_buf(&self, html: &mut String);
 }
 
+/// Unlike RsxNode, this struct contains only real html nodes
 pub enum HtmlNode {
 	Doctype,
 	Comment(String),
 	Text(String),
 	Element(HtmlElementNode),
+}
+
+impl HtmlNode {
+	/// recursively search for an html node with a matching id
+	pub fn query_selector_attr(
+		&mut self,
+		key: &str,
+		val: Option<&str>,
+	) -> Option<&mut HtmlElementNode> {
+		match self {
+			HtmlNode::Element(e) => {
+				if e.attributes
+					.iter()
+					.any(|a| a.key == key && a.value.as_deref() == val)
+				{
+					return Some(e);
+				}
+				for child in &mut e.children {
+					if let Some(node) = child.query_selector_attr(key, val) {
+						return Some(node);
+					}
+				}
+			}
+			_ => {}
+		}
+		None
+	}
 }
 
 
@@ -104,6 +132,36 @@ impl RenderHtml for Vec<HtmlAttribute> {
 	fn render_html_with_buf(&self, html: &mut String) {
 		for attr in self {
 			attr.render_html_with_buf(html);
+		}
+	}
+}
+
+
+
+
+
+#[derive(Debug, Clone)]
+pub struct HtmlConstants {
+	/// used for encoding the [TreePosition],
+	pub id_attribute_key: &'static str,
+	/// used for describing the location of rust blocks in text nodes,
+	/// defaults to `data-sweet-blocks`
+	pub block_attribute_key: &'static str,
+	/// defaults to `_sweet_event`
+	pub event_handler: &'static str,
+}
+impl HtmlConstants {
+	pub const DEFAULT_ID_ATTRIBUTE_KEY: &'static str = "data-sweet-id";
+	pub const DEFAULT_BLOCK_ATTRIBUTE_KEY: &'static str = "data-sweet-blocks";
+	pub const DEFAULT_EVENT_HANDLER: &'static str = "_sweet_event";
+}
+
+impl Default for HtmlConstants {
+	fn default() -> Self {
+		Self {
+			id_attribute_key: Self::DEFAULT_ID_ATTRIBUTE_KEY,
+			block_attribute_key: Self::DEFAULT_BLOCK_ATTRIBUTE_KEY,
+			event_handler: Self::DEFAULT_EVENT_HANDLER,
 		}
 	}
 }

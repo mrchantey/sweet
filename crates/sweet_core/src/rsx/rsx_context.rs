@@ -1,12 +1,14 @@
 use crate::prelude::*;
 
-
+/// Descriptor for current position in the tree.
+/// This is used for both rendering and hydrating
+/// for fine-grained reconciliation.
 #[derive(Debug, Clone)]
-pub struct HtmlNodeContext {
+pub struct RsxContext {
 	/// the number of rsx nodes visited
 	rsx_node_count: usize,
 	/// the rsx id of the parent element
-	html_pos: TreePosition,
+	pub html_pos: TreePosition,
 
 	/// if this is true and a text node is visited,
 	/// the child index will not increment as these will collapse
@@ -14,7 +16,7 @@ pub struct HtmlNodeContext {
 	prev_text_node: bool,
 }
 
-impl Default for HtmlNodeContext {
+impl Default for RsxContext {
 	fn default() -> Self {
 		Self {
 			rsx_node_count: 0,
@@ -25,8 +27,7 @@ impl Default for HtmlNodeContext {
 }
 
 
-impl HtmlNodeContext {
-
+impl RsxContext {
 	/// The rsx id of the current node
 	/// # Panics
 	/// if no nodes have been visited
@@ -89,7 +90,7 @@ impl HtmlNodeContext {
 	}
 }
 
-impl std::fmt::Display for HtmlNodeContext {
+impl std::fmt::Display for RsxContext {
 	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
 		write!(f, "Rsx Node Count: {}", self.rsx_node_count)
 	}

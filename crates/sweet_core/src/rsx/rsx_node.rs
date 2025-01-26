@@ -5,7 +5,7 @@ use strum_macros::EnumDiscriminants;
 
 
 
-pub type RegisterEffect = Box<dyn FnOnce(&HtmlNodeContext)>;
+pub type RegisterEffect = Box<dyn FnOnce(&RsxContext)>;
 
 
 
@@ -38,17 +38,15 @@ pub struct RenderOptions {
 	resumable: bool,
 	/// For every html node visited, this will increment by 1.
 	/// If resumable, the id will be attached to the html.
-	cx: HtmlNodeContext,
-	id_attribute_key: &'static str,
-	text_block_attribute_key: &'static str,
+	cx: RsxContext,
+	html_constants: HtmlConstants,
 }
 
 impl Default for RenderOptions {
 	fn default() -> Self {
 		Self {
 			resumable: false,
-			id_attribute_key: "data-sweet-id",
-			text_block_attribute_key: "data-sweet-blocks",
+			html_constants: Default::default(),
 			cx: Default::default(),
 		}
 	}
@@ -178,13 +176,13 @@ impl RsxNode {
 		}
 	}
 
-	pub fn register_effects(self) -> HtmlNodeContext {
-		let mut cx = HtmlNodeContext::default();
+	pub fn register_effects(self) -> RsxContext {
+		let mut cx = RsxContext::default();
 		self.register_effects_recursive(&mut cx);
 		cx
 	}
 
-	fn register_effects_recursive(self, cx: &mut HtmlNodeContext) {
+	fn register_effects_recursive(self, cx: &mut RsxContext) {
 		let desc = self.into_discriminant();
 		cx.before_visit_next(&desc);
 		match self {
@@ -254,11 +252,11 @@ impl RsxElement {
 
 		if options.resumable {
 			attributes.push(HtmlAttribute {
-				key: options.id_attribute_key.to_string(),
+				key: options.html_constants.id_attribute_key.to_string(),
 				value: Some(options.cx.rsx_id().to_string()),
 			});
 			attributes.push(HtmlAttribute {
-				key: options.text_block_attribute_key.to_string(),
+				key: options.html_constants.block_attribute_key.to_string(),
 				value: Some(TextBlockEncoder::encode(&self)),
 			});
 		}
