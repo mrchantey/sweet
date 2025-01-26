@@ -20,7 +20,7 @@ impl SignalsRsx {
 				effect(move || {
 					let block = block.clone();
 					let cx = cx.clone();
-					Hydrate::with(move |hydrated| {
+					CurrentHydrator::with(move |hydrated| {
 						let node = block.clone().into_rsx();
 						// println!(
 						// 	"would update node for {:?}\n{}:{}",
@@ -108,19 +108,19 @@ mod test {
 		let (get, set) = signal(7);
 
 		let rsx = || rsx! {<div>value is {get}</div>};
-		Hydrate::set(HydratedHtml::new(
+		CurrentHydrator::set(HtmlNodeHydrator::new(
 			rsx.clone()().into_html(&mut RenderOptions::resumable()),
 			HtmlConstants::default(),
 		));
 
 		rsx().register_effects();
-		expect(&Hydrate::with(|h| h.render()))
+		expect(&CurrentHydrator::with(|h| h.render()))
 			.to_be("<div data-sweet-id=\"0\" data-sweet-blocks=\"0-9-1\">value is 7</div>");
 		set(8);
-		expect(&Hydrate::with(|h| h.render()))
+		expect(&CurrentHydrator::with(|h| h.render()))
 			.to_be("<div data-sweet-id=\"0\" data-sweet-blocks=\"0-9-1\">value is 8</div>");
 		set(9);
-		expect(&Hydrate::with(|h| h.render()))
+		expect(&CurrentHydrator::with(|h| h.render()))
 			.to_be("<div data-sweet-id=\"0\" data-sweet-blocks=\"0-9-1\">value is 9</div>");
 	}
 }

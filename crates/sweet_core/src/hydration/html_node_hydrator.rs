@@ -1,75 +1,19 @@
-mod html_node;
-use crate::rsx::RsxContext;
-use crate::rsx::RsxNode;
-pub use html_node::*;
-use std::cell::RefCell;
-
-
-
-thread_local! {
-	static HYDRATED: RefCell<Box<dyn Hydrated>> = RefCell::new(Box::new(HydratedHtml::new(vec![], HtmlConstants::default())));
-}
-
-#[derive(Debug, thiserror::Error)]
-pub enum HydrationError {
-	#[error("Invalid context: {0}")]
-	InvalidContext(String),
-	#[error("Invalid element: {0}")]
-	InvalidElement(String),
-}
-
-impl HydrationError {
-	pub fn invalid_context(msg: &str) -> Self {
-		HydrationError::InvalidContext(msg.to_string())
-	}
-	pub fn invalid_element(msg: &str) -> Self {
-		HydrationError::InvalidElement(msg.to_string())
-	}
-}
-
-pub struct Hydrate;
-
-impl Hydrate {
-	pub fn with<R>(mut func: impl FnMut(&mut dyn Hydrated) -> R) -> R {
-		HYDRATED.with(|hydrated| {
-			let mut hydrated = hydrated.borrow_mut();
-			func(hydrated.as_mut())
-		})
-	}
-
-
-	pub fn set(item: impl 'static + Sized + Hydrated) {
-		HYDRATED.with(|hydrated| {
-			*hydrated.borrow_mut() = Box::new(item);
-		});
-	}
-}
-
-
-pub trait Hydrated {
-	fn update_rsx_node(
-		&mut self,
-		node: RsxNode,
-		cx: &RsxContext,
-	) -> Result<(), HydrationError>;
-	/// just used for testing atm
-	fn render(&self) -> String;
-}
+use crate::prelude::*;
 
 /// An implementation of hydrated that simply updates a tree of
 /// html nodes
-pub struct HydratedHtml {
+pub struct HtmlNodeHydrator {
 	pub items: Vec<HtmlNode>,
 	constants: HtmlConstants,
 }
 
-impl HydratedHtml {
+impl HtmlNodeHydrator {
 	pub fn new(items: Vec<HtmlNode>, constants: HtmlConstants) -> Self {
 		Self { items, constants }
 	}
 }
 
-impl Hydrated for HydratedHtml {
+impl Hydrator for HtmlNodeHydrator {
 	fn render(&self) -> String { self.items.render() }
 
 	fn update_rsx_node(
