@@ -8,22 +8,15 @@ pub struct RsxContext {
 	/// the number of rsx nodes visited
 	rsx_node_count: usize,
 	/// the rsx id of the parent element
-	pub html_pos: TreePosition,
+	// pub html_pos: TreePosition,
 	/// an id for the current element
 	pub element_id: usize,
-	/// the actual index of the html node child.
-	/// This is post collapse so you may need to
-	/// use [TextBlockEncoder] to split the node
+	/// The index of this child *at rsx time*. This will be incorrect
+	/// post reload because other children may be added or removed
 	pub element_child_index: usize,
-	/// text nodes may sit alongside one another
-	/// in the [HtmlNode] tree so use this value to index
-	/// before collapse
-	pub element_child_index_uncollapsed: usize,
-
-	/// if this is true and a text node is visited,
-	/// the child index will not increment as these will collapse
-	/// in html. The positioning will be encoded by [TextBlockEncoder]
-	prev_text_node: bool,
+	/// in rsx the html may move around during a reload but the indices of
+	/// child blocks is constant so we use that to track the position
+	pub element_child_block_index: usize,
 }
 
 impl Default for RsxContext {
@@ -32,9 +25,7 @@ impl Default for RsxContext {
 			rsx_node_count: 0,
 			element_id: 0,
 			element_child_index: 0,
-			element_child_index_uncollapsed: 0,
-			html_pos: TreePosition::root(),
-			prev_text_node: false,
+			element_child_block_index: 0,
 		}
 	}
 }
@@ -51,33 +42,32 @@ impl RsxContext {
 		match node {
 			RsxNodeDiscriminants::Fragment => {}
 			RsxNodeDiscriminants::Block => {}
-			RsxNodeDiscriminants::Text => self.visit_text_node(),
-			RsxNodeDiscriminants::Doctype => self.visit_non_text_node(),
-			RsxNodeDiscriminants::Comment => self.visit_non_text_node(),
+			RsxNodeDiscriminants::Text
+			| RsxNodeDiscriminants::Doctype
+			| RsxNodeDiscriminants::Comment => self.next_rsx_id(),
 			RsxNodeDiscriminants::Element => {
-				self.visit_non_text_node();
+				self.next_rsx_id();
 				self.element_id = self.rsx_id();
 			}
 		}
 	}
 	/// call this before visiting the children of an element
 	pub fn before_element_children(&mut self) {
-		self.prev_text_node = false;
 		self.element_child_index = 0;
-		self.element_child_index_uncollapsed = 0;
-		self.html_pos.push_child();
+		self.element_child_block_index = 0;
+		// self.html_pos.push_child();
 	}
 
 	/// call this after visiting the children of an element
-	pub fn after_element_children(&mut self) {
-		self.prev_text_node = false;
-		self.html_pos.pop_child();
-	}
+	pub fn after_element_children(&mut self) {}
 
 	pub fn after_visit_next(&mut self, node: &RsxNodeDiscriminants) {
+		self.element_child_index += 1;
 		match node {
 			RsxNodeDiscriminants::Fragment => {}
-			RsxNodeDiscriminants::Block => {}
+			RsxNodeDiscriminants::Block => {
+				self.element_child_block_index += 1;
+			}
 			RsxNodeDiscriminants::Text => {}
 			RsxNodeDiscriminants::Doctype => {}
 			RsxNodeDiscriminants::Comment => {}
@@ -87,27 +77,6 @@ impl RsxContext {
 
 	fn next_rsx_id(&mut self) { self.rsx_node_count += 1; }
 
-	/// visit a real html node
-	fn visit_non_text_node(&mut self) {
-		self.element_child_index += 1;
-		self.element_child_index_uncollapsed += 1;
-		self.prev_text_node = false;
-		self.html_pos.next_sibling();
-		self.next_rsx_id();
-	}
-	
-	/// visit a text node that may be collapsed
-	fn visit_text_node(&mut self) {
-		self.element_child_index_uncollapsed += 1;
-		if !self.prev_text_node {
-			// this will create a new child
-			self.prev_text_node = true;
-			self.element_child_index += 1;
-			self.html_pos.next_sibling();
-		}
-		// otherwise this node will collapse into prev
-		self.next_rsx_id();
-	}
 }
 
 impl std::fmt::Display for RsxContext {

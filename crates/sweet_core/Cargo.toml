@@ -18,6 +18,7 @@ serde = ["dep:serde", "dep:bincode"]
 flume = ["dep:flume"]
 
 [dependencies]
+sweet_utils.workspace = true
 thiserror.workspace = true
 anyhow.workspace = true
 flume = { workspace = true, optional = true }

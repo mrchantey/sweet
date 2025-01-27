@@ -10,22 +10,16 @@ use crate::error::ParseResult;
 /// break up text nodes but this bloats html size very quickly.
 /// Instead this encoder uses the bare minimum information more closely resembling
 /// the quik 2.0 proposal https://www.builder.io/blog/qwik-2-coming-soon
+///
+///
+///
+///
+///
+///
 pub struct TextBlockEncoder;
 
 impl TextBlockEncoder {
-	/// Encoding into a 'dash comma dot' format
-	/// Encoding for TextBlock positions, we need the following:
-	/// - The child index of the text node
-	/// - The string index of the block
-	/// - The length of the TextBlock initial value
-	/// child_index - first-block-index , first-block-length , second-block-index , second-block-length . child_index2 etc
-	///
-	/// ## Example
-	/// ```html
-	/// <div>the 10th <bold>value</bold> was 9</div>
-	/// ```
-	/// Output:
-	/// 0-4,2.2-5,1
+	/// Store the
 	pub fn encode(el: &RsxElement) -> String {
 		let collapsed = CollapsedNode::from_element(el);
 		Self::encode_text_block_positions(&collapsed)
@@ -35,6 +29,9 @@ impl TextBlockEncoder {
 		let mut encoded = String::new();
 		let mut child_index = 0;
 		let mut text_index = 0;
+
+		/// the index is the child index and the value is a vec of 'next index to split at'
+		let mut indices: Vec<Vec<usize>> = Vec::new();
 		for node in nodes {
 			match node {
 				CollapsedNode::StaticText(t) => {
@@ -61,13 +58,15 @@ impl TextBlockEncoder {
 	}
 
 	pub fn decode(encoded: &str) -> ParseResult<Vec<TextBlockPosition>> {
-		let mut out = Vec::new();
 		let err = |_| {
 			ParseError::Serde(format!(
 				"Failed to decode text block positions from attribute: {}",
 				encoded
 			))
 		};
+
+		let mut out = Vec::new();
+
 		for block in encoded.split(",") {
 			let mut parts = block.split("-");
 			let child_index =
@@ -142,6 +141,33 @@ pub struct TextBlockPosition {
 	pub len: usize,
 }
 
+impl TextBlockPosition {
+	/// returns a vec where the indices are the child indexes,
+	/// and the values are a text index and length of each block
+	/// Block positions at 0 are ignored
+	pub fn into_split_positions(
+		positions: Vec<TextBlockPosition>,
+	) -> Vec<Vec<usize>> {
+		let mut out = Vec::new();
+		for pos in positions {
+			let child = {
+				if let Some(child) = out.get_mut(pos.child_index) {
+					child
+				} else {
+					out.resize(pos.child_index + 1, Vec::new());
+					out.last_mut().unwrap()
+				}
+			};
+			if pos.text_index > 0 {
+				child.push(pos.text_index);
+			}
+			child.push(pos.text_index + pos.len);
+		}
+		out
+	}
+}
+
+
 #[cfg(test)]
 mod test {
 	use super::*;
@@ -206,5 +232,8 @@ mod test {
 				len: 10,
 			},
 		]);
+
+		let indices = TextBlockPosition::into_split_positions(decoded);
+		expect(&indices).to_be(&vec![vec![4, 9, 14, 19], vec![10]]);
 	}
 }

@@ -19,6 +19,15 @@ run crate example *args:
 run-wasm crate example *args:
 	just watch 'cargo run -p {{crate}} --example {{example}} --target wasm32-unknown-unknown {{args}}'
 
+
+wasm-example:
+	forky serve | \
+	just watch 'just build-wasm sweet dom_renderer'
+# forky watch \
+# -w target/wasm \
+# -w index.html \
+# just build-wasm sweet dom_renderer
+
 clean-analyzer:
 	rm -rf $CARGO_TARGET_DIR/rust-analyzer
 
