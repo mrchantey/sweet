@@ -1,4 +1,5 @@
 use crate::prelude::*;
+use std::collections::VecDeque;
 
 
 pub type ElementIndex = usize;
@@ -8,18 +9,18 @@ pub type RustNodeIndex = usize;
 /// Descriptor for current position in the tree.
 /// This is used for both rendering and hydrating
 /// for fine-grained reconciliation.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct RsxContext {
 	/// the number of rsx rust blocks visited,
 	/// this is useful for hot reloading because it will not change
 	/// even if the html structure changes
-	rust_node_index: RustNodeIndex,
+	pub rust_node_index: RustNodeIndex,
 	/// the number of html elements visited,
 	/// elements with rust children will need to have this assigned as an
 	/// attribute so that the hydrator can find them
-	html_element_index: ElementIndex,
+	pub html_element_index: ElementIndex,
 	/// the *uncollapsed* index of this block relative to its parent element
-	child_index: usize,
+	pub child_index: usize,
 }
 
 impl Default for RsxContext {
@@ -33,12 +34,51 @@ impl Default for RsxContext {
 }
 
 impl RsxContext {
+	pub fn to_csv(&self) -> String {
+		format!(
+			"{},{},{}",
+			self.rust_node_index, self.html_element_index, self.child_index
+		)
+	}
+	pub fn from_csv(csv: &str) -> ParseResult<Self> {
+		let mut parts = csv.split(',');
+		let rust_node_index = parts
+			.next()
+			.ok_or_else(|| ParseError::serde("missing rust node index"))?
+			.parse()?;
+		let html_element_index = parts
+			.next()
+			.ok_or_else(|| ParseError::serde("missing rust node index"))?
+			.parse()?;
+		let child_index = parts
+			.next()
+			.ok_or_else(|| ParseError::serde("missing rust node index"))?
+			.parse()?;
+		Ok(Self {
+			rust_node_index,
+			html_element_index,
+			child_index,
+		})
+	}
+
+
 	pub fn visit(
 		node: &RsxNode,
 		mut func: impl FnMut(&Self, &RsxNode),
 	) -> Self {
 		let mut visitor = Self::default();
-		visitor.visit_node_recursive(node, &mut func);
+		let mut queue = VecDeque::new();
+		queue.push_back(node);
+
+		while let Some(node) = queue.pop_front() {
+			func(&visitor, node);
+			visitor.after_visit_node(&node);
+			for child in node.children() {
+				queue.push_back(child);
+			}
+		}
+
+
 		visitor
 	}
 	pub fn visit_mut(
@@ -46,47 +86,60 @@ impl RsxContext {
 		mut func: impl FnMut(&mut Self, &mut RsxNode),
 	) -> Self {
 		let mut visitor = Self::default();
-		visitor.visit_node_mut_recursive(node, &mut func);
-		visitor
-	}
+		let mut queue = VecDeque::new();
+		queue.push_back(node);
 
-	fn visit_node_recursive(
-		&mut self,
-		node: &RsxNode,
-		func: &mut impl FnMut(&Self, &RsxNode),
-	) {
-		func(self, node);
-		self.after_visit_node(&node.into_discriminant());
-		for node in node.children() {
-			self.visit_node_recursive(node, func);
+		while let Some(node) = queue.pop_front() {
+			func(&mut visitor, node);
+			visitor.after_visit_node(&node);
+			for child in node.children_mut() {
+				queue.push_back(child);
+			}
 		}
-	}
-	fn visit_node_mut_recursive(
-		&mut self,
-		node: &mut RsxNode,
-		func: &mut impl FnMut(&mut Self, &mut RsxNode),
-	) {
-		func(self, node);
-		self.after_visit_node(&node.into_discriminant());
-		for node in node.children_mut() {
-			self.visit_node_mut_recursive(node, func);
-		}
+
+
+		visitor
 	}
 
 	pub fn rust_node_index(&self) -> usize { self.rust_node_index }
 	pub fn html_element_index(&self) -> usize { self.html_element_index }
 	pub fn child_index(&self) -> usize { self.child_index }
 
-	pub fn after_visit_node(&mut self, node: &RsxNodeDiscriminants) {
+	pub fn after_visit_node(&mut self, node: &RsxNode) {
+		self.track_child_idx(node);
 		match node {
-			RsxNodeDiscriminants::Block => {
+			RsxNode::Block { .. } => {
 				self.rust_node_index += 1;
 			}
-			RsxNodeDiscriminants::Element => {
-				self.child_index = 0;
+			RsxNode::Element(_) => {
 				self.html_element_index += 1;
 			}
 			_ => {}
+		}
+	}
+
+	fn track_child_idx(&mut self, node: &RsxNode) {
+		match node {
+			RsxNode::Block { initial, .. } => {
+				self.track_child_idx(initial);
+			}
+			RsxNode::Element(_) => {
+				self.child_index = 0;
+			}
+			RsxNode::Fragment(chidren) => {
+				for child in chidren {
+					self.track_child_idx(child);
+				}
+			}
+			RsxNode::Doctype => {
+				self.child_index += 1;
+			}
+			RsxNode::Comment(_) => {
+				self.child_index += 1;
+			}
+			RsxNode::Text(_) => {
+				self.child_index += 1;
+			}
 		}
 	}
 }
@@ -95,5 +148,23 @@ impl RsxContext {
 impl std::fmt::Display for RsxContext {
 	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
 		write!(f, "Rsx Node Count: {}", self.rust_node_index)
+	}
+}
+
+
+#[cfg(test)]
+mod test {
+	use crate::prelude::*;
+
+	#[test]
+	fn csv() {
+		let a = RsxContext {
+			rust_node_index: 1,
+			html_element_index: 2,
+			child_index: 3,
+		};
+		let csv = a.to_csv();
+		let b = RsxContext::from_csv(&csv).unwrap();
+		expect(a).to_be(b);
 	}
 }

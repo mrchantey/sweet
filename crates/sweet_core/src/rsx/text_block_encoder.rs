@@ -18,7 +18,7 @@ use crate::html::RsxToHtml;
 /// ```html
 /// <div> the quick brown {animal} <b> jumps </b> over the {color} dog </div>
 /// ```
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct TextBlockEncoder {
 	pub parent_id: ElementIndex,
 	/// the index of the child text node that collapsed

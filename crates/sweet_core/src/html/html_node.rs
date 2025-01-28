@@ -169,7 +169,7 @@ pub struct HtmlConstants {
 	pub id_attribute_key: &'static str,
 	/// used for describing the location of rust blocks in text nodes,
 	/// defaults to `data-sweet-blocks`
-	pub block_attribute_key: &'static str,
+	pub rsx_context_attribute_key: &'static str,
 	/// defaults to `_sweet_event`
 	pub event_handler: &'static str,
 }
@@ -183,7 +183,7 @@ impl Default for HtmlConstants {
 	fn default() -> Self {
 		Self {
 			id_attribute_key: Self::DEFAULT_ID_ATTRIBUTE_KEY,
-			block_attribute_key: Self::DEFAULT_BLOCK_ATTRIBUTE_KEY,
+			rsx_context_attribute_key: Self::DEFAULT_BLOCK_ATTRIBUTE_KEY,
 			event_handler: Self::DEFAULT_EVENT_HANDLER,
 		}
 	}

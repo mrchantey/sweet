@@ -27,6 +27,20 @@ impl Default for DomHydrator {
 }
 
 impl DomHydrator {
+	pub fn load_rsx_context(&mut self) -> ParseResult<()> {
+		let query = format!("[{}]", self.constants.rsx_context_attribute_key,);
+		if let Some(cx) = self.document.query_selector(&query).unwrap() {
+			let inner_text = cx.text_content().unwrap();
+			self.rust_node_map = RsxContextMap::from_csv(&inner_text)?;
+		} else {
+			return Err(ParseError::serde(format!(
+				"Could not find context attribute: {}",
+				query
+			)));
+		}
+		Ok(())
+	}
+
 	/// we've found a html node with a matching id
 	#[allow(unused)]
 	fn apply_rsx(
@@ -73,47 +87,35 @@ impl DomHydrator {
 		el: &Element,
 		rsx_id: usize,
 	) -> Result<(), HydrationError> {
-		if let Some(encoded) =
-			el.get_attribute(self.constants.block_attribute_key)
+		let children = el.child_nodes();
+
+		let Some(el_cx) = self.rust_node_map.collapsed_elements.get(&rsx_id)
+		else {
+			// elements without rust children are not tracked
+			return Ok(());
+		};
+
+
+		for (child_index, positions) in el_cx.split_positions.iter().enumerate()
 		{
-			let positions =
-				TextBlockEncoder::decode(&encoded).map_err(|err| {
-					HydrationError::InvalidContext(format!(
-						"Could not decode block attribute on element: {}\n{:?}",
-						rsx_id, err
-					))
-				})?;
-
-			let indices = TextBlockPosition::into_split_positions(positions);
-
-			let children = el.child_nodes();
-
-			for (child_index, positions) in indices.into_iter().enumerate() {
-				let child =
-					children.item(child_index as u32).ok_or_else(|| {
-						HydrationError::InvalidContext(format!(
-							"Could not find child at index: {}",
-							child_index
-						))
-					})?;
-				let child: web_sys::Text = child.dyn_into().map_err(|_| {
-					HydrationError::InvalidContext(format!(
-						"Could not convert child to text node"
-					))
-				})?;
-				// let mut cursor = 0;
-				// let text = child.text
-				// for position in positions {
-				// 	let next_split = position - cursor;
-				// 	child.split_text(next_split as u32 - cursor).unwrap();
-				// 	cursor = position as u32;
-				// 	sweet_utils::log!("child: {:?}", child);
-				// }
+			let child = children.item(child_index as u32).ok_or_else(|| {
+				HydrationError::InvalidContext(format!(
+					"Could not find child at index: {}",
+					child_index
+				))
+			})?;
+			let child: web_sys::Text = child.dyn_into().map_err(|_| {
+				HydrationError::InvalidContext(format!(
+					"Could not convert child to text node"
+				))
+			})?;
+			for position in positions {
+				child.split_text(*position as u32).unwrap();
+				sweet_utils::log!("child: {:?}", child);
 			}
 		}
-		todo!();
 
-		// Ok(())
+		Ok(())
 	}
 }
 
@@ -136,6 +138,11 @@ impl Hydrator for DomHydrator {
 		cx: &RsxContext,
 	) -> Result<(), HydrationError> {
 		let el = self.get_or_find_element(cx)?;
+		let child = el.child_nodes().item(cx.child_index() as u32).ok_or_else(
+			|| HydrationError::InvalidContext("Could not find child".into()),
+		)?;
+
+		#[allow(unused)]
 		match rsx {
 			RsxNode::Block {
 				initial,
@@ -144,24 +151,7 @@ impl Hydrator for DomHydrator {
 				sweet_utils::log!("element found! {}", el.tag_name());
 			}
 			RsxNode::Text(val) => {
-				if let Some(encoded) =
-					el.get_attribute(self.constants.block_attribute_key)
-				{
-					let parts =
-						TextBlockEncoder::decode(&encoded).map_err(|err| {
-							HydrationError::InvalidContext(format!(
-								"Could not decode block attribute on element: {}\n{:?}",
-								cx,err
-							))
-						})?;
-				} else {
-					return Err(HydrationError::InvalidContext(format!(
-						"Could not find block attribute on element: {}",
-						cx
-					)));
-				};
-
-				// let block_encoding = self.document.create_text_node(&val);
+				child.set_text_content(Some(&val));
 			}
 			RsxNode::Fragment(vec) => todo!(),
 			RsxNode::Doctype => todo!(),

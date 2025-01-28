@@ -60,7 +60,7 @@ impl RsxToHtml {
 				nodes.iter().map(|n| self.map_node(n)).flatten().collect()
 			}
 		};
-		self.cx.after_visit_node(&node.into_discriminant());
+		self.cx.after_visit_node(&node);
 		val
 	}
 
