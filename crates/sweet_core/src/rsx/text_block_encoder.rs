@@ -22,56 +22,67 @@ use crate::html::RsxToHtml;
 pub struct TextBlockEncoder {
 	pub parent_id: ElementIndex,
 	/// the index of the child text node that collapsed
-	pub collapsed_child_index: usize,
 	/// a vec of 'next index to split at'
-	pub split_positions: Vec<usize>,
+	pub split_positions: Vec<Vec<usize>>,
 }
 
 impl TextBlockEncoder {
 	pub fn new(parent_id: ElementIndex) -> Self {
 		Self {
 			parent_id,
-			collapsed_child_index: 0,
 			split_positions: Vec::new(),
 		}
 	}
 
 
 	/// Store the indices
-	pub fn encode(id: ElementIndex, el: &RsxElement) -> Vec<Self> {
-		let mut encoded_children = Vec::new();
-		let mut current = Self::new(id);
+	pub fn encode(id: ElementIndex, el: &RsxElement) -> Self {
+		let mut encoder = Self::new(id);
 		// the index is the child index and the value is a vec of 'next index to split at'
 		// let indices: Vec<Vec<usize>> = Vec::new();
+
+		let mut child_index = 0;
+
+		let mut push = |pos: usize, child_index: usize| match encoder
+			.split_positions
+			.get_mut(child_index)
+		{
+			Some(vec) => vec.push(pos),
+			None => {
+				encoder.split_positions.resize(child_index + 1, Vec::new());
+				encoder.split_positions.last_mut().unwrap().push(pos);
+			}
+		};
+
 		for node in CollapsedNode::from_element(el) {
 			match node {
 				CollapsedNode::StaticText(t) => {
-					current.split_positions.push(t.len());
+					push(t.len(), child_index);
 				}
 				CollapsedNode::RustText(t) => {
-					current.split_positions.push(t.len());
+					push(t.len(), child_index);
 				}
 				CollapsedNode::Break => {
-					if !current.split_positions.is_empty() {
-						encoded_children.push(current);
-						current = Self::new(id);
-					}
+					child_index += 1;
 				}
 			}
 		}
-		encoded_children
+		encoder
 	}
 
 	pub fn to_csv(&self) -> String {
 		format!(
-			"{},{},{}",
+			"{},{}",
 			self.parent_id,
-			self.collapsed_child_index,
 			self.split_positions
 				.iter()
-				.map(|i| i.to_string())
+				.map(|i| i
+					.iter()
+					.map(|i| i.to_string())
+					.collect::<Vec<String>>()
+					.join("-"))
 				.collect::<Vec<String>>()
-				.join("-")
+				.join(".")
 		)
 	}
 
@@ -94,23 +105,19 @@ impl TextBlockEncoder {
 			.ok_or_else(|| ParseError::Serde("missing parent id".into()))?
 			.parse()?;
 
-
-		let collapsed_child_index = items
-			.next()
-			.ok_or_else(|| {
-				ParseError::Serde("missing collapsed child index".into())
-			})?
-			.parse()?;
 		let split_positions = items
 			.next()
 			.ok_or_else(|| ParseError::Serde("missing split positions".into()))?
-			.split("-")
-			.map(|i| i.parse::<usize>())
-			.collect::<Result<Vec<usize>, _>>()?;
+			.split(".")
+			.map(|i| {
+				i.split("-")
+					.map(|i| i.parse())
+					.collect::<Result<Vec<usize>, _>>()
+			})
+			.collect::<Result<Vec<Vec<usize>>, _>>()?;
 
 		Ok(Self {
 			parent_id,
-			collapsed_child_index,
 			split_positions,
 		})
 	}
@@ -241,10 +248,10 @@ mod test {
 		]);
 
 		let encoded = TextBlockEncoder::encode(0, &el);
-		let csv = TextBlockEncoder::to_csv_file(&encoded);
-		expect(&csv).to_be("0,0,4-5-5-5\n0,0,10-5-4");
+		let csv = encoded.to_csv();
+		expect(&csv).to_be("0,4-5-5-5.10-5-4.3");
 
-		let decoded = TextBlockEncoder::from_csv_file(&csv).unwrap();
+		let decoded = TextBlockEncoder::from_csv(&csv).unwrap();
 		expect(decoded).to_be(encoded);
 	}
 }
