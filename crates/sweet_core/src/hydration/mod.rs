@@ -1,8 +1,8 @@
 use crate::prelude::*;
 mod html_node_hydrator;
-mod rust_node_map;
+mod rsx_context_map;
 pub use html_node_hydrator::*;
-pub use rust_node_map::*;
+pub use rsx_context_map::*;
 use std::cell::RefCell;
 
 

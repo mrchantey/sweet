@@ -5,7 +5,7 @@ use crate::prelude::*;
 pub struct HtmlNodeHydrator {
 	pub html: Vec<HtmlNode>,
 	constants: HtmlConstants,
-	rust_node_map: RustNodeMap,
+	rust_node_map: RsxContextMap,
 }
 
 impl HtmlNodeHydrator {
@@ -17,7 +17,7 @@ impl HtmlNodeHydrator {
 		}
 		.map_node(&rsx);
 
-		let rust_node_map = RustNodeMap::from_node(&rsx);
+		let rust_node_map = RsxContextMap::from_node(&rsx);
 
 		Self {
 			html,

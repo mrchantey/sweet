@@ -1,4 +1,4 @@
-use super::rust_node_map::RustNodeMap;
+use super::rsx_context_map::RsxContextMap;
 use crate::prelude::*;
 use wasm_bindgen::JsCast;
 use web_sys::window;
@@ -12,7 +12,7 @@ pub struct DomHydrator {
 	document: Document,
 	/// sparse set element array, cached for fast reference
 	elements: Vec<Option<Element>>,
-	rust_node_map: RustNodeMap,
+	rust_node_map: RsxContextMap,
 }
 
 impl Default for DomHydrator {

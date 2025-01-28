@@ -1,5 +1,10 @@
 use crate::prelude::*;
 
+
+pub type ElementIndex = usize;
+pub type RustNodeIndex = usize;
+
+
 /// Descriptor for current position in the tree.
 /// This is used for both rendering and hydrating
 /// for fine-grained reconciliation.
@@ -8,11 +13,11 @@ pub struct RsxContext {
 	/// the number of rsx rust blocks visited,
 	/// this is useful for hot reloading because it will not change
 	/// even if the html structure changes
-	rust_node_index: usize,
+	rust_node_index: RustNodeIndex,
 	/// the number of html elements visited,
 	/// elements with rust children will need to have this assigned as an
 	/// attribute so that the hydrator can find them
-	html_element_index: usize,
+	html_element_index: ElementIndex,
 	/// the *uncollapsed* index of this block relative to its parent element
 	child_index: usize,
 }

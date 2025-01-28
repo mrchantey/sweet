@@ -1,3 +1,4 @@
+use super::ElementIndex;
 use super::RsxElement;
 use super::RsxNode;
 use crate::error::ParseError;
@@ -12,76 +13,106 @@ use crate::html::RsxToHtml;
 /// Instead this encoder uses the bare minimum information more closely resembling
 /// the quik 2.0 proposal https://www.builder.io/blog/qwik-2-coming-soon
 ///
-///
-///
-///
-///
-///
-pub struct TextBlockEncoder;
+/// An element may have multiple collapsed text blocks,
+/// for instance:
+/// ```html
+/// <div> the quick brown {animal} <b> jumps </b> over the {color} dog </div>
+/// ```
+#[derive(Debug, PartialEq)]
+pub struct TextBlockEncoder {
+	pub parent_id: ElementIndex,
+	/// the index of the child text node that collapsed
+	pub collapsed_child_index: usize,
+	/// a vec of 'next index to split at'
+	pub split_positions: Vec<usize>,
+}
 
 impl TextBlockEncoder {
-	/// Store the
-	pub fn encode(el: &RsxElement) -> String {
-		let collapsed = CollapsedNode::from_element(el);
-		Self::encode_text_block_positions(&collapsed)
+	pub fn new(parent_id: ElementIndex) -> Self {
+		Self {
+			parent_id,
+			collapsed_child_index: 0,
+			split_positions: Vec::new(),
+		}
 	}
 
-	fn encode_text_block_positions(nodes: &Vec<CollapsedNode>) -> String {
-		let mut encoded = String::new();
-		let mut child_index = 0;
-		let mut text_index = 0;
 
+	/// Store the indices
+	pub fn encode(id: ElementIndex, el: &RsxElement) -> Vec<Self> {
+		let mut encoded_children = Vec::new();
+		let mut current = Self::new(id);
 		// the index is the child index and the value is a vec of 'next index to split at'
 		// let indices: Vec<Vec<usize>> = Vec::new();
-		for node in nodes {
+		for node in CollapsedNode::from_element(el) {
 			match node {
 				CollapsedNode::StaticText(t) => {
-					text_index += t.len();
+					current.split_positions.push(t.len());
 				}
-				CollapsedNode::RustText(len) => {
-					let len = len.len();
-					encoded.push_str(&format!(
-						"{}-{}-{},",
-						child_index, text_index, len
-					));
-					text_index += len;
+				CollapsedNode::RustText(t) => {
+					current.split_positions.push(t.len());
 				}
 				CollapsedNode::Break => {
-					child_index += 1;
-					text_index = 0;
+					if !current.split_positions.is_empty() {
+						encoded_children.push(current);
+						current = Self::new(id);
+					}
 				}
 			}
 		}
-		if encoded.len() > 0 {
-			encoded.pop();
-		}
-		encoded
+		encoded_children
 	}
 
-	pub fn decode(encoded: &str) -> ParseResult<Vec<TextBlockPosition>> {
-		let err = |_| {
-			ParseError::Serde(format!(
-				"Failed to decode text block positions from attribute: {}",
-				encoded
-			))
-		};
+	pub fn to_csv(&self) -> String {
+		format!(
+			"{},{},{}",
+			self.parent_id,
+			self.collapsed_child_index,
+			self.split_positions
+				.iter()
+				.map(|i| i.to_string())
+				.collect::<Vec<String>>()
+				.join("-")
+		)
+	}
 
-		let mut out = Vec::new();
+	pub fn to_csv_file(items: &Vec<Self>) -> String {
+		items
+			.iter()
+			.map(Self::to_csv)
+			.collect::<Vec<String>>()
+			.join("\n")
+	}
 
-		for block in encoded.split(",") {
-			let mut parts = block.split("-");
-			let child_index =
-				parts.next().unwrap().parse::<usize>().map_err(err)?;
-			let text_index =
-				parts.next().unwrap().parse::<usize>().map_err(err)?;
-			let len = parts.next().unwrap().parse::<usize>().map_err(err)?;
-			out.push(TextBlockPosition {
-				child_index,
-				text_index,
-				len,
-			});
-		}
-		Ok(out)
+	pub fn from_csv_file(file: &str) -> ParseResult<Vec<Self>> {
+		file.lines().map(Self::from_csv).collect()
+	}
+
+	pub fn from_csv(line: &str) -> ParseResult<Self> {
+		let mut items = line.split(",");
+		let parent_id = items
+			.next()
+			.ok_or_else(|| ParseError::Serde("missing parent id".into()))?
+			.parse()?;
+
+
+		let collapsed_child_index = items
+			.next()
+			.ok_or_else(|| {
+				ParseError::Serde("missing collapsed child index".into())
+			})?
+			.parse()?;
+		let split_positions = items
+			.next()
+			.ok_or_else(|| ParseError::Serde("missing split positions".into()))?
+			.split("-")
+			.map(|i| i.parse::<usize>())
+			.collect::<Result<Vec<usize>, _>>()?;
+
+		Ok(Self {
+			parent_id,
+			collapsed_child_index,
+			split_positions,
+		})
 	}
 }
 
@@ -119,9 +150,7 @@ impl CollapsedNode {
 				out.extend(nodes.into_iter().flat_map(Self::from_node));
 			}
 			RsxNode::Block { initial, .. } => {
-				out.push(CollapsedNode::RustText(RsxToHtml::render(
-					initial,
-				)));
+				out.push(CollapsedNode::RustText(RsxToHtml::render(initial)));
 			}
 			RsxNode::Text(val) => {
 				out.push(CollapsedNode::StaticText(val.clone()))
@@ -190,9 +219,13 @@ mod test {
 		let color = "brown";
 		let action = "jumps over";
 
-		// let tree = rsx! {"The "{desc}" and "{color}<b> fox </b> {action}" the "<Adjective> and fat </Adjective>dog };
-		let tree = rsx! {"The "{desc}" and "{color}<b> fox </b> {action}" the "<Adjective> and fat </Adjective>dog };
-		let collapsed = CollapsedNode::from_node(&tree);
+		let tree = rsx! {<div>"The "{desc}" and "{color}<b> fox </b> {action}" the "<Adjective> and fat </Adjective>dog</div>};
+		let RsxNode::Element(el) = &tree.children()[0] else {
+			panic!("expected element");
+		};
+
+
+		let collapsed = CollapsedNode::from_element(&el);
 
 		expect(&collapsed).to_be(&vec![
 			CollapsedNode::StaticText("The ".into()),
@@ -204,39 +237,14 @@ mod test {
 			CollapsedNode::StaticText(" the ".into()),
 			CollapsedNode::StaticText("lazy".into()),
 			CollapsedNode::Break,
-			// CollapsedNode::StaticText(" and fat ".into()),
 			CollapsedNode::StaticText("dog".into()),
 		]);
 
-		// println!(
-		// 	"{}",
-		// 	collapsed.iter().map(|n| n.as_str()).collect::<String>()
-		// );
-		let encoded = TextBlockEncoder::encode_text_block_positions(&collapsed);
-		// println!("{}", encoded);
-		expect(&encoded).to_be("0-4-5,0-14-5,1-0-10");
+		let encoded = TextBlockEncoder::encode(0, &el);
+		let csv = TextBlockEncoder::to_csv_file(&encoded);
+		expect(&csv).to_be("0,0,4-5-5-5\n0,0,10-5-4");
 
-		let decoded = TextBlockEncoder::decode(&encoded).unwrap();
-
-		expect(&decoded).to_be(&vec![
-			TextBlockPosition {
-				child_index: 0,
-				text_index: 4,
-				len: 5,
-			},
-			TextBlockPosition {
-				child_index: 0,
-				text_index: 14,
-				len: 5,
-			},
-			TextBlockPosition {
-				child_index: 1,
-				text_index: 0,
-				len: 10,
-			},
-		]);
-
-		let indices = TextBlockPosition::into_split_positions(decoded);
-		expect(&indices).to_be(&vec![vec![4, 9, 14, 19], vec![10]]);
+		let decoded = TextBlockEncoder::from_csv_file(&csv).unwrap();
+		expect(decoded).to_be(encoded);
 	}
 }
