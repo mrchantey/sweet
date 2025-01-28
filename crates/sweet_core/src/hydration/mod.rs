@@ -1,6 +1,8 @@
 use crate::prelude::*;
 mod html_node_hydrator;
+mod rust_node_map;
 pub use html_node_hydrator::*;
+pub use rust_node_map::*;
 use std::cell::RefCell;
 
 
@@ -10,7 +12,7 @@ mod dom_hydrator;
 pub use dom_hydrator::*;
 
 thread_local! {
-	static CURRENT_HYDRATOR: RefCell<Box<dyn Hydrator>> = RefCell::new(Box::new(HtmlNodeHydrator::new(vec![], HtmlConstants::default())));
+	static CURRENT_HYDRATOR: RefCell<Box<dyn Hydrator>> = RefCell::new(Box::new(HtmlNodeHydrator::new((), HtmlConstants::default())));
 }
 pub struct CurrentHydrator;
 

@@ -33,46 +33,7 @@ impl Default for RsxNode {
 	fn default() -> Self { Self::Fragment(Vec::new()) }
 }
 
-pub struct RenderOptions {
-	/// add attributes required for resumability
-	resumable: bool,
-	/// For every html node visited, this will increment by 1.
-	/// If resumable, the id will be attached to the html.
-	cx: RsxContext,
-	html_constants: HtmlConstants,
-}
-
-impl Default for RenderOptions {
-	fn default() -> Self {
-		Self {
-			resumable: false,
-			html_constants: Default::default(),
-			cx: Default::default(),
-		}
-	}
-}
-
-
-impl RenderOptions {
-	pub fn resumable() -> Self {
-		Self {
-			resumable: true,
-			..Default::default()
-		}
-	}
-}
-
-
 impl RsxNode {
-	/// Render with default [IntoHtmlOptions]
-	pub fn render(&self) -> String {
-		self.render_with_options(&mut Default::default())
-	}
-	/// Render with default [IntoHtmlOptions]
-	pub fn render_with_options(&self, options: &mut RenderOptions) -> String {
-		self.into_html(options).render()
-	}
-
 	pub fn into_discriminant(&self) -> RsxNodeDiscriminants {
 		match self {
 			RsxNode::Doctype => RsxNodeDiscriminants::Doctype,
@@ -84,32 +45,23 @@ impl RsxNode {
 		}
 	}
 
-	pub fn into_html(&self, options: &mut RenderOptions) -> Vec<HtmlNode> {
-		let desc = self.into_discriminant();
-		options.cx.before_visit_next(&desc);
-		let val = match self {
-			RsxNode::Doctype => {
-				vec![HtmlNode::Doctype]
-			}
-			RsxNode::Comment(s) => {
-				vec![HtmlNode::Comment(s.clone())]
-			}
-			RsxNode::Text(s) => {
-				vec![HtmlNode::Text(s.clone())]
-			}
-			RsxNode::Block { initial, .. } => initial.into_html(options),
-			RsxNode::Element(e) => {
-				vec![HtmlNode::Element(e.into_html(options))]
-			}
-			RsxNode::Fragment(nodes) => nodes
-				.iter()
-				.map(|n| n.into_html(options))
-				.flatten()
-				.collect(),
-		};
-		options.cx.after_visit_next(&desc);
-		val
+	pub fn children(&self) -> &[RsxNode] {
+		match self {
+			RsxNode::Fragment(rsx_nodes) => rsx_nodes,
+			RsxNode::Block { initial, .. } => initial.children(),
+			RsxNode::Element(RsxElement { children, .. }) => &children,
+			_ => &[],
+		}
 	}
+	pub fn children_mut(&mut self) -> &mut [RsxNode] {
+		match self {
+			RsxNode::Fragment(rsx_nodes) => rsx_nodes,
+			RsxNode::Block { initial, .. } => initial.children_mut(),
+			RsxNode::Element(RsxElement { children, .. }) => children,
+			_ => &mut [],
+		}
+	}
+
 
 	/// A method used by macros to insert nodes into a slot
 	/// # Panics
@@ -177,22 +129,12 @@ impl RsxNode {
 	}
 
 	/// takes all the register_effect functions
-	pub fn register_effects(&mut self) -> RsxContext {
-		let mut cx = RsxContext::default();
-		self.register_effects_recursive(&mut cx);
-		cx
-	}
-
-	fn register_effects_recursive(&mut self, cx: &mut RsxContext) {
-		let desc = self.into_discriminant();
-		cx.before_visit_next(&desc);
-
+	pub fn register_effects(&mut self) {
 		fn call_effect(cx: &RsxContext, register_effect: &mut RegisterEffect) {
 			let func = std::mem::replace(register_effect, Box::new(|_| {}));
 			func(cx);
 		}
-
-		match self {
+		RsxContext::visit_mut(self, |cx, node| match node {
 			RsxNode::Block {
 				register_effect, ..
 			} => {
@@ -210,22 +152,11 @@ impl RsxNode {
 						_ => {}
 					}
 				}
-				cx.before_element_children();
-				for c in &mut e.children {
-					c.register_effects_recursive(cx);
-				}
-				cx.after_element_children();
-			}
-			RsxNode::Fragment(nodes) => {
-				for n in nodes {
-					n.register_effects_recursive(cx);
-				}
 			}
 			RsxNode::Doctype => {}
 			RsxNode::Comment(_) => {}
-			RsxNode::Text(_) => {}
-		}
-		cx.after_visit_next(&desc);
+			_ => {}
+		});
 	}
 }
 
@@ -251,46 +182,7 @@ impl RsxElement {
 		}
 	}
 
-	pub fn into_html(&self, options: &mut RenderOptions) -> HtmlElementNode {
-		let mut attributes = self
-			.attributes
-			.iter()
-			.map(|a| a.into_html(options))
-			.flatten()
-			.collect::<Vec<_>>();
 
-		if options.resumable {
-			if self.contains_rust() {
-				attributes.push(HtmlAttribute {
-					key: options.html_constants.id_attribute_key.to_string(),
-					value: Some(options.cx.rsx_id().to_string()),
-				});
-			}
-			if self.contains_blocks() {
-				attributes.push(HtmlAttribute {
-					key: options.html_constants.block_attribute_key.to_string(),
-					value: Some(TextBlockEncoder::encode(&self)),
-				});
-			}
-		}
-
-		HtmlElementNode {
-			tag: self.tag.clone(),
-			self_closing: self.self_closing,
-			attributes,
-			children: {
-				options.cx.before_element_children();
-				let children = self
-					.children
-					.iter()
-					.map(|c| c.into_html(options))
-					.flatten()
-					.collect();
-				options.cx.after_element_children();
-				children
-			},
-		}
-	}
 
 	/// non-recursive check for blocks in children
 	pub fn contains_blocks(&self) -> bool {
@@ -335,33 +227,4 @@ pub enum RsxAttribute {
 	},
 }
 
-impl RsxAttribute {
-	pub fn render(&self) -> String {
-		self.into_html(&mut Default::default()).render()
-	}
-
-
-	pub fn into_html(&self, options: &RenderOptions) -> Vec<HtmlAttribute> {
-		match self {
-			RsxAttribute::Key { key } => vec![HtmlAttribute {
-				key: key.clone(),
-				value: None,
-			}],
-			RsxAttribute::KeyValue { key, value } => vec![HtmlAttribute {
-				key: key.clone(),
-				value: Some(value.clone()),
-			}],
-			RsxAttribute::BlockValue { key, initial, .. } => {
-				vec![HtmlAttribute {
-					key: key.clone(),
-					value: Some(initial.clone()),
-				}]
-			}
-			RsxAttribute::Block { initial, .. } => initial
-				.iter()
-				.map(|a| a.into_html(options))
-				.flatten()
-				.collect(),
-		}
-	}
-}
+impl RsxAttribute {}

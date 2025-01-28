@@ -33,7 +33,7 @@ fn render() {
 
 	let mut app = rsx! {<MyComponent initial=7/>};
 
-	let str = app.render_with_options(&mut RenderOptions::resumable());
+	let str = app.render_with_options(&mut RsxToHtml::resumable());
 	web_sys::window()
 		.unwrap()
 		.document()

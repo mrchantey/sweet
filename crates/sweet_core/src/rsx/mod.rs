@@ -1,8 +1,8 @@
-mod rsx_context;
 mod hydrate;
+mod rsx_context;
 mod rsx_node;
-pub use rsx_context::*;
 pub use hydrate::*;
+pub use rsx_context::*;
 pub use rsx_node::*;
 pub use text_block_encoder::*;
 mod text_block_encoder;
@@ -17,6 +17,8 @@ impl Rsx for RsxNode {
 impl Rsx for () {
 	fn into_rsx(self) -> RsxNode { RsxNode::default() }
 }
+
+
 // impl Rsx for &str {
 // 	fn into_rsx(self) -> RsxNode { RsxNode::Text(self.to_string()) }
 // }
@@ -61,6 +63,10 @@ impl<T: FnOnce() -> U, U: IntoRsxAttributeValue<M2>, M2>
 
 pub trait Component {
 	fn render(self) -> impl Rsx;
+}
+
+impl<T: FnOnce() -> RsxNode> Component for T {
+	fn render(self) -> impl Rsx { self() }
 }
 
 impl<T: Component> Rsx for T {

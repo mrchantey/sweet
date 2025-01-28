@@ -1,10 +1,9 @@
+use super::rust_node_map::RustNodeMap;
 use crate::prelude::*;
 use wasm_bindgen::JsCast;
 use web_sys::window;
 use web_sys::Document;
 use web_sys::Element;
-use web_sys::HtmlDivElement;
-use web_sys::HtmlElement;
 
 /// A hydrator for working with the dom
 pub struct DomHydrator {
@@ -13,6 +12,7 @@ pub struct DomHydrator {
 	document: Document,
 	/// sparse set element array, cached for fast reference
 	elements: Vec<Option<Element>>,
+	rust_node_map: RustNodeMap,
 }
 
 impl Default for DomHydrator {
@@ -21,6 +21,7 @@ impl Default for DomHydrator {
 			constants: Default::default(),
 			document: window().unwrap().document().unwrap(),
 			elements: Default::default(),
+			rust_node_map: Default::default(),
 		}
 	}
 }
@@ -41,14 +42,18 @@ impl DomHydrator {
 	/// This also uncollapses the child text nodes
 	fn get_or_find_element(
 		&mut self,
-		rsx_id: usize,
+		cx: &RsxContext,
 	) -> Result<Element, HydrationError> {
-		if let Some(Some(el)) = self.elements.get(rsx_id) {
+		if let Some(Some(el)) = self.elements.get(cx.html_element_index()) {
 			return Ok(el.clone());
 		}
 
-		let query =
-			format!("[{}='{}']", self.constants.id_attribute_key, rsx_id);
+		let query = format!(
+			"[{}='{}']",
+			self.constants.id_attribute_key,
+			cx.html_element_index()
+		);
+		let rsx_id = cx.rust_node_index();
 
 		if let Some(el) = self.document.query_selector(&query).unwrap() {
 			self.elements.resize(rsx_id + 1, None);
@@ -106,7 +111,9 @@ impl DomHydrator {
 				// }
 			}
 		}
-		Ok(())
+		todo!();
+
+		// Ok(())
 	}
 }
 
@@ -128,17 +135,14 @@ impl Hydrator for DomHydrator {
 		rsx: RsxNode,
 		cx: &RsxContext,
 	) -> Result<(), HydrationError> {
-		let el = self.get_or_find_element(cx.element_id)?;
+		let el = self.get_or_find_element(cx)?;
 		match rsx {
-			RsxNode::Fragment(vec) => todo!(),
 			RsxNode::Block {
 				initial,
 				register_effect,
 			} => {
 				sweet_utils::log!("element found! {}", el.tag_name());
 			}
-			RsxNode::Doctype => todo!(),
-			RsxNode::Comment(_) => todo!(),
 			RsxNode::Text(val) => {
 				if let Some(encoded) =
 					el.get_attribute(self.constants.block_attribute_key)
@@ -146,19 +150,22 @@ impl Hydrator for DomHydrator {
 					let parts =
 						TextBlockEncoder::decode(&encoded).map_err(|err| {
 							HydrationError::InvalidContext(format!(
-							"Could not decode block attribute on element: {}\n{:?}",
-							cx.element_id,err
-						))
+								"Could not decode block attribute on element: {}\n{:?}",
+								cx,err
+							))
 						})?;
 				} else {
 					return Err(HydrationError::InvalidContext(format!(
 						"Could not find block attribute on element: {}",
-						cx.element_id
+						cx
 					)));
 				};
 
 				// let block_encoding = self.document.create_text_node(&val);
 			}
+			RsxNode::Fragment(vec) => todo!(),
+			RsxNode::Doctype => todo!(),
+			RsxNode::Comment(_) => todo!(),
 			RsxNode::Element(rsx_element) => todo!(),
 		}
 

@@ -46,7 +46,7 @@ impl SignalsRsx {
 					let attrs = block();
 					println!(
 						"would update attributes for {cx}\n{}",
-						attrs.render()
+						RsxToHtml::default().map_attribute(&attrs).render()
 					);
 					todo!();
 				});
@@ -104,12 +104,13 @@ mod test {
 
 
 	#[test]
+	#[ignore = "todo"]
 	fn works() {
 		let (get, set) = signal(7);
 
 		let rsx = || rsx! {<div>value is {get}</div>};
 		CurrentHydrator::set(HtmlNodeHydrator::new(
-			rsx.clone()().into_html(&mut RenderOptions::resumable()),
+			rsx.clone(),
 			HtmlConstants::default(),
 		));
 

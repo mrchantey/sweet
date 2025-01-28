@@ -2,6 +2,7 @@ use super::RsxElement;
 use super::RsxNode;
 use crate::error::ParseError;
 use crate::error::ParseResult;
+use crate::html::RsxToHtml;
 
 /// This module is for handling rsx text blocks in html text node.
 ///
@@ -30,8 +31,8 @@ impl TextBlockEncoder {
 		let mut child_index = 0;
 		let mut text_index = 0;
 
-		/// the index is the child index and the value is a vec of 'next index to split at'
-		let mut indices: Vec<Vec<usize>> = Vec::new();
+		// the index is the child index and the value is a vec of 'next index to split at'
+		// let indices: Vec<Vec<usize>> = Vec::new();
 		for node in nodes {
 			match node {
 				CollapsedNode::StaticText(t) => {
@@ -118,7 +119,9 @@ impl CollapsedNode {
 				out.extend(nodes.into_iter().flat_map(Self::from_node));
 			}
 			RsxNode::Block { initial, .. } => {
-				out.push(CollapsedNode::RustText(initial.render()));
+				out.push(CollapsedNode::RustText(RsxToHtml::render(
+					initial,
+				)));
 			}
 			RsxNode::Text(val) => {
 				out.push(CollapsedNode::StaticText(val.clone()))

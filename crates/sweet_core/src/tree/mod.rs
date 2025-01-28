@@ -1,11 +1,13 @@
 mod tree_iter;
 mod tree_iter_flat;
-mod tree_position;
 mod tree_map;
+mod tree_position;
+mod tree_visitor;
 use anyhow::Result;
 pub use tree_iter::*;
 pub use tree_iter_flat::*;
 pub use tree_position::*;
+pub use tree_visitor::*;
 
 pub trait Tree: Sized {
 	type Item;

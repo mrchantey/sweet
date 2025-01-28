@@ -56,7 +56,9 @@ impl RenderHtml for HtmlNode {
 	fn render_html_with_buf(&self, html: &mut String) {
 		match self {
 			HtmlNode::Doctype => html.push_str("<!DOCTYPE html>"),
-			HtmlNode::Comment(val) => html.push_str(&format!("<!--{}-->", val)),
+			HtmlNode::Comment(val) => {
+				html.push_str(&format!("<!-- {} -->", val))
+			}
 			HtmlNode::Text(val) => html.push_str(val),
 			HtmlNode::Element(node) => node.render_html_with_buf(html),
 		}

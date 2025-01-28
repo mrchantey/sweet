@@ -5,82 +5,90 @@ use crate::prelude::*;
 /// for fine-grained reconciliation.
 #[derive(Debug, Clone)]
 pub struct RsxContext {
-	/// the number of rsx nodes visited
-	rsx_node_count: usize,
-	/// the rsx id of the parent element
-	// pub html_pos: TreePosition,
-	/// an id for the current element
-	pub element_id: usize,
-	/// The index of this child *at rsx time*. This will be incorrect
-	/// post reload because other children may be added or removed
-	pub element_child_index: usize,
-	/// in rsx the html may move around during a reload but the indices of
-	/// child blocks is constant so we use that to track the position
-	pub element_child_block_index: usize,
+	/// the number of rsx rust blocks visited,
+	/// this is useful for hot reloading because it will not change
+	/// even if the html structure changes
+	rust_node_index: usize,
+	/// the number of html elements visited,
+	/// elements with rust children will need to have this assigned as an
+	/// attribute so that the hydrator can find them
+	html_element_index: usize,
+	/// the *uncollapsed* index of this block relative to its parent element
+	child_index: usize,
 }
 
 impl Default for RsxContext {
 	fn default() -> Self {
 		Self {
-			rsx_node_count: 0,
-			element_id: 0,
-			element_child_index: 0,
-			element_child_block_index: 0,
+			child_index: 0,
+			rust_node_index: 0,
+			html_element_index: 0,
 		}
 	}
 }
-
 
 impl RsxContext {
-	/// The rsx id of the current node
-	pub fn rsx_id(&self) -> usize { self.rsx_node_count - 1 }
+	pub fn visit(
+		node: &RsxNode,
+		mut func: impl FnMut(&Self, &RsxNode),
+	) -> Self {
+		let mut visitor = Self::default();
+		visitor.visit_node_recursive(node, &mut func);
+		visitor
+	}
+	pub fn visit_mut(
+		node: &mut RsxNode,
+		mut func: impl FnMut(&mut Self, &mut RsxNode),
+	) -> Self {
+		let mut visitor = Self::default();
+		visitor.visit_node_mut_recursive(node, &mut func);
+		visitor
+	}
 
-
-	// we do not recurse into fragments or elements,
-	// as this function will be called for each of them
-	pub fn before_visit_next(&mut self, node: &RsxNodeDiscriminants) {
-		match node {
-			RsxNodeDiscriminants::Fragment => {}
-			RsxNodeDiscriminants::Block => {}
-			RsxNodeDiscriminants::Text
-			| RsxNodeDiscriminants::Doctype
-			| RsxNodeDiscriminants::Comment => self.next_rsx_id(),
-			RsxNodeDiscriminants::Element => {
-				self.next_rsx_id();
-				self.element_id = self.rsx_id();
-			}
+	fn visit_node_recursive(
+		&mut self,
+		node: &RsxNode,
+		func: &mut impl FnMut(&Self, &RsxNode),
+	) {
+		func(self, node);
+		self.after_visit_node(&node.into_discriminant());
+		for node in node.children() {
+			self.visit_node_recursive(node, func);
 		}
 	}
-	/// call this before visiting the children of an element
-	pub fn before_element_children(&mut self) {
-		self.element_child_index = 0;
-		self.element_child_block_index = 0;
-		// self.html_pos.push_child();
+	fn visit_node_mut_recursive(
+		&mut self,
+		node: &mut RsxNode,
+		func: &mut impl FnMut(&mut Self, &mut RsxNode),
+	) {
+		func(self, node);
+		self.after_visit_node(&node.into_discriminant());
+		for node in node.children_mut() {
+			self.visit_node_mut_recursive(node, func);
+		}
 	}
 
-	/// call this after visiting the children of an element
-	pub fn after_element_children(&mut self) {}
+	pub fn rust_node_index(&self) -> usize { self.rust_node_index }
+	pub fn html_element_index(&self) -> usize { self.html_element_index }
+	pub fn child_index(&self) -> usize { self.child_index }
 
-	pub fn after_visit_next(&mut self, node: &RsxNodeDiscriminants) {
-		self.element_child_index += 1;
+	pub fn after_visit_node(&mut self, node: &RsxNodeDiscriminants) {
 		match node {
-			RsxNodeDiscriminants::Fragment => {}
 			RsxNodeDiscriminants::Block => {
-				self.element_child_block_index += 1;
+				self.rust_node_index += 1;
 			}
-			RsxNodeDiscriminants::Text => {}
-			RsxNodeDiscriminants::Doctype => {}
-			RsxNodeDiscriminants::Comment => {}
-			RsxNodeDiscriminants::Element => {}
+			RsxNodeDiscriminants::Element => {
+				self.child_index = 0;
+				self.html_element_index += 1;
+			}
+			_ => {}
 		}
 	}
-
-	fn next_rsx_id(&mut self) { self.rsx_node_count += 1; }
-
 }
+
 
 impl std::fmt::Display for RsxContext {
 	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-		write!(f, "Rsx Node Count: {}", self.rsx_node_count)
+		write!(f, "Rsx Node Count: {}", self.rust_node_index)
 	}
 }
