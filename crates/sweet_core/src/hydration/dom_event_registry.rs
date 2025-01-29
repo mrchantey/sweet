@@ -50,7 +50,8 @@ impl EventRegistry {
 	pub fn initialize() -> ParseResult<()> {
 		let constants = CurrentHydrator::with(|h| h.html_constants().clone());
 		hook_up_event_listeners(&constants)?;
-		playback_prehydrate_events(&constants)?;
+		// TODO now the sweet loader is 
+		// playback_prehydrate_events(&constants)?;
 		Ok(())
 	}
 }

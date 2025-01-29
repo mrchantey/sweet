@@ -28,7 +28,7 @@ impl RsxContextMap {
 			&self
 				.collapsed_elements
 				.iter()
-				.map(|(k, v)| format!("{}:{}", k, v.to_csv()))
+				.map(|(k, v)| format!("{}*{}", k, v.to_csv()))
 				.collect::<Vec<_>>()
 				.join(";"),
 		);
@@ -49,7 +49,7 @@ impl RsxContextMap {
 			.ok_or_else(|| ParseError::Serde("missing rust blocks".into()))?
 			.split(";")
 			.map(|s| {
-				let mut parts = s.split(':');
+				let mut parts = s.split('*');
 				let key = parts
 					.next()
 					.ok_or_else(|| ParseError::Serde("missing key".into()))?

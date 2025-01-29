@@ -126,7 +126,7 @@ mod test {
 		let onclick = |_| {};
 		let node = rsx! {<div onclick=onclick> the value is {3} </div>};
 
-		expect(RsxToHtml::render(&node))
+		expect(RsxToHtml::render_body(&node))
 			.to_be("<div onclick=\"needs-event-cx\"> the value is 3</div>");
 	}
 	#[test]
@@ -141,7 +141,7 @@ mod test {
 		}
 		let node = rsx! {<div> the child is <Child value=38/>! </div>};
 
-		expect(RsxToHtml::render(&node))
+		expect(RsxToHtml::render_body(&node))
 			.to_be("<div> the child is <p>hello 38</p>! </div>");
 	}
 	#[test]
@@ -159,7 +159,7 @@ mod test {
 		}
 		let node = rsx! {<Layout><b>foo</b></Layout>};
 
-		expect(RsxToHtml::render(&node))
+		expect(RsxToHtml::render_body(&node))
 			.to_be("<div><h1>welcome</h1><p><b>foo</b></p></div>");
 	}
 	#[test]
@@ -185,7 +185,7 @@ mod test {
 			</Layout>
 		};
 
-		expect(RsxToHtml::render(&node))
+		expect(RsxToHtml::render_body(&node))
 			.to_be("<article><h1>welcome</h1><p><b>what a cool article</b></p><main><div>direct child</div></main></article>");
 	}
 }

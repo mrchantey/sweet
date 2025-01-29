@@ -1,8 +1,10 @@
-//! 
+//!
 
 use crate::prelude::*;
 #[cfg(target_arch = "wasm32")]
 mod dom_event_registry;
+#[cfg(target_arch = "wasm32")]
+pub mod dom_mounter;
 #[cfg(target_arch = "wasm32")]
 pub use dom_event_registry::EventRegistry;
 mod html_node_hydrator;

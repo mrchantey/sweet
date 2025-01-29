@@ -1,6 +1,8 @@
 use crate::prelude::*;
 
 pub struct RsxToHtml {
+	/// on elements that have children, give them a `needs-id` attribute
+	/// to be mapped by [RsxToResumableHtml]
 	pub mark_needs_id: bool,
 }
 
@@ -15,18 +17,20 @@ impl Default for RsxToHtml {
 
 
 impl RsxToHtml {
-	pub fn for_resumable() -> Self {
+	pub fn as_resumable() -> Self {
 		Self {
 			mark_needs_id: true,
 		}
 	}
-	/// Render with default [IntoHtmlOptions]
-	pub fn render(node: &RsxNode) -> String {
-		Self::default().map_node(&node).render()
+
+	/// convenience so you dont have to add
+	/// a `.render()` at the end of a long rsx macro
+	pub fn render_body(node: &RsxNode) -> String {
+		Self::default().map_node(node).render()
 	}
 
-	pub fn map_node(&mut self, node: &RsxNode) -> Vec<HtmlNode> {
-		match node {
+	pub fn map_node(&mut self, rsx_node: &RsxNode) -> Vec<HtmlNode> {
+		match rsx_node {
 			RsxNode::Doctype => {
 				vec![HtmlNode::Doctype]
 			}
@@ -46,26 +50,26 @@ impl RsxToHtml {
 		}
 	}
 
-	pub fn map_element(&mut self, el: &RsxElement) -> HtmlElementNode {
-		let mut attributes = el
+	pub fn map_element(&mut self, rsx_el: &RsxElement) -> HtmlElementNode {
+		let mut html_attributes = rsx_el
 			.attributes
 			.iter()
 			.map(|a| self.map_attribute(a))
 			.flatten()
 			.collect::<Vec<_>>();
 
-		if self.mark_needs_id && el.contains_blocks() {
-			attributes.push(HtmlAttribute {
+		if self.mark_needs_id && rsx_el.contains_blocks() {
+			html_attributes.push(HtmlAttribute {
 				key: "needs-id".to_string(),
 				value: None,
 			});
 		}
 
 		HtmlElementNode {
-			tag: el.tag.clone(),
-			self_closing: el.self_closing,
-			attributes,
-			children: el
+			tag: rsx_el.tag.clone(),
+			self_closing: rsx_el.self_closing,
+			attributes: html_attributes,
+			children: rsx_el
 				.children
 				.iter()
 				.map(|c| self.map_node(c))
@@ -108,26 +112,28 @@ mod test {
 
 	#[test]
 	fn doctype() {
-		// HtmlRenderer::render_default
-		expect(RsxToHtml::render(&rsx! { <!DOCTYPE html> }))
+		// HtmlRenderer::render_body_default
+		expect(RsxToHtml::render_body(&rsx! { <!DOCTYPE html> }))
 			.to_be("<!DOCTYPE html>");
 	}
 
 	#[test]
 	fn comment() {
-		expect(RsxToHtml::render(&rsx! { <!-- "hello" --> }))
+		expect(RsxToHtml::render_body(&rsx! { <!-- "hello" --> }))
 			.to_be("<!-- hello -->");
 	}
 
 	#[test]
-	fn text() { expect(RsxToHtml::render(&rsx! { "hello" })).to_be("hello"); }
+	fn text() {
+		expect(RsxToHtml::render_body(&rsx! { "hello" })).to_be("hello");
+	}
 
 	#[test]
 	fn element() {
 		let _key = "hidden";
 		let _key_value = "class=\"pretty\"";
 		let food = "pizza";
-		expect(RsxToHtml::render(&rsx! { <div
+		expect(RsxToHtml::render_body(&rsx! { <div
 			name="pete"
 			age=9
 			// {key}
@@ -140,18 +146,18 @@ mod test {
 	}
 	#[test]
 	fn element_self_closing() {
-		expect(RsxToHtml::render(&rsx! { <br/> })).to_be("<br/>");
+		expect(RsxToHtml::render_body(&rsx! { <br/> })).to_be("<br/>");
 	}
 	#[test]
 	fn element_children() {
-		expect(RsxToHtml::render(&rsx! { <div>hello</div> }))
+		expect(RsxToHtml::render_body(&rsx! { <div>hello</div> }))
 			.to_be("<div>hello</div>");
 	}
 
 	#[test]
 	fn rsx_text() {
 		let value = "hello";
-		expect(RsxToHtml::render(&rsx! { {value} })).to_be("hello");
+		expect(RsxToHtml::render_body(&rsx! { {value} })).to_be("hello");
 	}
 
 	#[test]
@@ -166,7 +172,7 @@ mod test {
 				}
 			}
 		}
-		expect(RsxToHtml::render(&rsx! { <Child value=7/> }))
+		expect(RsxToHtml::render_body(&rsx! { <Child value=7/> }))
 			.to_be("<div>7</div>");
 	}
 
@@ -174,7 +180,7 @@ mod test {
 	#[test]
 	fn nested() {
 		let world = "mars";
-		expect(RsxToHtml::render(&rsx! {
+		expect(RsxToHtml::render_body(&rsx! {
 			<div>
 				<p>hello {world}</p>
 			</div>
@@ -185,7 +191,7 @@ mod test {
 	fn events() {
 		let onclick = |_| {};
 		let world = "mars";
-		expect(RsxToHtml::render(&rsx! {
+		expect(RsxToHtml::render_body(&rsx! {
 			<div onclick=onclick>
 				<p>hello {world}</p>
 			</div>

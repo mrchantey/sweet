@@ -103,12 +103,12 @@ mod test {
 
 		rsx().register_effects();
 		expect(&CurrentHydrator::with(|h| h.render()))
-			.to_start_with("<div data-sweet-id=\"0\">value is 7</div>");
+			.to_contain("<div data-sweet-id=\"0\">value is 7</div>");
 		set(8);
 		expect(&CurrentHydrator::with(|h| h.render()))
-			.to_start_with("<div data-sweet-id=\"0\">value is 8</div>");
+			.to_contain("<div data-sweet-id=\"0\">value is 8</div>");
 		set(9);
 		expect(&CurrentHydrator::with(|h| h.render()))
-			.to_start_with("<div data-sweet-id=\"0\">value is 9</div>");
+			.to_contain("<div data-sweet-id=\"0\">value is 9</div>");
 	}
 }

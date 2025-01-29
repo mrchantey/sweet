@@ -21,7 +21,7 @@ fn main() {
 		</div>
 	};
 
-	let str = RsxToHtml::render(&foo);
+	let str = RsxToHtml::render_body(&foo);
 	assert_eq!(
 		str,
 		"<div><p>hello <div>38<div>some child</div></div></p></div>"

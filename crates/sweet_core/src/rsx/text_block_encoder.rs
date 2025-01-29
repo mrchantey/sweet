@@ -3,6 +3,7 @@ use super::RsxElement;
 use super::RsxNode;
 use crate::error::ParseError;
 use crate::error::ParseResult;
+use crate::html::RenderHtml;
 use crate::html::RsxToHtml;
 
 /// This module is for handling rsx text blocks in html text node.
@@ -164,7 +165,9 @@ impl CollapsedNode {
 				out.extend(nodes.into_iter().flat_map(Self::from_node));
 			}
 			RsxNode::Block { initial, .. } => {
-				out.push(CollapsedNode::RustText(RsxToHtml::render(initial)));
+				out.push(CollapsedNode::RustText(
+					RsxToHtml::default().map_node(initial).render(),
+				));
 			}
 			RsxNode::Text(val) => {
 				out.push(CollapsedNode::StaticText(val.clone()))

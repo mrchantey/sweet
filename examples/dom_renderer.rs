@@ -29,18 +29,13 @@ fn render() {}
 
 #[cfg(target_arch = "wasm32")]
 fn render() {
+	use ::sweet::prelude::dom_mounter::DomMounter;
+
 	console_error_panic_hook::set_once();
 
 	let mut app = rsx! {<MyComponent initial=7/>};
-
-	// this would usually be directly served as html
-	web_sys::window()
-		.unwrap()
-		.document()
-		.unwrap()
-		.body()
-		.unwrap()
-		.set_inner_html(&RsxToResumableHtml::render(&app));
+	let doc = RsxToResumableHtml::default().map_node(&app);
+	DomMounter::mount_doc(&doc);
 
 	let mut hydrator = DomHydrator::default();
 	hydrator.initialize();

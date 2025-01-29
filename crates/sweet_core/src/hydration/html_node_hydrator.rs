@@ -3,7 +3,7 @@ use crate::prelude::*;
 /// An implementation of hydrated that simply updates a tree of
 /// html nodes
 pub struct HtmlNodeHydrator {
-	pub html: Vec<HtmlNode>,
+	pub html: HtmlDocument,
 	constants: HtmlConstants,
 	rust_node_map: RsxContextMap,
 }

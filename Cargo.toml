@@ -108,6 +108,7 @@ console_error_panic_hook = "0.1.7"
 version = "0.3.76"
 features = [
 	"Text",
+	"Comment",
 	"Node",
 	"NodeList",
 	# Blob

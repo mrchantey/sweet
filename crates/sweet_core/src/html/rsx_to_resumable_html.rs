@@ -12,16 +12,15 @@ pub struct RsxToResumableHtml {
 	pub num_html_elements: usize,
 }
 impl RsxToResumableHtml {
-	pub fn render(node: &RsxNode) -> String {
+	pub fn render_body(node: &RsxNode) -> String {
 		Self::default().map_node(node).render()
 	}
 
-	pub fn map_node(&mut self, node: &RsxNode) -> Vec<HtmlNode> {
-		let mut html = RsxToHtml::for_resumable().map_node(node);
+	pub fn map_node(&mut self, node: &RsxNode) -> HtmlDocument {
+		let mut html = RsxToHtml::as_resumable().map_node(node).into_document();
 		for node in html.iter_mut() {
 			self.visit_node(node);
 		}
-
 		self.insert_rsx_context_map(node, &mut html);
 		self.insert_catch_prehydrated_events(&mut html);
 		html
@@ -56,25 +55,18 @@ impl RsxToResumableHtml {
 
 	/// attempt to insert the rsx context map into the html body,
 	/// otherwise append it to the end of the html
-	fn insert_rsx_context_map(
-		&self,
-		node: &RsxNode,
-		nodes: &mut Vec<HtmlNode>,
-	) {
+	fn insert_rsx_context_map(&self, node: &RsxNode, doc: &mut HtmlDocument) {
 		let rsx_context_map = RsxContextMap::from_node(node).to_csv();
-
-
-
 		let el = HtmlElementNode::inline_script(rsx_context_map, vec![
 			HtmlAttribute {
 				key: self.html_constants.cx_map_key.to_string(),
 				value: None,
 			},
 		]);
-		HtmlNode::insert_at_body_or_append(nodes, el.into());
+		doc.body.push(el.into());
 	}
 
-	fn insert_catch_prehydrated_events(&self, nodes: &mut Vec<HtmlNode>) {
+	fn insert_catch_prehydrated_events(&self, doc: &mut HtmlDocument) {
 		let script = format!(
 			r#"
 			console.log('sweet has loaded')
@@ -88,7 +80,7 @@ globalThis.{event_handler} = (id,event) => globalThis.{prehydrate_events}.push([
 			key: "type".to_string(),
 			value: Some("module".to_string()),
 		}]);
-		HtmlNode::insert_at_body_or_append(nodes, el.into());
+		doc.body.push(el.into());
 	}
 }
 
@@ -101,25 +93,23 @@ mod test {
 
 	#[test]
 	fn plain() {
-		expect(RsxToResumableHtml::render(&rsx! { <br/> }))
-			.to_start_with("<br/>");
+		expect(RsxToResumableHtml::render_body(&rsx! { <br/> }))
+			.to_contain("<br/>");
 	}
 	#[test]
 	fn id() {
-		expect(RsxToResumableHtml::render(
+		expect(RsxToResumableHtml::render_body(
 			&rsx! { <main><article>{7}</article></main> },
 		))
-		.to_start_with("<main><article data-sweet-id=\"1\">7</article></main>");
+		.to_contain("<main><article data-sweet-id=\"1\">7</article></main>");
 	}
 	#[test]
 	fn events() {
 		let on_click = |_| {};
 
-		expect(RsxToResumableHtml::render(
+		expect(RsxToResumableHtml::render_body(
 			&rsx! { <main onclick=on_click></main> },
 		))
-		.to_start_with(
-			"<main onclick=\"_sweet_event_handler(0, event)\"></main>",
-		);
+		.to_contain("<main onclick=\"_sweet_event_handler(0, event)\"></main>");
 	}
 }

@@ -10,6 +10,15 @@ pub trait RenderHtml {
 	fn render_html_with_buf(&self, html: &mut String);
 }
 
+
+impl RenderHtml for Vec<HtmlNode> {
+	fn render_html_with_buf(&self, html: &mut String) {
+		for node in self {
+			node.render_html_with_buf(html);
+		}
+	}
+}
+
 /// Unlike RsxNode, this struct contains only real html nodes
 #[derive(Debug, Clone)]
 pub enum HtmlNode {
@@ -43,10 +52,22 @@ impl HtmlNode {
 	}
 
 	/// return self as an element if it matches the tag
-	pub fn element_with_tag(
-		&mut self,
+	pub fn element_with_tag_owned(
+		self,
 		tag: &str,
-	) -> Option<&mut HtmlElementNode> {
+	) -> Result<HtmlElementNode, Self> {
+		match self {
+			HtmlNode::Element(e) => {
+				if e.tag == tag {
+					return Ok(e);
+				}
+				Err(e.into())
+			}
+			_ => Err(self),
+		}
+	}
+	/// return self as an element if it matches the tag
+	pub fn element_with_tag(&self, tag: &str) -> Option<&HtmlElementNode> {
 		match self {
 			HtmlNode::Element(e) => {
 				if e.tag == tag {
@@ -56,33 +77,6 @@ impl HtmlNode {
 			_ => {}
 		}
 		None
-	}
-
-	/// attempt to find `<html><body>` and insert the node into the body,
-	/// otherwise append the node to the root
-	pub fn insert_at_body_or_append(nodes: &mut Vec<Self>, node: HtmlNode) {
-		if let Some(html_root) =
-			nodes.iter_mut().find_map(|e| e.element_with_tag("html"))
-		{
-			if let Some(body) = html_root
-				.children
-				.iter_mut()
-				.find_map(|e| e.element_with_tag("body"))
-			{
-				body.children.push(node);
-				return;
-			}
-		}
-		nodes.push(node);
-	}
-}
-
-
-impl RenderHtml for Vec<HtmlNode> {
-	fn render_html_with_buf(&self, html: &mut String) {
-		for node in self {
-			node.render_html_with_buf(html);
-		}
 	}
 }
 
