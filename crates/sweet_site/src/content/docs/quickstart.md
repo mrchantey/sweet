@@ -103,8 +103,6 @@ fn rsx(self) -> Rsx {
   }
 }
 ```
-And viola, our counter is complete, at this point you may be thinking this looks a lot like leptos/solid, and thats because it is! At least its the core reactive system of leptos being used with preprocessed rsx instead of compile-time macros.
-
 
 <!-- ## Next steps
 
