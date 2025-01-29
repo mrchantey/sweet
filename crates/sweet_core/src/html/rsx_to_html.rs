@@ -1,40 +1,28 @@
 use crate::prelude::*;
 
 pub struct RsxToHtml {
-	/// add attributes required for resumability
-	pub resumable: bool,
-	pub html_constants: HtmlConstants,
-	/// tracking this allows us to match with [RsxContext]
-	pub num_html_elements: usize,
+	pub mark_needs_id: bool,
 }
 
 
 impl Default for RsxToHtml {
 	fn default() -> Self {
 		Self {
-			resumable: false,
-			html_constants: Default::default(),
-			num_html_elements: 0,
+			mark_needs_id: false,
 		}
 	}
 }
 
 
 impl RsxToHtml {
+	pub fn for_resumable() -> Self {
+		Self {
+			mark_needs_id: true,
+		}
+	}
 	/// Render with default [IntoHtmlOptions]
 	pub fn render(node: &RsxNode) -> String {
 		Self::default().map_node(&node).render()
-	}
-
-	pub fn render_resumable(node: &RsxNode) -> String {
-		let mut this = Self {
-			resumable: true,
-			..Default::default()
-		};
-		let mut html = this.map_node(node);
-		this.insert_rsx_context_map(node, &mut html);
-		this.insert_catch_prehydrated_events(&mut html);
-		html.render()
 	}
 
 	pub fn map_node(&mut self, node: &RsxNode) -> Vec<HtmlNode> {
@@ -66,13 +54,12 @@ impl RsxToHtml {
 			.flatten()
 			.collect::<Vec<_>>();
 
-		if self.resumable && el.contains_blocks() {
+		if self.mark_needs_id && el.contains_blocks() {
 			attributes.push(HtmlAttribute {
-				key: self.html_constants.id_attribute_key.to_string(),
-				value: Some(self.num_html_elements.to_string()),
+				key: "needs-id".to_string(),
+				value: None,
 			});
 		}
-		self.num_html_elements += 1;
 
 		HtmlElementNode {
 			tag: el.tag.clone(),
@@ -109,41 +96,6 @@ impl RsxToHtml {
 				.flatten()
 				.collect(),
 		}
-	}
-
-
-	/// attempt to insert the rsx context map into the html body,
-	/// otherwise append it to the end of the html
-	fn insert_rsx_context_map(
-		&self,
-		node: &RsxNode,
-		nodes: &mut Vec<HtmlNode>,
-	) {
-		let rsx_context_map = RsxContextMap::from_node(node).to_csv();
-
-
-
-		let el = HtmlElementNode::inline_script(rsx_context_map, vec![
-			HtmlAttribute {
-				key: self.html_constants.rsx_context_attribute_key.to_string(),
-				value: None,
-			},
-		]);
-		HtmlNode::insert_at_body_or_append(nodes, el.into());
-	}
-
-	fn insert_catch_prehydrated_events(&self, nodes: &mut Vec<HtmlNode>) {
-		let event_handler = self.html_constants.event_handler;
-		let prehydrate_events = self.html_constants.prehydrate_events;
-
-		let script = format!(
-			r#"
-globalThis.{prehydrate_events} = []
-globalThis.{event_handler} = (id,event) => globalThis.{prehydrate_events}.push([id, event])
-"#
-		);
-		let el = HtmlElementNode::inline_script(script, Default::default());
-		HtmlNode::insert_at_body_or_append(nodes, el.into());
 	}
 }
 
@@ -221,6 +173,16 @@ mod test {
 
 	#[test]
 	fn nested() {
+		let world = "mars";
+		expect(RsxToHtml::render(&rsx! {
+			<div>
+				<p>hello {world}</p>
+			</div>
+		}))
+		.to_be("<div><p>hello mars</p></div>");
+	}
+	#[test]
+	fn events() {
 		let onclick = |_: usize| {};
 		let world = "mars";
 		expect(RsxToHtml::render(&rsx! {
@@ -228,6 +190,6 @@ mod test {
 				<p>hello {world}</p>
 			</div>
 		}))
-		.to_be("<div onclick=\"onclick_handler\"><p>hello mars</p></div>");
+		.to_be("<div onclick=\"needs-event-cx\"><p>hello mars</p></div>");
 	}
 }

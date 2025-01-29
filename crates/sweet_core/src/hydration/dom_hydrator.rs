@@ -28,7 +28,7 @@ impl Default for DomHydrator {
 
 impl DomHydrator {
 	fn get_cx_map(&mut self) -> ParseResult<&RsxContextMap> {
-		let query = format!("[{}]", self.constants.rsx_context_attribute_key,);
+		let query = format!("[{}]", self.constants.cx_map_key,);
 		if let Some(cx) = self.document.query_selector(&query).unwrap() {
 			let inner_text = cx.text_content().unwrap();
 			self.cx_map = Some(RsxContextMap::from_csv(&inner_text)?);
@@ -60,7 +60,7 @@ impl DomHydrator {
 		}
 		let id = cx.html_element_index();
 
-		let query = format!("[{}='{}']", self.constants.id_attribute_key, id);
+		let query = format!("[{}='{}']", self.constants.id_key, id);
 		if let Some(el) = self.document.query_selector(&query).unwrap() {
 			self.elements.resize(id + 1, None);
 			self.elements[id] = Some(el.clone());

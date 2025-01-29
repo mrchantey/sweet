@@ -218,22 +218,21 @@ impl RenderHtml for Vec<HtmlAttribute> {
 
 #[derive(Debug, Clone)]
 pub struct HtmlConstants {
-	/// used for encoding the [TreePosition],
-	pub id_attribute_key: &'static str,
+	/// the attribute for element ids, used for encoding the [TreePosition],
+	pub id_key: &'static str,
 	/// used for describing the location of rust blocks in text nodes,
-	/// defaults to `data-sweet-blocks`
-	pub rsx_context_attribute_key: &'static str,
-	/// defaults to `_sweet_event`
+	pub cx_map_key: &'static str,
+	/// the global event handler for all events
 	pub event_handler: &'static str,
-	/// defaults to `_sweet_prehydrate_events`
+	/// the global vec that stores prehydrated events
 	pub prehydrate_events: &'static str,
 }
 
 impl Default for HtmlConstants {
 	fn default() -> Self {
 		Self {
-			id_attribute_key: "data-sweet-id",
-			rsx_context_attribute_key: "data-sweet-blocks",
+			id_key: "data-sweet-id",
+			cx_map_key: "data-sweet-cx-map",
 			event_handler: "_sweet_event",
 			prehydrate_events: "_sweet_prehydrate_events",
 		}

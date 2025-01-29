@@ -5,11 +5,6 @@ title: How it works
 
 
 ```rust
-trait RsxParser{
-  fn map_event(el: &RsxElement, key:&str){
-
-  }
-}
 
 
 Tree<RsxNode<BevyHydrate>>

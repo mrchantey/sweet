@@ -11,11 +11,7 @@ pub struct HtmlNodeHydrator {
 impl HtmlNodeHydrator {
 	pub fn new(rsx: impl Rsx, constants: HtmlConstants) -> Self {
 		let rsx = rsx.into_rsx();
-		let html = RsxToHtml {
-			resumable: true,
-			..Default::default()
-		}
-		.map_node(&rsx);
+		let html = RsxToResumableHtml::default().map_node(&rsx);
 
 		let rust_node_map = RsxContextMap::from_node(&rsx);
 
@@ -48,8 +44,8 @@ impl Hydrator for HtmlNodeHydrator {
 			.to_string();
 
 		for html in self.html.iter_mut() {
-			if let Some(el) = html
-				.query_selector_attr(self.constants.id_attribute_key, Some(&id))
+			if let Some(el) =
+				html.query_selector_attr(self.constants.id_key, Some(&id))
 			{
 				return apply_rsx(el, rsx, cx, &self.constants);
 			} else {

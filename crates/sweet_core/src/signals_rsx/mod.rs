@@ -38,6 +38,7 @@ impl SignalsRsx {
 		}
 	}
 	pub fn map_attribute_block(
+		&self,
 		mut block: impl 'static + FnMut() -> RsxAttribute,
 	) -> RsxAttribute {
 		RsxAttribute::Block {
@@ -73,14 +74,23 @@ impl SignalsRsx {
 			}),
 		}
 	}
-	pub fn map_event<T: ToString>(
+	pub fn map_event(
 		key: &str,
 		// todo event types
-		_block: impl 'static + Clone + FnMut(T),
+		_block: impl 'static + Clone + FnMut(usize),
 	) -> RsxAttribute {
 		let key = key.to_string();
-		let str = format!("{key}_handler");
-		RsxAttribute::KeyValue { key, value: str }
+		RsxAttribute::BlockValue {
+			key: key.clone(),
+			initial: "needs-event-cx".to_string(),
+			register_effect: Box::new(move |cx| {
+				let cx = cx.clone();
+				effect(move || {
+					println!("would update event for {cx}\n{key}");
+					todo!();
+				});
+			}),
+		}
 	}
 }
 
@@ -97,33 +107,34 @@ impl RsxRustTokens for SignalsRsx {
 	}
 }
 
-#[cfg(test)]
-mod test {
-	use super::signal;
-	use crate::prelude::*;
-	// use sweet::prelude::*;
-	use sweet_rsx_macros::rsx;
+// #[cfg(test)]
+// mod test {
+// 	use super::signal;
+// 	use super::SignalsRsx;
+// 	use crate::prelude::*;
+// 	// use sweet::prelude::*;
+// 	use sweet_rsx_macros::rsx;
 
 
-	#[test]
-	#[ignore = "todo"]
-	fn works() {
-		let (get, set) = signal(7);
+// 	#[test]
+// 	fn works() {
+// 		let (get, set) = signal(7);
+// 		let set2 = set.clone();
 
-		let rsx = || rsx! {<div>value is {get}</div>};
-		CurrentHydrator::set(HtmlNodeHydrator::new(
-			rsx.clone(),
-			HtmlConstants::default(),
-		));
+// 		// 	let rsx =
+// 		// 		|| rsx! {<div onclick={move |e| set2(e)}>value is {get}</div>};
+// 		// 	CurrentHydrator::set(HtmlNodeHydrator{
 
-		rsx().register_effects();
-		expect(&CurrentHydrator::with(|h| h.render()))
-			.to_be("<div data-sweet-id=\"0\" data-sweet-blocks=\"0-9-1\">value is 7</div>");
-		set(8);
-		expect(&CurrentHydrator::with(|h| h.render()))
-			.to_be("<div data-sweet-id=\"0\" data-sweet-blocks=\"0-9-1\">value is 8</div>");
-		set(9);
-		expect(&CurrentHydrator::with(|h| h.render()))
-			.to_be("<div data-sweet-id=\"0\" data-sweet-blocks=\"0-9-1\">value is 9</div>");
-	}
-}
+// 		// });
+
+// 		// 	rsx().register_effects();
+// 		// 	expect(&CurrentHydrator::with(|h| h.render()))
+// 		// 		.to_be("<div data-sweet-id=\"0\" data-sweet-blocks=\"0-9-1\">value is 7</div>");
+// 		// 	set(8);
+// 		// 	expect(&CurrentHydrator::with(|h| h.render()))
+// 		// 		.to_be("<div data-sweet-id=\"0\" data-sweet-blocks=\"0-9-1\">value is 8</div>");
+// 		// 	set(9);
+// 		// 	expect(&CurrentHydrator::with(|h| h.render()))
+// 		// 		.to_be("<div data-sweet-id=\"0\" data-sweet-blocks=\"0-9-1\">value is 9</div>");
+// 	}
+// }

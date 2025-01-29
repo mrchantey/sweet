@@ -40,8 +40,7 @@ impl StringRsx {
 		_block: impl 'static + Clone + FnMut(T),
 	) -> RsxAttribute {
 		let key = key.to_string();
-		let str = format!("{key}_handler");
-		RsxAttribute::KeyValue { key, value: str }
+		RsxAttribute::Key { key }
 	}
 }
 
