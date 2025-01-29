@@ -32,7 +32,7 @@ impl EventRegistry {
 	) {
 		REGISTERED_EVENTS.with(|current| {
 			current.borrow_mut().insert(
-				(cx.html_element_index(), key.to_string()),
+				(cx.last_visited_element(), key.to_string()),
 				Box::new(move |e: JsValue| {
 					func(e.unchecked_into());
 				}),
@@ -50,27 +50,35 @@ impl EventRegistry {
 	pub fn initialize() -> ParseResult<()> {
 		let constants = CurrentHydrator::with(|h| h.html_constants().clone());
 		hook_up_event_listeners(&constants)?;
-		// TODO now the sweet loader is 
-		// playback_prehydrate_events(&constants)?;
+		// TODO now the sweet loader is
+		playback_prehydrate_events(&constants)?;
 		Ok(())
 	}
 }
 
+
+/// This may do nothing for one of several reasons:
+/// - this hydration is happening before the page was mounted
+/// - there was no pre-hydrated events script
 fn playback_prehydrate_events(constants: &HtmlConstants) -> ParseResult<()> {
 	sweet_loader_extern::GLOBAL.with(|global| {
 		let event_store = Reflect::get(&global, &constants.event_store.into())
 			.map_err(|_| {
 				ParseError::Hydration("could not find event store".into())
 			})?;
-		for item in Array::from(&event_store).iter() {
-		let event_arr = Array::from(&item);
-		if event_arr.length() == 2 {
-			let id =
-				event_arr.get(0).as_f64().expect("bad event id") as usize;
-			let event: Event = event_arr.get(1).unchecked_into();
-			let event_type = format!("on{}", event.type_());
-			EventRegistry::trigger(&event_type, id, event.unchecked_into());
+		if event_store.is_undefined() {
+			return Ok(());
 		}
+
+		for item in Array::from(&event_store).iter() {
+			let event_arr = Array::from(&item);
+			if event_arr.length() == 2 {
+				let id =
+					event_arr.get(0).as_f64().expect("bad event id") as usize;
+				let event: Event = event_arr.get(1).unchecked_into();
+				let event_type = format!("on{}", event.type_());
+				EventRegistry::trigger(&event_type, id, event.unchecked_into());
+			}
 		}
 		// we no longer need event store and event handler
 		// because the event listeners have been hooked up
@@ -94,13 +102,19 @@ fn hook_up_event_listeners(constants: &HtmlConstants) -> ParseResult<()> {
 		let mut current = current.borrow_mut();
 		let document = window().unwrap().document().unwrap();
 		for ((el_id, key), func) in current.drain() {
-			let el = document
-				.query_selector(&format!("[{}='{}']", constants.id_key, el_id))
-				.ok()
-				.flatten()
-				.ok_or_else(|| {
-					ParseError::Hydration("could not find element".into())
-				})?;
+			sweet_utils::log!("hooking up event listener for {}", key);
+
+			let query = format!("[{}='{}']", constants.id_key, el_id);
+
+			let el =
+				document.query_selector(&query).ok().flatten().ok_or_else(
+					|| {
+						ParseError::Hydration(format!(
+							"could not find element with id: {}",
+							query
+						))
+					},
+				)?;
 			el.remove_attribute(&key).unwrap();
 
 			let closure = Closure::wrap(Box::new(move |e: JsValue| {

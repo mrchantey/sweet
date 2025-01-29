@@ -45,8 +45,6 @@ impl CurrentHydrator {
 }
 
 pub trait Hydrator {
-	/// an opportunity for prehydrated event playback etc
-	fn initialize(&mut self);
 	fn html_constants(&self) -> &HtmlConstants;
 
 	// type Event;

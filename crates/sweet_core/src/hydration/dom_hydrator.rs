@@ -55,10 +55,10 @@ impl DomHydrator {
 	/// try to get cached element or find it in the dom.
 	/// This also uncollapses the child text nodes
 	fn get_or_find_element(&mut self, cx: &RsxContext) -> ParseResult<Element> {
-		if let Some(Some(el)) = self.elements.get(cx.html_element_index()) {
+		if let Some(Some(el)) = self.elements.get(cx.last_visited_element()) {
 			return Ok(el.clone());
 		}
-		let id = cx.html_element_index();
+		let id = cx.last_visited_element();
 
 		let query = format!("[{}='{}']", self.constants.id_key, id);
 		if let Some(el) = self.document.query_selector(&query).unwrap() {
@@ -68,7 +68,7 @@ impl DomHydrator {
 			Ok(el)
 		} else {
 			Err(ParseError::Hydration(format!(
-				"Could not find node with id: {}",
+				"Could not find collapsed text node parent with id: {}",
 				id
 			)))
 		}
@@ -112,7 +112,6 @@ impl DomHydrator {
 
 
 impl Hydrator for DomHydrator {
-	fn initialize(&mut self) { EventRegistry::initialize().unwrap(); }
 	fn html_constants(&self) -> &HtmlConstants { &self.constants }
 
 	/// returns body inner html
@@ -137,6 +136,7 @@ impl Hydrator for DomHydrator {
 		)?;
 
 		#[allow(unused)]
+		//todo
 		match rsx {
 			RsxNode::Block {
 				initial,

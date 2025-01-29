@@ -1,6 +1,5 @@
 use crate::html::HtmlDocument;
 use crate::html::HtmlNode;
-use wasm_bindgen::JsCast;
 use web_sys::Element;
 
 
@@ -31,21 +30,21 @@ impl DomMounter {
 		parent: &Element,
 		node: &HtmlNode,
 	) {
-		sweet_utils::log!("parent {:?}", parent);
+		// sweet_utils::log!("parent {:?}", parent);
 		match node {
 			HtmlNode::Doctype => {}
 			HtmlNode::Comment(comment) => {
-				sweet_utils::log!("comment node: {}", comment);
+				// sweet_utils::log!("comment node: {}", comment);
 				let comment = dom_doc.create_comment(comment);
 				parent.append_child(&comment).expect("pizza");
 			}
 			HtmlNode::Text(text) => {
-				sweet_utils::log!("text node: {}", text);
+				// sweet_utils::log!("text node: {}", text);
 				let text = dom_doc.create_text_node(text);
 				parent.append_child(&text).expect("pizza");
 			}
 			HtmlNode::Element(html_el) => {
-				sweet_utils::log!("element: {}", html_el.tag);
+				// sweet_utils::log!("element: {}", html_el.tag);
 				let dom_el = dom_doc.create_element(&html_el.tag).unwrap();
 				for attr in html_el.attributes.iter() {
 					dom_el

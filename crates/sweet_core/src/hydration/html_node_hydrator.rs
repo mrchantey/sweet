@@ -24,7 +24,6 @@ impl HtmlNodeHydrator {
 }
 
 impl Hydrator for HtmlNodeHydrator {
-	fn initialize(&mut self) {}
 	fn html_constants(&self) -> &HtmlConstants { &self.constants }
 
 	fn render(&self) -> String { self.html.render() }
@@ -44,7 +43,7 @@ impl Hydrator for HtmlNodeHydrator {
 					cx.rust_node_index()
 				))
 			})?
-			.html_element_index()
+			.last_visited_element()
 			.to_string();
 
 		for html in self.html.iter_mut() {

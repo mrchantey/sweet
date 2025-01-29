@@ -145,8 +145,6 @@ impl RsxNode {
 					}
 				}
 			}
-			RsxNode::Doctype => {}
-			RsxNode::Comment(_) => {}
 			_ => {}
 		});
 	}

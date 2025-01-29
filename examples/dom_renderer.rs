@@ -1,5 +1,6 @@
 use sweet_core as sweet;
 use sweet_core::prelude::*;
+use sweet_core::signals_rsx::effect;
 use sweet_core::signals_rsx::signal;
 use sweet_rsx_macros::rsx;
 
@@ -11,12 +12,15 @@ impl Component for MyComponent {
 	fn render(self) -> impl Rsx {
 		let (value, set_value) = signal(self.initial);
 
-
+		let value2 = value.clone();
+		let effect = effect(move || {
+			sweet_utils::log!("value changed to {}", value2());
+		});
 
 		rsx! {
 			<div>
 				<div id="label">the value is {value}</div>
-				// <button onclick={move |_| set_value(value() + 1)}>increment</button>
+				<button onclick={move |_| set_value(1)}>increment</button>
 			</div>
 		}
 	}
@@ -30,17 +34,21 @@ fn render() {}
 #[cfg(target_arch = "wasm32")]
 fn render() {
 	use ::sweet::prelude::dom_mounter::DomMounter;
+	use sweet_utils::utils::wasm::set_timeout_ms;
 
 	console_error_panic_hook::set_once();
 
-	let mut app = rsx! {<MyComponent initial=7/>};
-	let doc = RsxToResumableHtml::default().map_node(&app);
+	let app = || rsx! {<MyComponent initial=7/>};
+	let doc = RsxToResumableHtml::default().map_node(&app());
 	DomMounter::mount_doc(&doc);
+	sweet_utils::log!("mounted");
 
-	let mut hydrator = DomHydrator::default();
-	hydrator.initialize();
-
-	CurrentHydrator::set(hydrator);
-	// CurrentHydrator::with(|h| h.initialize());
-	app.register_effects();
+	// give the dom time to run scripts
+	set_timeout_ms(100, move || {
+		sweet_utils::log!("hydrating");
+		let hydrator = DomHydrator::default();
+		CurrentHydrator::set(hydrator);
+		app().register_effects();
+		EventRegistry::initialize().unwrap();
+	});
 }

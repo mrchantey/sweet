@@ -80,9 +80,9 @@ impl RsxContextMap {
 			RsxNode::Element(el) => {
 				if el.contains_blocks() {
 					let encoded =
-						TextBlockEncoder::encode(cx.html_element_index(), el);
+						TextBlockEncoder::encode(cx.last_visited_element(), el);
 					map.collapsed_elements
-						.insert(cx.html_element_index(), encoded);
+						.insert(cx.last_visited_element(), encoded);
 				}
 			}
 			_ => {}
@@ -115,30 +115,32 @@ mod test {
 		expect(&map2).to_be(&map);
 
 
-		expect(map).to_be(RsxContextMap {
-			rust_blocks: vec![
-				RsxContext {
-					num_rust_blocks: 0,
-					num_elements: 0,
-					child_index: 1,
-				},
-				RsxContext {
-					num_rust_blocks: 1,
-					num_elements: 0,
-					child_index: 2,
-				},
-				RsxContext {
-					num_rust_blocks: 2,
-					num_elements: 0,
-					child_index: 3,
-				},
-			],
-			collapsed_elements: vec![(0, TextBlockEncoder {
+		expect(map.collapsed_elements).to_be(
+			vec![(0, TextBlockEncoder {
 				parent_id: 0,
 				split_positions: vec![vec![4, 5, 5], vec![10, 10]],
 			})]
 			.into_iter()
 			.collect(),
+		);
+
+		expect(&map.rust_blocks[0]).to_be(&RsxContext {
+			num_rust_blocks: 0,
+			num_elements: 1,
+			child_index: 1,
+			element_breadcrumbs: vec![],
+		});
+		expect(&map.rust_blocks[1]).to_be(&RsxContext {
+			num_rust_blocks: 1,
+			num_elements: 1,
+			child_index: 2,
+			element_breadcrumbs: vec![],
+		});
+		expect(&map.rust_blocks[2]).to_be(&RsxContext {
+			num_rust_blocks: 2,
+			num_elements: 2,
+			child_index: 3,
+			element_breadcrumbs: vec![],
 		});
 	}
 }

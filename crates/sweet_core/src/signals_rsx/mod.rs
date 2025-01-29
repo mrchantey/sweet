@@ -5,9 +5,10 @@ mod signal;
 use crate::prelude::*;
 pub use signal::*;
 
+
+
+/// a signals implementation of an rsx mapper
 pub struct SignalsRsx;
-
-
 
 impl SignalsRsx {
 	pub fn map_node_block<M>(
@@ -42,7 +43,7 @@ impl SignalsRsx {
 					let attrs = block();
 					println!(
 						"would update attributes for {}\n{}",
-						cx.html_element_index(),
+						cx.last_visited_element(),
 						RsxToHtml::default().map_attribute(&attrs).render()
 					);
 					todo!();
@@ -64,7 +65,7 @@ impl SignalsRsx {
 					let value = block.clone().into_attribute_value();
 					println!(
 						"would update attribute for {}\n{key}: {value}",
-						cx.html_element_index()
+						cx.last_visited_element()
 					);
 					todo!();
 				});
