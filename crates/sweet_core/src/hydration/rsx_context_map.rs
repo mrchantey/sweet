@@ -118,19 +118,19 @@ mod test {
 		expect(map).to_be(RsxContextMap {
 			rust_blocks: vec![
 				RsxContext {
-					rust_node_index: 0,
-					html_element_index: 1,
+					num_rust_blocks: 0,
+					num_elements: 0,
 					child_index: 1,
 				},
 				RsxContext {
-					rust_node_index: 1,
-					html_element_index: 1,
-					child_index: 3,
+					num_rust_blocks: 1,
+					num_elements: 0,
+					child_index: 2,
 				},
 				RsxContext {
-					rust_node_index: 2,
-					html_element_index: 2,
-					child_index: 0,
+					num_rust_blocks: 2,
+					num_elements: 0,
+					child_index: 3,
 				},
 			],
 			collapsed_elements: vec![(0, TextBlockEncoder {

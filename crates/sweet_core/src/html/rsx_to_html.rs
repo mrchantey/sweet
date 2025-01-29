@@ -3,10 +3,9 @@ use crate::prelude::*;
 pub struct RsxToHtml {
 	/// add attributes required for resumability
 	pub resumable: bool,
-	/// For every html node visited, this will increment by 1.
-	/// If resumable, the id will be attached to the html.
-	pub cx: RsxContext,
 	pub html_constants: HtmlConstants,
+	/// tracking this allows us to match with [RsxContext]
+	pub num_html_elements: usize,
 }
 
 
@@ -15,7 +14,7 @@ impl Default for RsxToHtml {
 		Self {
 			resumable: false,
 			html_constants: Default::default(),
-			cx: Default::default(),
+			num_html_elements: 0,
 		}
 	}
 }
@@ -24,7 +23,7 @@ impl Default for RsxToHtml {
 impl RsxToHtml {
 	/// Render with default [IntoHtmlOptions]
 	pub fn render(node: &RsxNode) -> String {
-		Self::default().render_node(&node)
+		Self::default().map_node(&node).render()
 	}
 
 	pub fn render_resumable(node: &RsxNode) -> String {
@@ -32,17 +31,13 @@ impl RsxToHtml {
 			resumable: true,
 			..Default::default()
 		}
-		.render_node(node)
-	}
-
-
-	/// Render with default [IntoHtmlOptions]
-	pub fn render_node(&mut self, node: &RsxNode) -> String {
-		self.map_node(node).render()
+		.map_node(node)
+		.render()
 	}
 
 	pub fn map_node(&mut self, node: &RsxNode) -> Vec<HtmlNode> {
-		let val = match node {
+		
+		match node {
 			RsxNode::Doctype => {
 				vec![HtmlNode::Doctype]
 			}
@@ -59,9 +54,7 @@ impl RsxToHtml {
 			RsxNode::Fragment(nodes) => {
 				nodes.iter().map(|n| self.map_node(n)).flatten().collect()
 			}
-		};
-		self.cx.after_visit_node(&node);
-		val
+		}
 	}
 
 	pub fn map_element(&mut self, el: &RsxElement) -> HtmlElementNode {
@@ -75,9 +68,10 @@ impl RsxToHtml {
 		if self.resumable && el.contains_blocks() {
 			attributes.push(HtmlAttribute {
 				key: self.html_constants.id_attribute_key.to_string(),
-				value: Some(self.cx.html_element_index().to_string()),
+				value: Some(self.num_html_elements.to_string()),
 			});
 		}
+		self.num_html_elements += 1;
 
 		HtmlElementNode {
 			tag: el.tag.clone(),
@@ -167,7 +161,7 @@ mod test {
 	}
 
 	#[test]
-	fn text_block() {
+	fn rsx_text() {
 		let value = "hello";
 		expect(RsxToHtml::render(&rsx! { {value} })).to_be("hello");
 	}

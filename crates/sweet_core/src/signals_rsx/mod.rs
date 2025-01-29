@@ -28,7 +28,9 @@ impl SignalsRsx {
 						// 	node.as_ref(),
 						// 	node.render()
 						// );
-						hydrated.update_rsx_node(node, &cx).unwrap();
+						if let Err(err) = hydrated.update_rsx_node(node, &cx) {
+							sweet_utils::elog!("{err}");
+						}
 					});
 					// todo!();
 				});

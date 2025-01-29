@@ -18,6 +18,19 @@ macro_rules! log {
         println!($($t)*);
     })
 }
+/// cross-platform way of error logging a formatted value
+#[macro_export]
+macro_rules! elog {
+    ($($t:tt)*) => ({
+        #[cfg(target_arch = "wasm32")]
+		web_sys::console::error_1(&(format!($($t)*).into()));
+        #[cfg(not(target_arch = "wasm32"))]
+        eprintln!($($t)*);
+    })
+}
+
+
+
 
 /// cross-platform way of logging a string
 pub fn log_val(val: &str) {

@@ -34,16 +34,8 @@ impl Default for RsxNode {
 }
 
 impl RsxNode {
-	pub fn into_discriminant(&self) -> RsxNodeDiscriminants {
-		match self {
-			RsxNode::Doctype => RsxNodeDiscriminants::Doctype,
-			RsxNode::Comment(_) => RsxNodeDiscriminants::Comment,
-			RsxNode::Text(_) => RsxNodeDiscriminants::Text,
-			RsxNode::Block { .. } => RsxNodeDiscriminants::Block,
-			RsxNode::Element(_) => RsxNodeDiscriminants::Element,
-			RsxNode::Fragment(_) => RsxNodeDiscriminants::Fragment,
-		}
-	}
+	pub fn discriminant(&self) -> RsxNodeDiscriminants { self.into() }
+	pub fn is_element(&self) -> bool { matches!(self, RsxNode::Element(_)) }
 
 	pub fn children(&self) -> &[RsxNode] {
 		match self {

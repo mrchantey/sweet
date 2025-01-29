@@ -8,15 +8,15 @@ struct MyComponent {
 }
 impl Component for MyComponent {
 	fn render(self) -> impl Rsx {
-		let (value, set_value) = signal(self.initial);
+		let (value, _set_value) = signal(self.initial);
 
 
 
 		rsx! {
-			<div>
+			// <div>
 				<div id="label">the value is {value}</div>
 				// <button onclick={move |_| set_value(value() + 1)}>increment</button>
-			</div>
+			// </div>
 		}
 	}
 }
@@ -33,7 +33,9 @@ fn render() {
 
 	let mut app = rsx! {<MyComponent initial=7/>};
 
-	let str = app.render_with_options(&mut RsxToHtml::resumable());
+	let str = RsxToHtml::render_resumable(&app);
+
+	// this would usually be directly served
 	web_sys::window()
 		.unwrap()
 		.document()

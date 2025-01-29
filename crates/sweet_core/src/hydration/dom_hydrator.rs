@@ -61,23 +61,19 @@ impl DomHydrator {
 		if let Some(Some(el)) = self.elements.get(cx.html_element_index()) {
 			return Ok(el.clone());
 		}
+		let id = cx.html_element_index();
 
-		let query = format!(
-			"[{}='{}']",
-			self.constants.id_attribute_key,
-			cx.html_element_index()
-		);
-		let rsx_id = cx.rust_node_index();
-
+		let query = format!("[{}='{}']", self.constants.id_attribute_key, id);
+		sweet_utils::log!("cx: {:#?}", cx);
 		if let Some(el) = self.document.query_selector(&query).unwrap() {
-			self.elements.resize(rsx_id + 1, None);
-			self.elements[rsx_id] = Some(el.clone());
-			self.uncollapse_children(&el, rsx_id)?;
+			self.elements.resize(id + 1, None);
+			self.elements[id] = Some(el.clone());
+			self.uncollapse_children(&el, id)?;
 			Ok(el)
 		} else {
 			Err(HydrationError::InvalidContext(format!(
 				"Could not find node with id: {}",
-				rsx_id
+				id
 			)))
 		}
 	}
