@@ -1,8 +1,10 @@
 use crate::prelude::*;
 use std::cell::RefCell;
 use std::collections::HashMap;
+use wasm_bindgen::prelude::Closure;
 use wasm_bindgen::JsCast;
 use wasm_bindgen::JsValue;
+use web_sys::window;
 use web_sys::Event;
 
 pub struct EventRegistry;
@@ -42,18 +44,24 @@ impl EventRegistry {
 	) {
 		Self::register(key, cx, value);
 	}
+
+	pub fn initialize() -> ParseResult<()> {
+		let constants = CurrentHydrator::with(|h| h.html_constants().clone());
+		playback_prehydrate_events(&constants)?;
+		hook_up_event_listeners(&constants)?;
+		Ok(())
+	}
 }
 
-pub fn playback_prehydrate_events() -> ParseResult<()> {
+fn playback_prehydrate_events(constants: &HtmlConstants) -> ParseResult<()> {
 	sweet_loader_extern::GLOBAL.with(|global| {
-		let constants = CurrentHydrator::with(|h| h.html_constants().clone());
 		// let event_handler =
 		// 	js_sys::Reflect::get(&global, &constants.event_handler.into())
 		// 		.map_err(|_| {
 		// 			ParseError::Hydration("could not find event handler".into())
 		// 		})?;
 		let prehydrate_events =
-			js_sys::Reflect::get(&global, &constants.prehydrate_events.into())
+			js_sys::Reflect::get(&global, &constants.event_store.into())
 				.map_err(|_| {
 					ParseError::Hydration("could not find event handler".into())
 				})?;
@@ -68,31 +76,47 @@ pub fn playback_prehydrate_events() -> ParseResult<()> {
 				EventRegistry::trigger(&event_type, id, event.unchecked_into());
 			}
 		}
-		// 	} else {
-		// 		return Err(ParseError::Hydration("bad event".into()));
-		// 	}
-		// }
+		js_sys::Reflect::delete_property(
+			&global.unchecked_ref(),
+			&constants.event_store.into(),
+		)
+		.unwrap();
+		js_sys::Reflect::delete_property(
+			&global.unchecked_ref(),
+			&constants.event_handler.into(),
+		)
+		.unwrap();
+
 		Ok(())
 	})
 }
 
-// let event = event_arr.get(1);
-// Self::trigger
-// 	js_sys::Reflect::delete_property(
-// 		&sweet.unchecked_ref(),
-// 		&"uncanny".into(),
-// 	)
-// 	.unwrap_or_default();
-// }
-// let closure =
-// 	Closure::wrap(Box::new(move |id: usize, evt: web_sys::Event| {
-// 		func(id, evt);
-// 	}) as Box<dyn FnMut(usize, web_sys::Event)>);
+fn hook_up_event_listeners(constants: &HtmlConstants) -> ParseResult<()> {
+	REGISTERED_EVENTS.with(|current| -> ParseResult<()> {
+		let mut current = current.borrow_mut();
+		let document = window().unwrap().document().unwrap();
+		for ((el_id, key), func) in current.drain() {
+			let el = document
+				.query_selector(&format!("[{}='{}']", constants.id_key, el_id))
+				.ok()
+				.flatten()
+				.ok_or_else(|| {
+					ParseError::Hydration("could not find element".into())
+				})?;
+			el.remove_attribute(&key).unwrap();
 
-// js_sys::Reflect::set(&sweet, &"event".into(), &closure.as_ref())
-// 	.unwrap_or_default();
-
-// closure.forget();
+			let closure = Closure::wrap(Box::new(move |e: JsValue| {
+				func(e);
+			}) as Box<dyn Fn(JsValue)>);
+			el.add_event_listener_with_callback(
+				&key,
+				closure.as_ref().unchecked_ref(),
+			)
+			.unwrap();
+		}
+		Ok(())
+	})
+}
 
 pub mod sweet_loader_extern {
 	use wasm_bindgen::prelude::*;

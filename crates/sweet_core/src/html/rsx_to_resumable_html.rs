@@ -80,7 +80,7 @@ impl RsxToResumableHtml {
 globalThis.{prehydrate_events} = []
 globalThis.{event_handler} = (id,event) => globalThis.{prehydrate_events}.push([id, event])
 "#,
-			prehydrate_events = self.html_constants.prehydrate_events,
+			prehydrate_events = self.html_constants.event_store,
 			event_handler = self.html_constants.event_handler,
 		);
 		let el = HtmlElementNode::inline_script(script, Default::default());
@@ -114,6 +114,8 @@ mod test {
 		expect(RsxToResumableHtml::render(
 			&rsx! { <main onclick=on_click></main> },
 		))
-		.to_start_with("<main onclick=\"_sweet_event(0, event)\"></main>");
+		.to_start_with(
+			"<main onclick=\"_sweet_event_handler(0, event)\"></main>",
+		);
 	}
 }

@@ -1,4 +1,3 @@
-use super::dom_event_registry::playback_prehydrate_events;
 use super::rsx_context_map::RsxContextMap;
 use crate::prelude::*;
 use wasm_bindgen::JsCast;
@@ -113,7 +112,7 @@ impl DomHydrator {
 
 
 impl Hydrator for DomHydrator {
-	fn initialize(&mut self) { playback_prehydrate_events().unwrap(); }
+	fn initialize(&mut self) { EventRegistry::initialize().unwrap(); }
 	fn html_constants(&self) -> &HtmlConstants { &self.constants }
 
 	/// returns body inner html

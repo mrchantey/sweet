@@ -225,7 +225,7 @@ pub struct HtmlConstants {
 	/// the global event handler for all events
 	pub event_handler: &'static str,
 	/// the global vec that stores prehydrated events
-	pub prehydrate_events: &'static str,
+	pub event_store: &'static str,
 }
 
 impl Default for HtmlConstants {
@@ -233,8 +233,8 @@ impl Default for HtmlConstants {
 		Self {
 			id_key: "data-sweet-id",
 			cx_map_key: "data-sweet-cx-map",
-			event_handler: "_sweet_event",
-			prehydrate_events: "_sweet_prehydrate_events",
+			event_handler: "_sweet_event_handler",
+			event_store: "_sweet_event_store",
 		}
 	}
 }
