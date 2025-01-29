@@ -2132,7 +2132,6 @@ dependencies = [
  "js-sys",
  "once_cell",
  "sweet_core",
- "sweet_render",
  "sweet_rsx",
  "sweet_rsx_macros",
  "sweet_server",
@@ -2218,27 +2217,6 @@ dependencies = [
  "sweet",
  "thiserror 2.0.11",
  "tokio",
- "wasm-bindgen",
- "wasm-bindgen-futures",
- "web-sys",
-]
-
-[[package]]
-name = "sweet_render"
-version = "0.3.0-rc.2"
-dependencies = [
- "anyhow",
- "console_error_panic_hook",
- "console_log",
- "flume",
- "forky",
- "getrandom",
- "js-sys",
- "prettyplease",
- "sweet_core",
- "sweet_rsx_macros",
- "sweet_test",
- "thiserror 2.0.11",
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",

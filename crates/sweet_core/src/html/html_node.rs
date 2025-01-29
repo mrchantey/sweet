@@ -41,6 +41,40 @@ impl HtmlNode {
 		}
 		None
 	}
+
+	/// return self as an element if it matches the tag
+	pub fn element_with_tag(
+		&mut self,
+		tag: &str,
+	) -> Option<&mut HtmlElementNode> {
+		match self {
+			HtmlNode::Element(e) => {
+				if e.tag == tag {
+					return Some(e);
+				}
+			}
+			_ => {}
+		}
+		None
+	}
+
+	/// attempt to find `<html><body>` and insert the node into the body,
+	/// otherwise append the node to the root
+	pub fn insert_at_body_or_append(nodes: &mut Vec<Self>, node: HtmlNode) {
+		if let Some(html_root) =
+			nodes.iter_mut().find_map(|e| e.element_with_tag("html"))
+		{
+			if let Some(body) = html_root
+				.children
+				.iter_mut()
+				.find_map(|e| e.element_with_tag("body"))
+			{
+				body.children.push(node);
+				return;
+			}
+		}
+		nodes.push(node);
+	}
 }
 
 
@@ -72,7 +106,26 @@ pub struct HtmlElementNode {
 	pub children: Vec<HtmlNode>,
 }
 
+
+
+impl Into<HtmlNode> for HtmlElementNode {
+	fn into(self) -> HtmlNode { HtmlNode::Element(self) }
+}
+
 impl HtmlElementNode {
+	pub fn inline_script(
+		script: String,
+		attributes: Vec<HtmlAttribute>,
+	) -> Self {
+		Self {
+			tag: "script".to_string(),
+			self_closing: false,
+			attributes,
+			children: vec![HtmlNode::Text(script)],
+		}
+	}
+
+
 	/// returns true if any attribute matches the key and value
 	pub fn query_selector_attr(
 		&mut self,
@@ -172,19 +225,17 @@ pub struct HtmlConstants {
 	pub rsx_context_attribute_key: &'static str,
 	/// defaults to `_sweet_event`
 	pub event_handler: &'static str,
-}
-impl HtmlConstants {
-	pub const DEFAULT_ID_ATTRIBUTE_KEY: &'static str = "data-sweet-id";
-	pub const DEFAULT_BLOCK_ATTRIBUTE_KEY: &'static str = "data-sweet-blocks";
-	pub const DEFAULT_EVENT_HANDLER: &'static str = "_sweet_event";
+	/// defaults to `_sweet_prehydrate_events`
+	pub prehydrate_events: &'static str,
 }
 
 impl Default for HtmlConstants {
 	fn default() -> Self {
 		Self {
-			id_attribute_key: Self::DEFAULT_ID_ATTRIBUTE_KEY,
-			rsx_context_attribute_key: Self::DEFAULT_BLOCK_ATTRIBUTE_KEY,
-			event_handler: Self::DEFAULT_EVENT_HANDLER,
+			id_attribute_key: "data-sweet-id",
+			rsx_context_attribute_key: "data-sweet-blocks",
+			event_handler: "_sweet_event",
+			prehydrate_events: "_sweet_prehydrate_events",
 		}
 	}
 }

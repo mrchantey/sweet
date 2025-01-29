@@ -135,7 +135,7 @@ mod test {
 			],
 			collapsed_elements: vec![(0, TextBlockEncoder {
 				parent_id: 0,
-				split_positions: vec![vec![4, 5, 5, 5], vec![10, 10, 12]],
+				split_positions: vec![vec![4, 5, 5], vec![10, 10]],
 			})]
 			.into_iter()
 			.collect(),

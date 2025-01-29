@@ -27,16 +27,17 @@ impl RsxToHtml {
 	}
 
 	pub fn render_resumable(node: &RsxNode) -> String {
-		Self {
+		let mut this = Self {
 			resumable: true,
 			..Default::default()
-		}
-		.map_node(node)
-		.render()
+		};
+		let mut html = this.map_node(node);
+		this.insert_rsx_context_map(node, &mut html);
+		this.insert_catch_prehydrated_events(&mut html);
+		html.render()
 	}
 
 	pub fn map_node(&mut self, node: &RsxNode) -> Vec<HtmlNode> {
-		
 		match node {
 			RsxNode::Doctype => {
 				vec![HtmlNode::Doctype]
@@ -108,6 +109,41 @@ impl RsxToHtml {
 				.flatten()
 				.collect(),
 		}
+	}
+
+
+	/// attempt to insert the rsx context map into the html body,
+	/// otherwise append it to the end of the html
+	fn insert_rsx_context_map(
+		&self,
+		node: &RsxNode,
+		nodes: &mut Vec<HtmlNode>,
+	) {
+		let rsx_context_map = RsxContextMap::from_node(node).to_csv();
+
+
+
+		let el = HtmlElementNode::inline_script(rsx_context_map, vec![
+			HtmlAttribute {
+				key: self.html_constants.rsx_context_attribute_key.to_string(),
+				value: None,
+			},
+		]);
+		HtmlNode::insert_at_body_or_append(nodes, el.into());
+	}
+
+	fn insert_catch_prehydrated_events(&self, nodes: &mut Vec<HtmlNode>) {
+		let event_handler = self.html_constants.event_handler;
+		let prehydrate_events = self.html_constants.prehydrate_events;
+
+		let script = format!(
+			r#"
+globalThis.{prehydrate_events} = []
+globalThis.{event_handler} = (id,event) => globalThis.{prehydrate_events}.push([id, event])
+"#
+		);
+		let el = HtmlElementNode::inline_script(script, Default::default());
+		HtmlNode::insert_at_body_or_append(nodes, el.into());
 	}
 }
 

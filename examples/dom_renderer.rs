@@ -6,17 +6,18 @@ use sweet_rsx_macros::rsx;
 struct MyComponent {
 	initial: u32,
 }
+#[allow(unused)]
 impl Component for MyComponent {
 	fn render(self) -> impl Rsx {
-		let (value, _set_value) = signal(self.initial);
+		let (value, set_value) = signal(self.initial);
 
 
 
 		rsx! {
-			// <div>
+			<div>
 				<div id="label">the value is {value}</div>
 				// <button onclick={move |_| set_value(value() + 1)}>increment</button>
-			// </div>
+			</div>
 		}
 	}
 }
@@ -43,7 +44,6 @@ fn render() {
 		.body()
 		.unwrap()
 		.set_inner_html(&str);
-
 
 	app.register_effects();
 }

@@ -34,13 +34,13 @@ impl Hydrator for HtmlNodeHydrator {
 		&mut self,
 		rsx: RsxNode,
 		cx: &RsxContext,
-	) -> Result<(), HydrationError> {
+	) -> ParseResult<()> {
 		let id = self
 			.rust_node_map
 			.rust_blocks
 			.get(cx.rust_node_index())
 			.ok_or_else(|| {
-				HydrationError::InvalidContext(format!(
+				ParseError::Hydration(format!(
 					"Could not find block parent for index: {}",
 					cx.rust_node_index()
 				))
@@ -56,7 +56,7 @@ impl Hydrator for HtmlNodeHydrator {
 			}
 		}
 
-		return Err(HydrationError::InvalidContext(format!(
+		return Err(ParseError::Hydration(format!(
 			"Could not find node with id: {}",
 			id
 		)));
@@ -71,7 +71,7 @@ fn apply_rsx(
 	rsx: RsxNode,
 	cx: &RsxContext,
 	constants: &HtmlConstants,
-) -> Result<(), HydrationError> {
+) -> ParseResult<()> {
 	match rsx {
 		RsxNode::Fragment(vec) => todo!(),
 		RsxNode::Block {
@@ -83,7 +83,7 @@ fn apply_rsx(
 		RsxNode::Text(text) => {
 			let child =
 				el.children.get_mut(cx.child_index()).ok_or_else(|| {
-					HydrationError::invalid_element("Could not find child")
+					ParseError::Hydration("Could not find child".into())
 				})?;
 			*child = HtmlNode::Text(text);
 		}

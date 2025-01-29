@@ -32,32 +32,12 @@ impl CurrentHydrator {
 	}
 }
 
-
-#[derive(Debug, thiserror::Error)]
-pub enum HydrationError {
-	#[error("Invalid context: {0}")]
-	InvalidContext(String),
-	#[error("Invalid element: {0}")]
-	InvalidElement(String),
-}
-
-impl HydrationError {
-	pub fn invalid_context(msg: &str) -> Self {
-		HydrationError::InvalidContext(msg.to_string())
-	}
-	pub fn invalid_element(msg: &str) -> Self {
-		HydrationError::InvalidElement(msg.to_string())
-	}
-}
-
-
-
 pub trait Hydrator {
 	fn update_rsx_node(
 		&mut self,
 		node: RsxNode,
 		cx: &RsxContext,
-	) -> Result<(), HydrationError>;
+	) -> ParseResult<()>;
 	/// just used for testing atm
 	fn render(&self) -> String;
 }

@@ -6,7 +6,6 @@ members = [
 	"crates/sweet_rsx",
 	"crates/sweet_rsx/macros",
 	"crates/sweet_leptos",
-	"crates/sweet_render",
 	"crates/sweet_server",
 	"crates/sweet_site",
 	"crates/sweet_utils",
@@ -40,7 +39,6 @@ sweet_bevy = { path = "crates/sweet_bevy", version = "0.3.0-rc.2" }
 sweet_core = { path = "crates/sweet_core", version = "0.3.0-rc.2" }
 sweet_utils = { path = "crates/sweet_utils", version = "0.3.0-rc.2" }
 sweet_leptos = { path = "crates/sweet_leptos", version = "0.3.0-rc.2" }
-sweet_render = { path = "crates/sweet_render", version = "0.3.0-rc.2" }
 sweet_rsx = { path = "crates/sweet_rsx", version = "0.3.0-rc.2" }
 sweet_rsx_macros = { path = "crates/sweet_rsx/macros", version = "0.3.0-rc.2" }
 sweet_server = { path = "crates/sweet_server", version = "0.3.0-rc.2" }
@@ -175,7 +173,6 @@ default = ["core", "macros"]
 # default = ["server", "rsx", "macros", "render"]
 
 core = ["dep:sweet_core"]
-render = ["dep:sweet_render"]
 macros = ["dep:sweet_rsx_macros"]
 rsx = ["dep:sweet_rsx"]
 server = ["dep:sweet_server"]
@@ -186,7 +183,6 @@ test = ["dep:sweet_test"]
 sweet_utils.workspace = true
 sweet_core = { workspace = true, optional = true }
 sweet_test = { workspace = true, optional = true }
-sweet_render = { workspace = true, optional = true }
 sweet_rsx = { workspace = true, optional = true }
 sweet_rsx_macros = { workspace = true, optional = true }
 sweet_server = { workspace = true, optional = true }

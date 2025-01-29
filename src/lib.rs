@@ -1,7 +1,5 @@
 #[cfg(feature = "core")]
 pub use sweet_core as core;
-#[cfg(feature = "render")]
-pub use sweet_render as render;
 #[cfg(feature = "rsx")]
 pub use sweet_rsx as rsx;
 #[cfg(feature = "macros")]
@@ -28,6 +26,4 @@ pub mod prelude {
 	pub use sweet_server::prelude::*;
 	#[cfg(feature = "test")]
 	pub use sweet_test::prelude::*;
-	#[cfg(feature = "render")]
-	pub use sweet_utils::prelude::*;
 }

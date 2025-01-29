@@ -54,7 +54,6 @@ test-all *args:
 	cargo test --workspace -- {{args}}
 	cargo test -p sweet_test --lib --target wasm32-unknown-unknown -- {{args}}
 	cargo test -p sweet_test --test macros --target wasm32-unknown-unknown -- {{args}}
-#cargo test -p sweet_render --lib --target wasm32-unknown-unknown -- {{args}}
 
 expand-wasm test *args:
 	just watch 'cargo expand --test {{test}} --target wasm32-unknown-unknown {{args}}'
@@ -68,7 +67,6 @@ publish-all:
 	just publish sweet_core					| true
 	just publish sweet_rsx_macros		| true
 	just publish sweet_rsx					| true
-	just publish sweet_render				| true
 	just publish sweet_server				| true
 	just publish sweet_test_macros	| true
 	just publish sweet_test					| true
@@ -93,17 +91,3 @@ watch *command:
 
 expand-rsx:
 	just watch cargo expand -p sweet_rsx --example rsx_macro
-
-hello-world *args:
-	forky serve target/hello_world & \
-	just watch 'just _hello-world {{args}}'
-
-_hello-world *args:
-	mkdir -p target/hello_world
-	cp crates/sweet_render/examples/hello_world.html target/hello_world/hello_world.html
-	cargo build -p sweet_render --example hello_world --target wasm32-unknown-unknown {{args}}
-	wasm-bindgen \
-	--out-dir ./target/hello_world \
-	--out-name bindgen \
-	--target web \
-	~/.cargo_target/wasm32-unknown-unknown/debug/examples/hello_world.wasm

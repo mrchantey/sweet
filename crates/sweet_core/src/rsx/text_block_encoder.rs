@@ -67,6 +67,13 @@ impl TextBlockEncoder {
 				}
 			}
 		}
+
+		// no need to split at the last index
+		for pos in encoder.split_positions.iter_mut() {
+			pos.pop();
+		}
+		encoder.split_positions.retain(|pos| !pos.is_empty());
+
 		encoder
 	}
 
@@ -249,7 +256,7 @@ mod test {
 
 		let encoded = TextBlockEncoder::encode(0, &el);
 		let csv = encoded.to_csv();
-		expect(&csv).to_be("0,4-5-5-5.10-5-4.3");
+		expect(&csv).to_be("0,4-5-5.10-5");
 
 		let decoded = TextBlockEncoder::from_csv(&csv).unwrap();
 		expect(decoded).to_be(encoded);
