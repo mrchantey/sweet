@@ -183,7 +183,7 @@ mod test {
 	}
 	#[test]
 	fn events() {
-		let onclick = |_: usize| {};
+		let onclick = |_| {};
 		let world = "mars";
 		expect(RsxToHtml::render(&rsx! {
 			<div onclick=onclick>

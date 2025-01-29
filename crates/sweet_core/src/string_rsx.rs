@@ -34,14 +34,7 @@ impl StringRsx {
 			value: block.clone().into_attribute_value(),
 		}
 	}
-	pub fn map_event<T: ToString>(
-		key: &str,
-		// todo event types
-		_block: impl 'static + Clone + FnMut(T),
-	) -> RsxAttribute {
-		let key = key.to_string();
-		RsxAttribute::Key { key }
-	}
+
 }
 
 #[cfg(feature = "tokens")]

@@ -20,19 +20,12 @@ impl SignalsRsx {
 				effect(move || {
 					let block = block.clone();
 					let cx = cx.clone();
-					CurrentHydrator::with(move |hydrated| {
+					CurrentHydrator::with(move |hydrator| {
 						let node = block.clone().into_rsx();
-						// println!(
-						// 	"would update node for {:?}\n{}:{}",
-						// 	cx,
-						// 	node.as_ref(),
-						// 	node.render()
-						// );
-						if let Err(err) = hydrated.update_rsx_node(node, &cx) {
+						if let Err(err) = hydrator.update_rsx_node(node, &cx) {
 							sweet_utils::elog!("{err}");
 						}
 					});
-					// todo!();
 				});
 			}),
 		}
@@ -48,7 +41,8 @@ impl SignalsRsx {
 				effect(move || {
 					let attrs = block();
 					println!(
-						"would update attributes for {cx}\n{}",
+						"would update attributes for {}\n{}",
+						cx.html_element_index(),
 						RsxToHtml::default().map_attribute(&attrs).render()
 					);
 					todo!();
@@ -68,25 +62,10 @@ impl SignalsRsx {
 				let cx = cx.clone();
 				effect(move || {
 					let value = block.clone().into_attribute_value();
-					println!("would update attribute for {cx}\n{key}: {value}");
-					todo!();
-				});
-			}),
-		}
-	}
-	pub fn map_event(
-		key: &str,
-		// todo event types
-		_block: impl 'static + Clone + FnMut(usize),
-	) -> RsxAttribute {
-		let key = key.to_string();
-		RsxAttribute::BlockValue {
-			key: key.clone(),
-			initial: "needs-event-cx".to_string(),
-			register_effect: Box::new(move |cx| {
-				let cx = cx.clone();
-				effect(move || {
-					println!("would update event for {cx}\n{key}");
+					println!(
+						"would update attribute for {}\n{key}: {value}",
+						cx.html_element_index()
+					);
 					todo!();
 				});
 			}),
@@ -107,34 +86,29 @@ impl RsxRustTokens for SignalsRsx {
 	}
 }
 
-// #[cfg(test)]
-// mod test {
-// 	use super::signal;
-// 	use super::SignalsRsx;
-// 	use crate::prelude::*;
-// 	// use sweet::prelude::*;
-// 	use sweet_rsx_macros::rsx;
+#[cfg(test)]
+mod test {
+	use super::signal;
+	use crate::prelude::*;
+	// use sweet::prelude::*;
+	use sweet_rsx_macros::rsx;
 
 
-// 	#[test]
-// 	fn works() {
-// 		let (get, set) = signal(7);
-// 		let set2 = set.clone();
+	#[test]
+	fn works() {
+		let (get, set) = signal(7);
 
-// 		// 	let rsx =
-// 		// 		|| rsx! {<div onclick={move |e| set2(e)}>value is {get}</div>};
-// 		// 	CurrentHydrator::set(HtmlNodeHydrator{
+		let rsx = || rsx! {<div>value is {get}</div>};
+		CurrentHydrator::set(HtmlNodeHydrator::new(rsx.clone()));
 
-// 		// });
-
-// 		// 	rsx().register_effects();
-// 		// 	expect(&CurrentHydrator::with(|h| h.render()))
-// 		// 		.to_be("<div data-sweet-id=\"0\" data-sweet-blocks=\"0-9-1\">value is 7</div>");
-// 		// 	set(8);
-// 		// 	expect(&CurrentHydrator::with(|h| h.render()))
-// 		// 		.to_be("<div data-sweet-id=\"0\" data-sweet-blocks=\"0-9-1\">value is 8</div>");
-// 		// 	set(9);
-// 		// 	expect(&CurrentHydrator::with(|h| h.render()))
-// 		// 		.to_be("<div data-sweet-id=\"0\" data-sweet-blocks=\"0-9-1\">value is 9</div>");
-// 	}
-// }
+		rsx().register_effects();
+		expect(&CurrentHydrator::with(|h| h.render()))
+			.to_start_with("<div data-sweet-id=\"0\">value is 7</div>");
+		set(8);
+		expect(&CurrentHydrator::with(|h| h.render()))
+			.to_start_with("<div data-sweet-id=\"0\">value is 8</div>");
+		set(9);
+		expect(&CurrentHydrator::with(|h| h.render()))
+			.to_start_with("<div data-sweet-id=\"0\">value is 9</div>");
+	}
+}

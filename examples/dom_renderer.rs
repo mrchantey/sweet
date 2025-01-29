@@ -34,16 +34,15 @@ fn render() {
 
 	let mut app = rsx! {<MyComponent initial=7/>};
 
-	let str = RsxToHtml::render_resumable(&app);
-
-	// this would usually be directly served
+	// this would usually be directly served as html
 	web_sys::window()
 		.unwrap()
 		.document()
 		.unwrap()
 		.body()
 		.unwrap()
-		.set_inner_html(&str);
+		.set_inner_html(&RsxToResumableHtml::render(&app));
 
+	CurrentHydrator::with(|h| h.initialize());
 	app.register_effects();
 }

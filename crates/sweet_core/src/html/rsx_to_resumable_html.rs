@@ -75,14 +75,13 @@ impl RsxToResumableHtml {
 	}
 
 	fn insert_catch_prehydrated_events(&self, nodes: &mut Vec<HtmlNode>) {
-		let event_handler = self.html_constants.event_handler;
-		let prehydrate_events = self.html_constants.prehydrate_events;
-
 		let script = format!(
 			r#"
 globalThis.{prehydrate_events} = []
 globalThis.{event_handler} = (id,event) => globalThis.{prehydrate_events}.push([id, event])
-"#
+"#,
+			prehydrate_events = self.html_constants.prehydrate_events,
+			event_handler = self.html_constants.event_handler,
 		);
 		let el = HtmlElementNode::inline_script(script, Default::default());
 		HtmlNode::insert_at_body_or_append(nodes, el.into());

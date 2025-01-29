@@ -117,17 +117,17 @@ mod test {
 
 	#[test]
 	fn compiles() {
-		let onclick = |_: u32| {};
+		let onclick = |_| {};
 		let world = "mars";
 		let _rsx = rsx! {<div onclick=onclick><p>hello {world}</p></div>};
 	}
 	#[test]
 	fn render_html() {
-		let onclick = |_: u32| {};
+		let onclick = |_| {};
 		let node = rsx! {<div onclick=onclick> the value is {3} </div>};
 
 		expect(RsxToHtml::render(&node))
-			.to_be("<div onclick=\"onclick_handler\"> the value is 3</div>");
+			.to_be("<div onclick=\"needs-event-cx\"> the value is 3</div>");
 	}
 	#[test]
 	fn component_props() {

@@ -1,5 +1,6 @@
 use proc_macro2::TokenStream;
 use quote::quote;
+use syn::spanned::Spanned;
 
 /// Instructions for converting the rust parts of an rsx node to tokens.
 ///
@@ -34,7 +35,18 @@ pub trait RsxRustTokens {
 	/// This should return an [RsxAttribute::BlockValue](crate::prelude::RsxAttribute::BlockValue)
 	/// but can technically be any valid RsxAttribute or comma seperated list of RsxAttributes
 	fn map_event(key: &str, value: &TokenStream) -> TokenStream {
-		let ident = Self::ident();
-		quote! {#ident::map_event(#key, #value)}
+		let key = key.to_string();
+
+		let register_func =
+			syn::Ident::new(&format!("register_{key}"), value.span());
+		quote! {
+			RsxAttribute::BlockValue {
+				key: #key.to_string(),
+				initial: "needs-event-cx".to_string(),
+				register_effect: Box::new(move |cx| {
+					sweet::prelude::EventRegistry::#register_func(#key,cx,#value);
+				}),
+			}
+		}
 	}
 }

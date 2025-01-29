@@ -20,14 +20,14 @@ pub struct RsxContext {
 	/// the number of rsx rust blocks visited,
 	/// this is useful for hot reloading because it will not change
 	/// even if the html structure changes
-	pub num_rust_blocks: RustNodeIndex,
+	pub(crate) num_rust_blocks: RustNodeIndex,
 	/// *Note* this will not
 	/// the number of html elements visited,
 	/// elements with rust children will need to have this assigned as an
 	/// attribute so that the hydrator can find them.
-	pub num_elements: ElementIndex,
+	pub(crate) num_elements: ElementIndex,
 	/// the *uncollapsed* index of this block relative to its parent element
-	pub child_index: usize,
+	pub(crate) child_index: usize,
 }
 
 impl Default for RsxContext {
@@ -214,13 +214,6 @@ impl RsxContext {
 			}
 			_ => {}
 		}
-	}
-}
-
-
-impl std::fmt::Display for RsxContext {
-	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-		write!(f, "Rsx Node Count: {}", self.num_rust_blocks)
 	}
 }
 

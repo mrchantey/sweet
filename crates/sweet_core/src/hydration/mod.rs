@@ -1,7 +1,15 @@
 use crate::prelude::*;
+#[cfg(target_arch = "wasm32")]
+mod dom_event_registry;
+#[cfg(target_arch = "wasm32")]
+pub use dom_event_registry::EventRegistry;
 mod html_node_hydrator;
+#[cfg(not(target_arch = "wasm32"))]
+mod native_event_registry;
 mod rsx_context_map;
 pub use html_node_hydrator::*;
+#[cfg(not(target_arch = "wasm32"))]
+pub use native_event_registry::EventRegistry;
 pub use rsx_context_map::*;
 use std::cell::RefCell;
 
@@ -12,7 +20,7 @@ mod dom_hydrator;
 pub use dom_hydrator::*;
 
 thread_local! {
-	static CURRENT_HYDRATOR: RefCell<Box<dyn Hydrator>> = RefCell::new(Box::new(HtmlNodeHydrator::new((), HtmlConstants::default())));
+	static CURRENT_HYDRATOR: RefCell<Box<dyn Hydrator>> = RefCell::new(Box::new(HtmlNodeHydrator::new(())));
 }
 pub struct CurrentHydrator;
 
@@ -33,6 +41,11 @@ impl CurrentHydrator {
 }
 
 pub trait Hydrator {
+	/// an opportunity for prehydrated event playback etc
+	fn initialize(&mut self);
+	fn html_constants(&self) -> &HtmlConstants;
+
+	// type Event;
 	fn update_rsx_node(
 		&mut self,
 		node: RsxNode,
@@ -40,4 +53,6 @@ pub trait Hydrator {
 	) -> ParseResult<()>;
 	/// just used for testing atm
 	fn render(&self) -> String;
+
+	// fn register_event(&self, event: Box<dyn Fn() -> ()>);
 }

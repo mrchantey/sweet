@@ -9,7 +9,7 @@ pub struct HtmlNodeHydrator {
 }
 
 impl HtmlNodeHydrator {
-	pub fn new(rsx: impl Rsx, constants: HtmlConstants) -> Self {
+	pub fn new(rsx: impl Rsx) -> Self {
 		let rsx = rsx.into_rsx();
 		let html = RsxToResumableHtml::default().map_node(&rsx);
 
@@ -17,13 +17,16 @@ impl HtmlNodeHydrator {
 
 		Self {
 			html,
-			constants,
+			constants: Default::default(),
 			rust_node_map,
 		}
 	}
 }
 
 impl Hydrator for HtmlNodeHydrator {
+	fn initialize(&mut self) {}
+	fn html_constants(&self) -> &HtmlConstants { &self.constants }
+
 	fn render(&self) -> String { self.html.render() }
 
 	fn update_rsx_node(
@@ -41,14 +44,14 @@ impl Hydrator for HtmlNodeHydrator {
 					cx.rust_node_index()
 				))
 			})?
+			.html_element_index()
 			.to_string();
 
 		for html in self.html.iter_mut() {
-			if let Some(el) =
+			if let Some(parent_el) =
 				html.query_selector_attr(self.constants.id_key, Some(&id))
 			{
-				return apply_rsx(el, rsx, cx, &self.constants);
-			} else {
+				return apply_rsx(parent_el, rsx, cx, &self.constants);
 			}
 		}
 
@@ -63,7 +66,7 @@ impl Hydrator for HtmlNodeHydrator {
 /// we've found a html node with a matching id
 #[allow(unused)]
 fn apply_rsx(
-	el: &mut HtmlElementNode,
+	parent_el: &mut HtmlElementNode,
 	rsx: RsxNode,
 	cx: &RsxContext,
 	constants: &HtmlConstants,
@@ -78,9 +81,9 @@ fn apply_rsx(
 		RsxNode::Comment(_) => todo!(),
 		RsxNode::Text(text) => {
 			let child =
-				el.children.get_mut(cx.child_index()).ok_or_else(|| {
-					ParseError::Hydration("Could not find child".into())
-				})?;
+				parent_el.children.get_mut(cx.child_index()).ok_or_else(
+					|| ParseError::Hydration("Could not find child".into()),
+				)?;
 			*child = HtmlNode::Text(text);
 		}
 		RsxNode::Element(rsx_element) => todo!(),
