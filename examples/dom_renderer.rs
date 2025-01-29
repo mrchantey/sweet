@@ -30,7 +30,6 @@ fn render() {}
 #[cfg(target_arch = "wasm32")]
 fn render() {
 	console_error_panic_hook::set_once();
-	CurrentHydrator::set(DomHydrator::default());
 
 	let mut app = rsx! {<MyComponent initial=7/>};
 
@@ -43,6 +42,10 @@ fn render() {
 		.unwrap()
 		.set_inner_html(&RsxToResumableHtml::render(&app));
 
-	CurrentHydrator::with(|h| h.initialize());
+	let mut hydrator = DomHydrator::default();
+	hydrator.initialize();
+
+	CurrentHydrator::set(hydrator);
+	// CurrentHydrator::with(|h| h.initialize());
 	app.register_effects();
 }

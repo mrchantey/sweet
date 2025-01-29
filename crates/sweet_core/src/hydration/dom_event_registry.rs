@@ -1,4 +1,6 @@
 use crate::prelude::*;
+use js_sys::Array;
+use js_sys::Reflect;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use wasm_bindgen::prelude::Closure;
@@ -47,35 +49,30 @@ impl EventRegistry {
 
 	pub fn initialize() -> ParseResult<()> {
 		let constants = CurrentHydrator::with(|h| h.html_constants().clone());
-		playback_prehydrate_events(&constants)?;
 		hook_up_event_listeners(&constants)?;
+		playback_prehydrate_events(&constants)?;
 		Ok(())
 	}
 }
 
 fn playback_prehydrate_events(constants: &HtmlConstants) -> ParseResult<()> {
 	sweet_loader_extern::GLOBAL.with(|global| {
-		// let event_handler =
-		// 	js_sys::Reflect::get(&global, &constants.event_handler.into())
-		// 		.map_err(|_| {
-		// 			ParseError::Hydration("could not find event handler".into())
-		// 		})?;
-		let prehydrate_events =
-			js_sys::Reflect::get(&global, &constants.event_store.into())
-				.map_err(|_| {
-					ParseError::Hydration("could not find event handler".into())
-				})?;
-		let prehydrate_events = js_sys::Array::from(&prehydrate_events);
-		for item in prehydrate_events.iter() {
-			let event_arr = js_sys::Array::from(&item);
-			if event_arr.length() == 2 {
-				let id =
-					event_arr.get(0).as_f64().expect("bad event id") as usize;
-				let event: Event = event_arr.get(1).unchecked_into();
-				let event_type = format!("on{}", event.type_());
-				EventRegistry::trigger(&event_type, id, event.unchecked_into());
-			}
+		let event_store = Reflect::get(&global, &constants.event_store.into())
+			.map_err(|_| {
+				ParseError::Hydration("could not find event store".into())
+			})?;
+		for item in Array::from(&event_store).iter() {
+		let event_arr = Array::from(&item);
+		if event_arr.length() == 2 {
+			let id =
+				event_arr.get(0).as_f64().expect("bad event id") as usize;
+			let event: Event = event_arr.get(1).unchecked_into();
+			let event_type = format!("on{}", event.type_());
+			EventRegistry::trigger(&event_type, id, event.unchecked_into());
 		}
+		}
+		// we no longer need event store and event handler
+		// because the event listeners have been hooked up
 		js_sys::Reflect::delete_property(
 			&global.unchecked_ref(),
 			&constants.event_store.into(),
