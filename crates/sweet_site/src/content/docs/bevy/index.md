@@ -9,7 +9,8 @@ Sweet uses terminology from the web but the structural concepts map directly to 
 | ------------------ | ------------ |
 | Component          | Scene        |
 | Parent/Child       | Parent/Child |
-| Element            | Entity       |
+| Element            | Transform    |
+| Html Node          | Entity       |
 | Attribute          | Component    |
 | Signal             | Observer     |
 | Event              | Trigger      |

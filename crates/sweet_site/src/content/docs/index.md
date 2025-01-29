@@ -5,16 +5,38 @@ title: Sweet
 
 ---
 
-Sweet is a rust metaframework that minimizes rust recompilations by extracting serializable content. 
 
-Find your rust dev flow with sweet.
+Rusty tools for developing reative structures.
 
-## Find your flow with:
+Sweet builds upon Astro's principle of creating interoperability between various reactive libraries, and extends that capability with support for multiple renderers and authoring flavours.
 
+# Planned Authoring Flavours
+- Vanilla Rust `RsxNode`
+- Reactive html `rsx!`
+- Reactive bevy scenes `bsn!`
+
+# Reactive frameworks
+- [Leptos Signals](https://crates.io/crates/reactive_graph) 
+- Headless Bevy
+
+# Planned Renderers
+- html
+- bevy graphics
+- esp32 robotics
+- agentic ai
+- behavior trees
+
+## The preprocessor
+
+Sweet has a preprocessor that enables instant reloads for non-code changes in `rsx!` macros.
+
+
+
+# Features
 - 🔥 **Smokin hot reload** instant reloads for non-code changes
-- 🌊 **Stay Hydrated** sweet collects pre-hydration events and plays them back in order, no missed events!.
+- 🌊 **Stay Hydrated** sweet collects pre-hydration events and plays them back in order, no missed events!
 -  **Scoped CSS** with component `<style/>` tags
-- 🌐 **No signal, no problem** sweet provides reactivity primitives and easily integrates other frameworks astro-style.
+- 🌐 **Great signal here!** sweet provides integrations with leptos.
 - 🦀 **Rusty to the core** components are described as *regular structs and traits*.
 - 🧪 **A full ecosystem** sweet has a built-in component library and testing framework, as well as integrations with axum, leptos and bevy.
 

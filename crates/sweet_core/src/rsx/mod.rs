@@ -1,7 +1,5 @@
-mod hydrate;
 mod rsx_context;
 mod rsx_node;
-pub use hydrate::*;
 pub use rsx_context::*;
 pub use rsx_node::*;
 pub use text_block_encoder::*;
