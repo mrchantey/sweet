@@ -58,7 +58,12 @@ impl SweetError {
 		// it doesnt matter where the panic call site is
 		// because we use this to panic from the matcher
 		// wasm users will get callsite of the test entry
-		std::panic::panic_any(Self::new(message, Self::BACKTRACE_LEVEL_5));
+		// #[cfg(feature = "internal")]
+		let backtrace_level = Self::BACKTRACE_LEVEL_5;
+		// #[cfg(not(feature = "internal"))]
+		// let backtrace_level = Self::BACKTRACE_LEVEL_5 - 1;
+
+		std::panic::panic_any(Self::new(message, backtrace_level));
 	}
 }
 
@@ -67,6 +72,25 @@ impl std::fmt::Display for SweetError {
 		f.write_str(&self.message)
 	}
 }
+
+#[cfg(not(target_arch = "wasm32"))]
+impl SweetError {
+	pub fn assertion_frame(&self) -> Result<&backtrace::BacktraceFrame> {
+		if let Some(frame) = &self.backtrace.frames().get(self.assertion_depth)
+		{
+			Ok(frame)
+		} else {
+			anyhow::bail!("Failed to find backtrace frame");
+		}
+	}
+
+	pub fn backtrace_str(&self) -> Result<String> {
+		let frame = self.assertion_frame()?;
+		BacktraceLocation::from_unresolved_frame(&frame)?.file_context()
+	}
+}
+
+
 
 #[cfg(test)]
 mod test {

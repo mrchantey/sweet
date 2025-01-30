@@ -5,18 +5,18 @@ use std::sync::Arc;
 use std::sync::Mutex;
 use test::TestDesc;
 
-pub trait SweetestFuture:
+pub trait SweetTestFuture:
 	'static + Future<Output = Result<(), String>>
 {
 }
-impl<T> SweetestFuture for T where
+impl<T> SweetTestFuture for T where
 	T: 'static + Future<Output = Result<(), String>>
 {
 }
 
 
 pub type SweetFutFunc =
-	Box<dyn Send + Sync + Fn() -> Pin<Box<dyn SweetestFuture>>>;
+	Box<dyn Send + Sync + Fn() -> Pin<Box<dyn SweetTestFuture>>>;
 
 type FutCell = Arc<Mutex<Option<SweetFutFunc>>>;
 
@@ -29,7 +29,7 @@ pub struct SweetTestCollector;
 impl SweetTestCollector {
 	/// # Panics
 	/// If called outside of [`Self::set`]
-	pub fn register<F: SweetestFuture>(fut: fn() -> F) {
+	pub fn register<F: SweetTestFuture>(fut: fn() -> F) {
 		FUTURE.with(|current_fut| {
 			*current_fut.lock().unwrap() =
 				Some(Box::new(move || Box::pin(fut())));

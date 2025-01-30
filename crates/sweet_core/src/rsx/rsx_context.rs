@@ -3,69 +3,45 @@ use std::borrow::Borrow;
 use std::collections::VecDeque;
 use strum_macros::EnumDiscriminants;
 
+/// Used to identify an element in a tree.
+/// This is incremented in a breadth-first pattern
+/// as we visit each element in the tree.
+pub type ElementIdx = usize;
+/// Used to identify a rust block in a tree.
+/// This is key to being able to reconcile a changed html tree
+/// with precompiled rust blocks.
+/// This is incremented in a breadth-first pattern
+/// as we visit each rust block in the tree.
+pub type BlockIdx = usize;
 
-pub type ElementIndex = usize;
-pub type RustNodeIndex = usize;
 
-
-/// This is how we match the rsx tree to the html tree,
+/// A collection of indexes for working with rsx nodes,
+/// this is particularly useful for resumability, hot reloading
+/// etc where we need to reconcile a html page with rust blocks
+/// for hydration.
+/// # PartialEq
 ///
-/// 1. Count number of rsx nodes visited, and use this as an rsx_id
-/// 2. Track their position relative to a parent element
-///
-/// The algorithm will only work for breadth-first traversal
-/// because of how we track the child indices
-#[derive(Debug, Clone, PartialEq)]
+/// PartialEq may or may not behave as you expect,
+/// for example visiting a hot-reloaded rsx struct and diffing it with
+/// a precompiled rsx struct will not be equal.
+#[derive(Debug, Default, Clone, PartialEq)]
 pub struct RsxContext {
+	/// Simple counter that increments after any [RsxNode] is visited
+	pub(crate) node_idx: usize,
 	/// the number of rsx rust blocks visited,
 	/// this is useful for hot reloading because it will not change
 	/// even if the html structure changes
-	pub(crate) num_rust_blocks: RustNodeIndex,
-	/// the number of html elements visited,
-	/// elements with rust children will need to have this assigned as an
-	/// attribute so that the hydrator can find them.
-	/// In the case of a rust block this is the parent element,
+	pub(crate) block_idx: BlockIdx,
+	/// In the case of a rust block this is the parent element.
 	/// in the case of visiting an element this is the element itself
-	pub(crate) num_elements: ElementIndex,
-	/// the *uncollapsed* index of this block relative to its parent element
-	pub(crate) child_index: usize,
-	/// the growing and shrinking stack of element indices
-	/// including the current node if it is an element
-	pub(crate) element_breadcrumbs: Vec<usize>,
-}
-
-impl Default for RsxContext {
-	fn default() -> Self {
-		Self {
-			child_index: 0,
-			num_rust_blocks: 0,
-			num_elements: 0,
-			element_breadcrumbs: vec![],
-		}
-	}
+	pub(crate) element_idx: ElementIdx,
+	/// the *uncollapsed* index of this block relative to its parent element.
+	/// That is the [RsxNode] child index, not the [HtmlNode] child index
+	/// which merges rust text blocks with static text blocks
+	pub(crate) child_idx: usize,
 }
 
 impl RsxContext {
-	pub fn rust_node_index(&self) -> usize { self.num_rust_blocks }
-
-	/// Best for use with element attributes and events.
-	/// returns the number of elements visited minus 1 saturating sub.
-	/// *Not good for blocks*
-	/// For a block this will be either the parent or the previous
-	/// sibling element.
-	pub fn last_visited_element(&self) -> usize {
-		self.num_elements.saturating_sub(1)
-	}
-
-	/// Best for use with blocks
-	/// For a block this will be the index of the parent element,
-	/// For an element this will be its index
-	pub fn last_breadcrumb(&self) -> usize {
-		self.element_breadcrumbs.last().copied().unwrap_or_default()
-	}
-
-	pub fn child_index(&self) -> usize { self.child_index }
-
 	fn before_visit_node(
 		&mut self,
 		node_disc: &RsxNodeDiscriminants,
@@ -73,15 +49,14 @@ impl RsxContext {
 	) {
 		match node_disc {
 			RsxNodeDiscriminants::Element => {
-				self.element_breadcrumbs.push(self.last_visited_element());
-				self.num_elements += 1;
+				// self.element_idx += 1;
 			}
 			_ => {}
 		}
 		match pos_disc {
 			HtmlElementPositionDiscriminants::FirstChild
 			| HtmlElementPositionDiscriminants::OnlyChild => {
-				self.child_index = 0;
+				self.child_idx = 0;
 			}
 			_ => {}
 		}
@@ -89,69 +64,75 @@ impl RsxContext {
 	fn after_visit_node(
 		&mut self,
 		node_disc: &RsxNodeDiscriminants,
-		_pos_disc: &HtmlElementPositionDiscriminants,
+		pos_disc: &HtmlElementPositionDiscriminants,
+		num_children: usize,
 	) {
+		self.node_idx += 1;
 		match node_disc {
 			RsxNodeDiscriminants::Block => {
-				self.num_rust_blocks += 1;
+				self.block_idx += 1;
 			}
 			RsxNodeDiscriminants::Fragment => {}
 			RsxNodeDiscriminants::Element => {
-				self.element_breadcrumbs.pop();
-				self.child_index += 1;
+				self.child_idx += 1;
 				// if no children we'll never visit a child
 				// so bump the element count now
+				if num_children == 0 {
+					self.element_idx += 1;
+				}
 			}
 			RsxNodeDiscriminants::Text
 			| RsxNodeDiscriminants::Doctype
 			| RsxNodeDiscriminants::Comment => {
-				self.child_index += 1;
+				self.child_idx += 1;
 			}
+		}
+		match pos_disc {
+			HtmlElementPositionDiscriminants::LastChild
+			| HtmlElementPositionDiscriminants::OnlyChild => {
+				self.element_idx += 1;
+			}
+			_ => {}
 		}
 	}
 
+
 	pub fn to_csv(&self) -> String {
-		format!(
-			"{},{},{},{}",
-			self.num_rust_blocks,
-			self.num_elements,
-			self.child_index,
-			self.element_breadcrumbs
-				.iter()
-				.map(|i| i.to_string())
-				.collect::<Vec<String>>()
-				.join(",")
-		)
+		vec![
+			self.node_idx.to_string(),
+			self.block_idx.to_string(),
+			self.element_idx.to_string(),
+			self.child_idx.to_string(),
+		]
+		.join(",")
 	}
 	pub fn from_csv(csv: &str) -> ParseResult<Self> {
 		let mut parts = csv.split(',');
-		let rust_node_index = parts
+		let node_idx = parts
 			.next()
 			.ok_or_else(|| ParseError::serde("missing rust node index"))?
 			.parse()?;
-		let html_element_index = parts
+		let block_idx = parts
 			.next()
 			.ok_or_else(|| ParseError::serde("missing rust node index"))?
 			.parse()?;
-		let child_index = parts
+		let element_idx = parts
 			.next()
 			.ok_or_else(|| ParseError::serde("missing rust node index"))?
 			.parse()?;
-		// breadcrumbs are the rest
-		let breadcrumbs = parts
-			.filter(|part| !part.is_empty())
-			.map(|part| Ok(part.parse()?))
-			.collect::<ParseResult<Vec<usize>>>()?;
+		let child_idx = parts
+			.next()
+			.ok_or_else(|| ParseError::serde("missing rust node index"))?
+			.parse()?;
 
 		Ok(Self {
-			num_rust_blocks: rust_node_index,
-			num_elements: html_element_index,
-			child_index,
-			element_breadcrumbs: breadcrumbs,
+			node_idx,
+			block_idx,
+			element_idx,
+			child_idx,
 		})
 	}
-	/// Breadth-first traversal of the rsx tree,
-	/// identical impl to visit_mut
+	/// Depth-first traversal of the tree
 	pub fn visit(
 		node: &RsxNode,
 		mut func: impl FnMut(&Self, &RsxNode),
@@ -242,8 +223,9 @@ impl RsxContext {
 			let node = pos_node.into_inner();
 			let node_disc = node.borrow().discriminant();
 			self.before_visit_node(&node_disc, &pos_disc);
+			let num_children = node.borrow().children().len();
 			let node = func(self, node);
-			self.after_visit_node(&node_disc, &pos_disc);
+			self.after_visit_node(&node_disc, &pos_disc, num_children);
 			map_children(&mut queue, node);
 		}
 	}
@@ -293,10 +275,10 @@ mod test {
 	#[test]
 	fn csv() {
 		let a = RsxContext {
-			num_rust_blocks: 1,
-			num_elements: 2,
-			child_index: 3,
-			element_breadcrumbs: vec![4, 5, 6],
+			block_idx: 1,
+			element_idx: 2,
+			child_idx: 3,
+			node_idx: 4,
 		};
 		let csv = a.to_csv();
 		let b = RsxContext::from_csv(&csv).unwrap();
@@ -312,28 +294,25 @@ mod test {
 
 	#[test]
 	fn rust_blocks() {
+		expect(RsxContext::visit(&rsx! {<div></div>}, |_, _| {}).block_idx)
+			.to_be(0);
 		expect(
-			RsxContext::visit(&rsx! {<div></div>}, |_, _| {}).num_rust_blocks,
-		)
-		.to_be(0);
-		expect(
-			RsxContext::visit(&rsx! {{7}{8}{9}<Child/>}, |_, _| {})
-				.num_rust_blocks,
+			RsxContext::visit(&rsx! {{7}{8}{9}<Child/>}, |_, _| {}).block_idx,
 		)
 		.to_be(4);
 	}
 
 	#[test]
 	fn elements() {
-		expect(RsxContext::visit(&rsx! {<div></div>}, |_, _| {}).num_elements)
+		expect(RsxContext::visit(&rsx! {<div></div>}, |_, _| {}).element_idx)
 			.to_be(1);
 		expect(
-			RsxContext::visit(&rsx! {<div>738</div>}, |_, _| {}).num_elements,
+			RsxContext::visit(&rsx! {<div>738</div>}, |_, _| {}).element_idx,
 		)
 		.to_be(1);
 		expect(
 			RsxContext::visit(&rsx! {<div><b>pow</b></div><Child/>}, |_, _| {})
-				.num_elements,
+				.element_idx,
 		)
 		.to_be(3);
 	}

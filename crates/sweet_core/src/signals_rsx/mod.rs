@@ -23,9 +23,7 @@ impl SignalsRsx {
 					let cx = cx.clone();
 					CurrentHydrator::with(move |hydrator| {
 						let node = block.clone().into_rsx();
-						if let Err(err) = hydrator.update_rsx_node(node, &cx) {
-							sweet_utils::elog!("{err}");
-						}
+						hydrator.update_rsx_node(node, &cx).unwrap()
 					});
 				});
 			}),
@@ -43,7 +41,7 @@ impl SignalsRsx {
 					let attrs = block();
 					println!(
 						"would update attributes for {}\n{}",
-						cx.last_visited_element(),
+						cx.element_idx,
 						RsxToHtml::default().map_attribute(&attrs).render()
 					);
 					todo!();
@@ -65,7 +63,7 @@ impl SignalsRsx {
 					let value = block.clone().into_attribute_value();
 					println!(
 						"would update attribute for {}\n{key}: {value}",
-						cx.last_visited_element()
+						cx.element_idx
 					);
 					todo!();
 				});

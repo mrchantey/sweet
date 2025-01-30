@@ -33,10 +33,34 @@ impl Default for RsxNode {
 	fn default() -> Self { Self::Fragment(Vec::new()) }
 }
 
+impl std::fmt::Debug for RsxNode {
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		match self {
+			Self::Fragment(arg0) => {
+				f.debug_tuple("Fragment").field(arg0).finish()
+			}
+			Self::Block { initial, .. } => f
+				.debug_struct("Block")
+				.field("initial", initial)
+				.field("register_effect", &"..")
+				.finish(),
+			Self::Doctype => write!(f, "Doctype"),
+			Self::Comment(arg0) => {
+				f.debug_tuple("Comment").field(arg0).finish()
+			}
+			Self::Text(arg0) => f.debug_tuple("Text").field(arg0).finish(),
+			Self::Element(arg0) => {
+				f.debug_tuple("Element").field(arg0).finish()
+			}
+		}
+	}
+}
+
 impl RsxNode {
 	pub fn discriminant(&self) -> RsxNodeDiscriminants { self.into() }
 	pub fn is_element(&self) -> bool { matches!(self, RsxNode::Element(_)) }
 
+	#[deprecated = "use iterator"]
 	pub fn children(&self) -> &[RsxNode] {
 		match self {
 			RsxNode::Fragment(rsx_nodes) => rsx_nodes,
@@ -45,6 +69,7 @@ impl RsxNode {
 			_ => &[],
 		}
 	}
+	#[deprecated = "use iterator"]
 	pub fn children_mut(&mut self) -> &mut [RsxNode] {
 		match self {
 			RsxNode::Fragment(rsx_nodes) => rsx_nodes,
@@ -195,6 +220,17 @@ impl RsxElement {
 	}
 }
 
+impl std::fmt::Debug for RsxElement {
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		f.debug_struct("RsxElement")
+			.field("tag", &self.tag)
+			.field("attributes", &self.attributes)
+			.field("children", &self.children)
+			.field("self_closing", &self.self_closing)
+			.finish()
+	}
+}
+
 // #[derive(Debug, Clone, PartialEq)]
 // #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum RsxAttribute {
@@ -218,3 +254,30 @@ pub enum RsxAttribute {
 }
 
 impl RsxAttribute {}
+
+
+impl std::fmt::Debug for RsxAttribute {
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		match self {
+			Self::Key { key } => {
+				f.debug_struct("Key").field("key", key).finish()
+			}
+			Self::KeyValue { key, value } => f
+				.debug_struct("KeyValue")
+				.field("key", key)
+				.field("value", value)
+				.finish(),
+			Self::BlockValue { key, initial, .. } => f
+				.debug_struct("BlockValue")
+				.field("key", key)
+				.field("initial", initial)
+				.field("register_effect", &"..")
+				.finish(),
+			Self::Block { initial, .. } => f
+				.debug_struct("Block")
+				.field("initial", initial)
+				.field("register_effect", &"..")
+				.finish(),
+		}
+	}
+}

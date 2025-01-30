@@ -74,20 +74,18 @@ impl RsxContextMap {
 
 		let visitor = RsxContext::visit(node, |cx, node| match node {
 			RsxNode::Block { .. } => {
-				assert_eq!(cx.rust_node_index(), map.rust_blocks.len());
+				assert_eq!(cx.block_idx, map.rust_blocks.len());
 				map.rust_blocks.push(cx.clone());
 			}
 			RsxNode::Element(el) => {
 				if el.contains_blocks() {
-					let encoded =
-						TextBlockEncoder::encode(cx.last_visited_element(), el);
-					map.collapsed_elements
-						.insert(cx.last_visited_element(), encoded);
+					let encoded = TextBlockEncoder::encode(cx.element_idx, el);
+					map.collapsed_elements.insert(cx.element_idx, encoded);
 				}
 			}
 			_ => {}
 		});
-		assert_eq!(visitor.rust_node_index(), map.rust_blocks.len());
+		assert_eq!(visitor.block_idx, map.rust_blocks.len());
 
 		map
 	}
@@ -125,22 +123,22 @@ mod test {
 		);
 
 		expect(&map.rust_blocks[0]).to_be(&RsxContext {
-			num_rust_blocks: 0,
-			num_elements: 1,
-			child_index: 1,
-			element_breadcrumbs: vec![],
+			node_idx: 3,
+			block_idx: 0,
+			element_idx: 0,
+			child_idx: 1,
 		});
 		expect(&map.rust_blocks[1]).to_be(&RsxContext {
-			num_rust_blocks: 1,
-			num_elements: 1,
-			child_index: 2,
-			element_breadcrumbs: vec![],
+			node_idx: 5,
+			block_idx: 1,
+			element_idx: 0,
+			child_idx: 2,
 		});
 		expect(&map.rust_blocks[2]).to_be(&RsxContext {
-			num_rust_blocks: 2,
-			num_elements: 2,
-			child_index: 3,
-			element_breadcrumbs: vec![],
+			node_idx: 7,
+			block_idx: 2,
+			element_idx: 0,
+			child_idx: 3,
 		});
 	}
 }

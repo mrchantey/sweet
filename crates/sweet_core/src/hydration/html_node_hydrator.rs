@@ -36,14 +36,14 @@ impl Hydrator for HtmlNodeHydrator {
 		let id = self
 			.rust_node_map
 			.rust_blocks
-			.get(cx.rust_node_index())
+			.get(cx.block_idx)
 			.ok_or_else(|| {
 				ParseError::Hydration(format!(
 					"Could not find block parent for index: {}",
-					cx.rust_node_index()
+					cx.block_idx
 				))
 			})?
-			.last_visited_element()
+			.element_idx
 			.to_string();
 
 		for html in self.html.iter_mut() {
@@ -80,9 +80,9 @@ fn apply_rsx(
 		RsxNode::Comment(_) => todo!(),
 		RsxNode::Text(text) => {
 			let child =
-				parent_el.children.get_mut(cx.child_index()).ok_or_else(
-					|| ParseError::Hydration("Could not find child".into()),
-				)?;
+				parent_el.children.get_mut(cx.child_idx).ok_or_else(|| {
+					ParseError::Hydration("Could not find child".into())
+				})?;
 			*child = HtmlNode::Text(text);
 		}
 		RsxNode::Element(rsx_element) => todo!(),
