@@ -6,7 +6,7 @@ use sweet::prelude::*;
 
 
 #[test]
-#[ignore]
+// #[ignore]
 fn fails() {
 	// this is correct bactrace in external crates
 	expect(true).to_be_false();

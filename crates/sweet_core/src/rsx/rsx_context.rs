@@ -350,7 +350,7 @@ mod test {
 			},
 			|cx, node| {
 				if matches!(node, RsxNode::Element(_)) {
-					bucket2(cx.clone());
+					bucket2.call(cx.clone());
 				}
 			},
 		);

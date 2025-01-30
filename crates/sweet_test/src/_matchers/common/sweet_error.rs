@@ -59,6 +59,7 @@ impl SweetError {
 		// because we use this to panic from the matcher
 		// wasm users will get callsite of the test entry
 		// #[cfg(feature = "internal")]
+		// let backtrace_level = 4;
 		let backtrace_level = Self::BACKTRACE_LEVEL_5;
 		// #[cfg(not(feature = "internal"))]
 		// let backtrace_level = Self::BACKTRACE_LEVEL_5 - 1;
@@ -86,6 +87,10 @@ impl SweetError {
 
 	pub fn backtrace_str(&self) -> Result<String> {
 		let frame = self.assertion_frame()?;
+		// let depth = self.assertion_depth;
+		// while depth
+
+
 		BacktraceLocation::from_unresolved_frame(&frame)?.file_context()
 	}
 }

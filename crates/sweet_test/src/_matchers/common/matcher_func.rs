@@ -71,8 +71,8 @@ mod test {
 	#[test]
 	fn test_mock_trigger() {
 		let func = mock_trigger();
-		func(());
-		func(());
+		func.call(());
+		func.call(());
 		expect(&func).to_have_been_called();
 		expect(&func).to_have_been_called_times(2);
 		expect(&func.clone()).not().to_have_been_called_times(1);
@@ -80,8 +80,8 @@ mod test {
 	#[test]
 	fn test_mock_func() {
 		let func = mock_func(|i| i * 2);
-		func(0);
-		func(2);
+		func.call(0);
+		func.call(2);
 		expect(&func).to_have_been_called();
 		expect(&func).to_have_returned_with(0);
 		expect(&func).not().to_have_returned_with(4);

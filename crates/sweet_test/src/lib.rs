@@ -3,7 +3,8 @@
 #![feature(test)]
 #![feature(panic_payload_as_str)]
 // implement FnMut for MockFunc
-#![feature(fn_traits, unboxed_closures)]
+#![feature(unboxed_closures)]
+#![cfg_attr(feature = "fn_traits", feature(fn_traits))]
 // #![feature(panic_payload_as_str)]
 //!
 //! # Usage

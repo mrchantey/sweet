@@ -193,6 +193,8 @@ sweet_server = { workspace = true, optional = true }
 # render_counter = { required_features = ["server"] }
 
 [dev-dependencies]
+sweet = { workspace = true, features = ["test"] }
+
 forky.workspace = true
 
 # basic reactivity

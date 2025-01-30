@@ -18,19 +18,23 @@ pub fn mock_func<I, O, F: Fn(I) -> O>(func: F) -> MockFunc<I, O, F> {
 
 
 
-
+#[cfg(feature = "fn_traits")]
 impl<I, O, F: Fn(I) -> O> FnOnce<(I,)> for MockFunc<I, O, F> {
 	type Output = ();
-	extern "rust-call" fn call_once(self, args: (I,)) -> () { self.call(args); }
-}
-impl<I, O, F: Fn(I) -> O> FnMut<(I,)> for MockFunc<I, O, F> {
-	extern "rust-call" fn call_mut(&mut self, args: (I,)) -> () {
-		self.call(args);
+	extern "rust-call" fn call_once(self, args: (I,)) -> () {
+		MockFunc::call(&self, args.0);
 	}
 }
+#[cfg(feature = "fn_traits")]
+impl<I, O, F: Fn(I) -> O> FnMut<(I,)> for MockFunc<I, O, F> {
+	extern "rust-call" fn call_mut(&mut self, args: (I,)) -> () {
+		MockFunc::call(self, args.0);
+	}
+}
+#[cfg(feature = "fn_traits")]
 impl<I, O, F: Fn(I) -> O> Fn<(I,)> for MockFunc<I, O, F> {
 	extern "rust-call" fn call(&self, args: (I,)) -> () {
-		self.call_inner(args.0);
+		MockFunc::call(self, args.0);
 	}
 }
 
@@ -52,7 +56,7 @@ impl<I, O, F: Fn(I) -> O> MockFunc<I, O, F> {
 			_phantom: std::marker::PhantomData,
 		}
 	}
-	pub fn call_inner(&self, input: I) {
+	pub fn call(&self, input: I) {
 		let output = (self.func)(input);
 		self.called.lock().unwrap().push(output);
 	}

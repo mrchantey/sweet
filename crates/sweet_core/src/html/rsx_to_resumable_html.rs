@@ -110,6 +110,6 @@ mod test {
 		expect(RsxToResumableHtml::render_body(
 			&rsx! { <main onclick=on_click></main> },
 		))
-		.to_contain("<main onclick=\"_sweet_event_handler(0, event)\"></main>");
+		.to_contain("<main onclick=\"_sweet_event_handler(0, event)\" data-sweet-id=\"0\"></main>");
 	}
 }

@@ -12,6 +12,7 @@ categories.workspace = true
 keywords.workspace = true
 
 [features]
+fn_traits = [] # allow for fn_traits, ie mock_fn(3);
 bevy = ["dep:bevy"]
 
 [dependencies]
