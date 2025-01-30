@@ -60,7 +60,6 @@ impl RsxNode {
 	pub fn discriminant(&self) -> RsxNodeDiscriminants { self.into() }
 	pub fn is_element(&self) -> bool { matches!(self, RsxNode::Element(_)) }
 
-	#[deprecated = "use iterator"]
 	pub fn children(&self) -> &[RsxNode] {
 		match self {
 			RsxNode::Fragment(rsx_nodes) => rsx_nodes,
@@ -69,7 +68,6 @@ impl RsxNode {
 			_ => &[],
 		}
 	}
-	#[deprecated = "use iterator"]
 	pub fn children_mut(&mut self) -> &mut [RsxNode] {
 		match self {
 			RsxNode::Fragment(rsx_nodes) => rsx_nodes,

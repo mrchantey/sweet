@@ -41,7 +41,7 @@ impl SignalsRsx {
 					let attrs = block();
 					println!(
 						"would update attributes for {}\n{}",
-						cx.element_idx,
+						cx.element_idx(),
 						RsxToHtml::default().map_attribute(&attrs).render()
 					);
 					todo!();
@@ -63,7 +63,7 @@ impl SignalsRsx {
 					let value = block.clone().into_attribute_value();
 					println!(
 						"would update attribute for {}\n{key}: {value}",
-						cx.element_idx
+						cx.element_idx()
 					);
 					todo!();
 				});
