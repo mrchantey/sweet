@@ -58,7 +58,7 @@ impl RsxToHtml {
 			.flatten()
 			.collect::<Vec<_>>();
 
-		if self.mark_needs_id && rsx_el.contains_blocks() {
+		if self.mark_needs_id && rsx_el.contains_rust() {
 			html_attributes.push(HtmlAttribute {
 				key: "needs-id".to_string(),
 				value: None,

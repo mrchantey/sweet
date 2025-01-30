@@ -12,11 +12,11 @@ use web_sys::Event;
 pub struct EventRegistry;
 
 thread_local! {
-	static REGISTERED_EVENTS: RefCell<HashMap<(ElementIndex,String),Box<dyn Fn(JsValue)>>> = Default::default();
+	static REGISTERED_EVENTS: RefCell<HashMap<(ElementIdx,String),Box<dyn Fn(JsValue)>>> = Default::default();
 }
 
 impl EventRegistry {
-	fn trigger(key: &str, el_id: ElementIndex, value: JsValue) {
+	fn trigger(key: &str, el_id: ElementIdx, value: JsValue) {
 		REGISTERED_EVENTS.with(|current| {
 			if let Some(func) = current.borrow().get(&(el_id, key.to_string()))
 			{
@@ -32,7 +32,7 @@ impl EventRegistry {
 	) {
 		REGISTERED_EVENTS.with(|current| {
 			current.borrow_mut().insert(
-				(cx.last_visited_element(), key.to_string()),
+				(cx.element_idx(), key.to_string()),
 				Box::new(move |e: JsValue| {
 					func(e.unchecked_into());
 				}),
@@ -102,8 +102,6 @@ fn hook_up_event_listeners(constants: &HtmlConstants) -> ParseResult<()> {
 		let mut current = current.borrow_mut();
 		let document = window().unwrap().document().unwrap();
 		for ((el_id, key), func) in current.drain() {
-			sweet_utils::log!("hooking up event listener for {}", key);
-
 			let query = format!("[{}='{}']", constants.id_key, el_id);
 
 			let el =
@@ -116,15 +114,15 @@ fn hook_up_event_listeners(constants: &HtmlConstants) -> ParseResult<()> {
 					},
 				)?;
 			el.remove_attribute(&key).unwrap();
-
 			let closure = Closure::wrap(Box::new(move |e: JsValue| {
 				func(e);
 			}) as Box<dyn Fn(JsValue)>);
 			el.add_event_listener_with_callback(
-				&key,
+				&key.replace("on", ""),
 				closure.as_ref().unchecked_ref(),
 			)
 			.unwrap();
+			closure.forget();
 		}
 		Ok(())
 	})

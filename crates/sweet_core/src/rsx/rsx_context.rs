@@ -93,10 +93,8 @@ impl RsxContext {
 				self.block_idx += 1;
 			}
 			RsxNodeDiscriminants::Fragment => {}
-			RsxNodeDiscriminants::Element => {
-				self.child_idx += 1;
-			}
-			RsxNodeDiscriminants::Text
+			RsxNodeDiscriminants::Element
+			| RsxNodeDiscriminants::Text
 			| RsxNodeDiscriminants::Doctype
 			| RsxNodeDiscriminants::Comment => {
 				self.child_idx += 1;
@@ -105,8 +103,8 @@ impl RsxContext {
 		match pos_disc {
 			HtmlElementPositionDiscriminants::LastChild
 			| HtmlElementPositionDiscriminants::OnlyChild => {
-				// self.element_count -= 1;
-				// self.element_idx += 1;
+				// root parent may be a fragment so saturate
+				self.element_count = self.element_count.saturating_sub(1);
 			}
 			_ => {}
 		}
@@ -231,7 +229,7 @@ impl RsxContext {
 		mut map_children: impl FnMut(&mut VecDeque<HtmlElementPosition<T>>, T),
 	) {
 		let mut queue = VecDeque::new();
-		queue.push_back(HtmlElementPosition::MiddleChild(node));
+		queue.push_back(HtmlElementPosition::OnlyChild(node));
 
 
 		while let Some(pos_node) = queue.pop_front() {
@@ -326,12 +324,12 @@ mod test {
 		expect(
 			RsxContext::visit(&rsx! {<div>738</div>}, |_, _| {}).element_count,
 		)
-		.to_be(1);
+		.to_be(0);
 		expect(
 			RsxContext::visit(&rsx! {<div><b>pow</b></div><Child/>}, |_, _| {})
 				.element_count,
 		)
-		.to_be(3);
+		.to_be(0);
 	}
 
 	#[test]
@@ -380,13 +378,13 @@ mod test {
 		expect(&bucket).to_have_returned_nth_with(3, &RsxContext {
 			node_idx: 4,
 			block_idx: 0,
-			element_count: 4,
+			element_count: 3,
 			child_idx: 0,
 		});
 		expect(&bucket).to_have_returned_nth_with(4, &RsxContext {
 			node_idx: 5,
 			block_idx: 0,
-			element_count: 5,
+			element_count: 3,
 			child_idx: 0,
 		});
 	}

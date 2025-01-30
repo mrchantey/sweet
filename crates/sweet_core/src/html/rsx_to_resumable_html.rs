@@ -69,7 +69,7 @@ impl RsxToResumableHtml {
 	fn insert_catch_prehydrated_events(&self, doc: &mut HtmlDocument) {
 		let script = format!(
 			r#"
-			console.log('sweet has loaded')
+// console.log('sweet has loaded')
 globalThis.{prehydrate_events} = []
 globalThis.{event_handler} = (id,event) => globalThis.{prehydrate_events}.push([id, event])
 "#,

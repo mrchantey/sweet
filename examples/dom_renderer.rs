@@ -11,16 +11,19 @@ struct MyComponent {
 impl Component for MyComponent {
 	fn render(self) -> impl Rsx {
 		let (value, set_value) = signal(self.initial);
-
 		let value2 = value.clone();
+		let value3 = value.clone();
+
 		let effect = effect(move || {
 			sweet_utils::log!("value changed to {}", value2());
 		});
 
 		rsx! {
 			<div>
-				<div id="label">the value is {value}</div>
-				<button onclick={move |_| set_value(1)}>increment</button>
+			<div id="label">the value is {value}</div>
+			<button onclick={move |_| {
+				set_value(value3() + 1);
+			}}>increment</button>
 			</div>
 		}
 	}
@@ -39,15 +42,18 @@ fn render() {
 	console_error_panic_hook::set_once();
 
 	let app = || rsx! {<MyComponent initial=7/>};
+	// effects are called on render
 	let doc = RsxToResumableHtml::default().map_node(&app());
 	DomMounter::mount_doc(&doc);
-	sweet_utils::log!("mounted");
+	DomMounter::normalize();
+	// sweet_utils::log!("mounted");
 
-	// give the dom time to run scripts
+	// give the dom time to mount
 	set_timeout_ms(100, move || {
-		sweet_utils::log!("hydrating");
+		// sweet_utils::log!("hydrating");
 		let hydrator = DomHydrator::default();
 		CurrentHydrator::set(hydrator);
+		// effects called here too
 		app().register_effects();
 		EventRegistry::initialize().unwrap();
 	});

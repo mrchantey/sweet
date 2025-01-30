@@ -4,6 +4,7 @@ use wasm_bindgen::JsCast;
 use web_sys::window;
 use web_sys::Document;
 use web_sys::Element;
+use web_sys::Text;
 
 /// A hydrator for working with the dom
 pub struct DomHydrator {
@@ -55,10 +56,10 @@ impl DomHydrator {
 	/// try to get cached element or find it in the dom.
 	/// This also uncollapses the child text nodes
 	fn get_or_find_element(&mut self, cx: &RsxContext) -> ParseResult<Element> {
-		if let Some(Some(el)) = self.elements.get(cx.last_visited_element()) {
+		if let Some(Some(el)) = self.elements.get(cx.element_idx()) {
 			return Ok(el.clone());
 		}
-		let id = cx.last_visited_element();
+		let id = cx.element_idx();
 
 		let query = format!("[{}='{}']", self.constants.id_key, id);
 		if let Some(el) = self.document.query_selector(&query).unwrap() {
@@ -90,19 +91,23 @@ impl DomHydrator {
 
 		for (child_index, positions) in el_cx.split_positions.iter().enumerate()
 		{
-			let child = children.item(child_index as u32).ok_or_else(|| {
-				ParseError::Hydration(format!(
-					"Could not find child at index: {}",
-					child_index
-				))
-			})?;
-			let mut child: web_sys::Text = child.dyn_into().map_err(|_| {
-				ParseError::Hydration(format!(
-					"Could not convert child to text node"
-				))
-			})?;
+			let whole_text_node =
+				children.item(child_index as u32).ok_or_else(|| {
+					ParseError::Hydration(format!(
+						"Could not find child at index: {}",
+						child_index
+					))
+				})?;
+			let mut current_node: web_sys::Text =
+				whole_text_node.dyn_into().map_err(|_| {
+					ParseError::Hydration(format!(
+						"Could not convert child to text node"
+					))
+				})?;
+
 			for position in positions {
-				child = child.split_text(*position as u32).unwrap();
+				current_node =
+					current_node.split_text(*position as u32).unwrap();
 			}
 		}
 
@@ -131,21 +136,27 @@ impl Hydrator for DomHydrator {
 		cx: &RsxContext,
 	) -> ParseResult<()> {
 		let el = self.get_or_find_element(cx)?;
-		let child = el.child_nodes().item(cx.child_index() as u32).ok_or_else(
-			|| ParseError::Hydration("Could not find child".into()),
-		)?;
+		let child =
+			el.child_nodes()
+				.item(cx.child_idx() as u32)
+				.ok_or_else(|| {
+					ParseError::Hydration("Could not find child".into())
+				})?;
 
 		#[allow(unused)]
-		//todo
 		match rsx {
 			RsxNode::Block {
 				initial,
 				register_effect,
 			} => {
-				sweet_utils::log!("element found! {}", el.tag_name());
+				todo!()
 			}
 			RsxNode::Text(val) => {
-				child.set_text_content(Some(&val));
+				if let Some(child) = child.dyn_ref::<Text>() {
+					child.set_text_content(Some(&val));
+				} else {
+					todo!("replace with text node");
+				}
 			}
 			RsxNode::Fragment(vec) => todo!(),
 			RsxNode::Doctype => todo!(),
