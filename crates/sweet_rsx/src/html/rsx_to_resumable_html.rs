@@ -88,7 +88,6 @@ globalThis.{event_handler} = (id,event) => globalThis.{prehydrate_events}.push([
 #[cfg(test)]
 mod test {
 	use crate::prelude::*;
-	use sweet_rsx_macros::rsx;
 	use sweet_test::prelude::*;
 
 	#[test]

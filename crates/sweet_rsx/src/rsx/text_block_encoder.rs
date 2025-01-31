@@ -221,7 +221,6 @@ impl TextBlockPosition {
 mod test {
 	use super::*;
 	use crate::prelude::*;
-	use sweet_rsx_macros::rsx;
 
 	struct Adjective;
 	impl Component for Adjective {

@@ -96,7 +96,6 @@ impl RsxContextMap {
 #[cfg(test)]
 mod test {
 	use crate::prelude::*;
-	use sweet_rsx_macros::rsx;
 	use sweet_test::prelude::*;
 
 	#[test]
