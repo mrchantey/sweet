@@ -1769,9 +1769,9 @@ version = "0.3.0-rc.3"
 dependencies = [
  "console_error_panic_hook",
  "console_log",
- "getrandom",
  "js-sys",
  "sweet",
+ "sweet_bevy",
  "sweet_fs",
  "sweet_test",
  "sweet_utils",
@@ -1788,6 +1788,19 @@ dependencies = [
  "anyhow",
  "clap",
  "sweet",
+]
+
+[[package]]
+name = "sweet_bevy"
+version = "0.3.0-rc.3"
+dependencies = [
+ "anyhow",
+ "bevy",
+ "extend",
+ "js-sys",
+ "sweet_test",
+ "sweet_utils",
+ "sweet_web",
 ]
 
 [[package]]
@@ -1822,7 +1835,6 @@ dependencies = [
  "extend",
  "flume",
  "futures",
- "getrandom",
  "glob",
  "js-sys",
  "log",

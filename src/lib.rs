@@ -1,3 +1,5 @@
+#[cfg(feature = "bevy")]
+pub use sweet_bevy as bevy;
 #[cfg(feature = "fs")]
 pub use sweet_fs as fs;
 #[cfg(feature = "test")]
@@ -14,6 +16,8 @@ pub use sweet_utils::noop;
 pub use sweet_web as web;
 
 pub mod prelude {
+	#[cfg(feature = "bevy")]
+	pub use sweet_bevy::prelude::*;
 	#[cfg(feature = "fs")]
 	pub use sweet_fs::prelude::*;
 	#[cfg(feature = "test")]

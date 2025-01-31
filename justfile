@@ -51,6 +51,7 @@ test-all *args:
 	cargo test -p sweet_test --test hello_async --target wasm32-unknown-unknown -- {{args}}
 	cargo test -p sweet_test --test single_async --target wasm32-unknown-unknown -- {{args}}
 	cargo test -p sweet_test --target wasm32-unknown-unknown -- {{args}}
+	cargo test -p sweet_bevy --target wasm32-unknown-unknown -- {{args}}
 	cargo test -p sweet_web  --target wasm32-unknown-unknown -- {{args}}
 
 expand-wasm test *args:
