@@ -20,13 +20,6 @@ run-wasm crate example *args:
 	just watch 'cargo run -p {{crate}} --example {{example}} --target wasm32-unknown-unknown {{args}}'
 
 
-wasm-example:
-	forky serve | \
-	just watch 'just build-wasm sweet dom_renderer'
-# forky watch \
-# -w target/wasm \
-# -w index.html \
-# just build-wasm sweet dom_renderer
 
 clean-analyzer:
 	rm -rf $CARGO_TARGET_DIR/rust-analyzer
@@ -64,10 +57,7 @@ expand test *args:
 
 # order matters
 publish-all:
-	just publish sweet_rsx_parser		| true
-	just publish sweet_rsx_macros		| true
-	just publish sweet_rsx					| true
-	just publish sweet_server				| true
+	just publish sweet_utils				| true
 	just publish sweet_test_macros	| true
 	just publish sweet_test					| true
 	just publish sweet 							| true
@@ -89,5 +79,3 @@ build-wasm crate example *args:
 watch *command:
 	forky watch --rusty	-- {{command}}
 
-expand-rsx:
-	just watch cargo expand -p sweet_rsx --example rsx_macro
