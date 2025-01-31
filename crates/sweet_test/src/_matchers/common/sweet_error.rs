@@ -10,6 +10,20 @@ use crate::prelude::*;
 /// The magic of sweet matchers lies here in the bactrace building.
 /// It is absolutely critical to respect call site depth when building
 /// a SweetError, or the emitted frame will be at the wrong depth.
+///
+/// # Important
+///
+/// Compiler optimizations can cause the backtrace to be incorrect.
+/// if optimizing dev or test profiles for some packages, at least the
+/// following must be unoptimized:
+///
+/// ```toml
+/// # Cargo.toml
+/// [profile.test]
+/// opt-level = 0
+/// [profile.test.package.sweet_test]
+/// opt-level = 0
+/// ```
 #[derive(Debug, Clone)]
 pub struct SweetError {
 	pub message: String,
@@ -54,15 +68,10 @@ impl SweetError {
 	}
 
 	/// Must be called at [`SweetError::BACKTRACE_LEVEL_1`]
+	/// This only works with both `sweet_test` and the crate
+	/// entirely unoptimized.
 	pub fn panic(message: impl Into<String>) -> ! {
-		// it doesnt matter where the panic call site is
-		// because we use this to panic from the matcher
-		// wasm users will get callsite of the test entry
-		// #[cfg(feature = "internal")]
-		// let backtrace_level = 4;
-		let backtrace_level = Self::BACKTRACE_LEVEL_5;
-		// #[cfg(not(feature = "internal"))]
-		// let backtrace_level = Self::BACKTRACE_LEVEL_5 - 1;
+		let backtrace_level = 5;
 
 		std::panic::panic_any(Self::new(message, backtrace_level));
 	}
@@ -87,10 +96,6 @@ impl SweetError {
 
 	pub fn backtrace_str(&self) -> Result<String> {
 		let frame = self.assertion_frame()?;
-		// let depth = self.assertion_depth;
-		// while depth
-
-
 		BacktraceLocation::from_unresolved_frame(&frame)?.file_context()
 	}
 }

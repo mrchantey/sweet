@@ -21,7 +21,7 @@ mod test {
 	#[test]
 	fn equality() {
 		expect(true).to_be(true);
-		expect(true).to_be(true);
+		expect(false).to_be(false);
 		expect(true).not().to_be(false);
 	}
 }

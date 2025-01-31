@@ -54,8 +54,6 @@ fn wrap_func_inner(func: &ItemFn) -> syn::Result<TokenStream> {
 					"async test functions must return Unit or Result",
 				));
 			}
-			// println!("RFSDDSSD {}", ty);
-			// let ty = ty.to_token_stream();
 			Ok(quote! {
 				async fn inner() -> Result<(),String> {
 					let result:#ty = async #body.await;

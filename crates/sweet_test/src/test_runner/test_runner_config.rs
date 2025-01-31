@@ -15,7 +15,6 @@ extern crate test;
 /// - [cargo test cli args](https://doc.rust-lang.org/cargo/commands/cargo-test.html),
 /// - [libtest cli args](https://doc.rust-lang.org/rustc/tests/index.html)
 ///
-/// perhaps with some inverse defaults, ie `--capture` over `--nocapture`.
 #[derive(Debug, Default, Clone, Parser)]
 pub struct TestRunnerConfig {
 	/// A glob pattern to match test names against, by default these are wrapped in stars
@@ -31,6 +30,10 @@ pub struct TestRunnerConfig {
 	#[arg(long)]
 	/// Runs both ignored and non-ignored tests.
 	pub include_ignored: bool,
+	#[arg(long)]
+	// /// Do not silence stdout
+	// not yet supported
+	// pub nocapture: bool,
 	#[arg(long)]
 	/// Excludes tests marked with the [should_panic](test::should_panic) attribute.
 	pub exclude_should_panic: bool,

@@ -60,6 +60,8 @@ publish-all:
 	just publish sweet_utils				| true
 	just publish sweet_test_macros	| true
 	just publish sweet_test					| true
+	just publish sweet_fs						| true
+	just publish sweet_web					| true
 	just publish sweet 							| true
 	just publish sweet-cli					| true
 
