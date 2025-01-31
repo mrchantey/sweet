@@ -11,12 +11,12 @@ members = [
 ]
 
 [workspace.package]
-version = "0.3.0-rc.2"
+version = "0.3.0-rc.3"
 edition = "2021"
 license = "MIT OR Apache-2.0"
 authors = ["Peter Hayman <peteyhayman@gmail.com>"]
 readme = "README.md"
-description = "Sweet cross-platform rust dev tools"
+description = "Cross-platform utilities and dev tools"
 documentation = "https://docs.rs/sweet"
 repository = "https://github.com/mrchantey/sweet"
 categories = [
@@ -29,12 +29,12 @@ categories = [
 keywords = ["full-stack", "browser", "web", "test", "e2e"]
 
 [workspace.dependencies]
-sweet = { path = "", version = "0.3.0-rc.2" }
-sweet_fs = { path = "crates/sweet_fs", version = "0.3.0-rc.2" }
-sweet_test = { path = "crates/sweet_test", version = "0.3.0-rc.2" }
-sweet_test_macros = { path = "crates/sweet_test/macros", version = "0.3.0-rc.2" }
-sweet_web = { path = "crates/sweet_web", version = "0.3.0-rc.2" }
-sweet_utils = { path = "crates/sweet_utils", version = "0.3.0-rc.2" }
+sweet = { path = "", version = "0.3.0-rc.3" }
+sweet_fs = { path = "crates/sweet_fs", version = "0.3.0-rc.3" }
+sweet_test = { path = "crates/sweet_test", version = "0.3.0-rc.3" }
+sweet_test_macros = { path = "crates/sweet_test/macros", version = "0.3.0-rc.3" }
+sweet_web = { path = "crates/sweet_web", version = "0.3.0-rc.3" }
+sweet_utils = { path = "crates/sweet_utils", version = "0.3.0-rc.3" }
 
 #💡 utility
 log = "0.4"

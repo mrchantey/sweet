@@ -3,12 +3,11 @@ use colorize::*;
 use std::sync::Arc;
 use std::time::Duration;
 use test::TestDescAndFn;
+use web_time::Instant;
+
 
 pub struct RunnerLogger {
-	#[cfg(not(target_arch = "wasm32"))]
-	start_time: std::time::Instant,
-	#[cfg(target_arch = "wasm32")]
-	start_time: f64,
+	start_time: Instant,
 	case_logger: CaseLoggerEnum,
 	config: Arc<TestRunnerConfig>,
 	cases: Vec<TestDescAndResult>,
@@ -37,26 +36,11 @@ impl RunnerLogger {
 			sweet_utils::log!("\n{}\n\n{config}", Self::SWEET_AS)
 		}
 
-		#[cfg(not(target_arch = "wasm32"))]
-		{
-			Self {
-				start_time: std::time::Instant::now(),
-				cases: Vec::new(),
-				case_logger,
-				config,
-			}
-		}
-		#[cfg(target_arch = "wasm32")]
-		{
-			let start_time =
-				web_sys::window().unwrap().performance().unwrap().now();
-
-			Self {
-				start_time,
-				case_logger,
-				cases: Vec::new(),
-				config,
-			}
+		Self {
+			start_time: Instant::now(),
+			cases: Vec::new(),
+			case_logger,
+			config,
 		}
 	}
 	pub fn on_result(&mut self, mut result: TestDescAndResult) -> Result<()> {
@@ -65,17 +49,6 @@ impl RunnerLogger {
 		}
 		self.cases.push(result);
 		Ok(())
-	}
-
-	/// Total duration of all tests run
-	fn duration(&self) -> Duration {
-		#[cfg(not(target_arch = "wasm32"))]
-		return self.start_time.elapsed();
-		#[cfg(target_arch = "wasm32")]
-		return Duration::from_millis(
-			(web_sys::window().unwrap().performance().unwrap().now()
-				- self.start_time) as u64,
-		);
 	}
 
 	/// Finalize outputs and exit with code 1 if failed
@@ -115,7 +88,7 @@ impl RunnerLogger {
 		// post_run.push('\n');
 		post_run += results.pretty_print("Tests").as_str();
 		post_run.push('\n');
-		post_run += print_time(self.duration()).as_str();
+		post_run += print_time(self.start_time.elapsed()).as_str();
 		post_run
 	}
 }

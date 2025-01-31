@@ -154,7 +154,7 @@ impl FsWatcher {
 						path.to_str().unwrap_or("")
 					)
 				}
-				on_change(path.to_str().ok()?)?;
+				on_change(path.to_str().or_err()?)?;
 				// now after on_change in case its long
 				*last_run2 = Instant::now();
 				changed = true;

@@ -1,21 +1,21 @@
 use crate::matchers::*;
-use sweet_web::prelude::*;
-use web_sys::*;
+// use sweet_web::prelude::*;
+use web_sys::HtmlElement;
 
 impl<T> Matcher<T>
 where
 	T: AsRef<HtmlElement>,
 {
-	pub fn get(&self, selector: &str) -> Matcher<HtmlElement> {
-		let parent = self.value.as_ref();
-		// let expected = format!(
-		// 	"element {} to contain selector '{selector}'",
-		// 	parent.tag_name()
-		// );
-		let received = parent.x_query_selector::<HtmlElement>(selector);
-		self.assert_option_with_received_negatable(received.clone());
-		Matcher::new(received.unwrap())
-	}
+	// pub fn get(&self, selector: &str) -> Matcher<HtmlElement> {
+	// 	let parent = self.value.as_ref();
+	// 	// let expected = format!(
+	// 	// 	"element {} to contain selector '{selector}'",
+	// 	// 	parent.tag_name()
+	// 	// );
+	// 	let received = parent.x_query_selector::<HtmlElement>(selector);
+	// 	self.assert_option_with_received_negatable(received.clone());
+	// 	Matcher::new(received.unwrap())
+	// }
 
 	pub fn to_contain_text(&self, other: &str) {
 		let receive = self.value.as_ref().text_content().unwrap_or_default();

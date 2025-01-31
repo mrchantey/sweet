@@ -1798,7 +1798,7 @@ checksum = "7da8b5736845d9f2fcb837ea5d9e2628564b3b043a70948a3f0b778838c5fb4f"
 
 [[package]]
 name = "sweet"
-version = "0.3.0-rc.2"
+version = "0.3.0-rc.3"
 dependencies = [
  "console_error_panic_hook",
  "console_log",
@@ -1816,7 +1816,7 @@ dependencies = [
 
 [[package]]
 name = "sweet-cli"
-version = "0.3.0-rc.2"
+version = "0.3.0-rc.3"
 dependencies = [
  "anyhow",
  "clap",
@@ -1825,7 +1825,7 @@ dependencies = [
 
 [[package]]
 name = "sweet_fs"
-version = "0.3.0-rc.2"
+version = "0.3.0-rc.3"
 dependencies = [
  "anyhow",
  "clap",
@@ -1843,7 +1843,7 @@ dependencies = [
 
 [[package]]
 name = "sweet_test"
-version = "0.3.0-rc.2"
+version = "0.3.0-rc.3"
 dependencies = [
  "anyhow",
  "backtrace",
@@ -1866,17 +1866,17 @@ dependencies = [
  "sweet_fs",
  "sweet_test_macros",
  "sweet_utils",
- "sweet_web",
  "thread_local",
  "tokio",
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
+ "web-time",
 ]
 
 [[package]]
 name = "sweet_test_macros"
-version = "0.3.0-rc.2"
+version = "0.3.0-rc.3"
 dependencies = [
  "anyhow",
  "proc-macro2",
@@ -1886,7 +1886,7 @@ dependencies = [
 
 [[package]]
 name = "sweet_utils"
-version = "0.3.0-rc.2"
+version = "0.3.0-rc.3"
 dependencies = [
  "anyhow",
  "extend",
@@ -1901,7 +1901,7 @@ dependencies = [
 
 [[package]]
 name = "sweet_web"
-version = "0.3.0-rc.2"
+version = "0.3.0-rc.3"
 dependencies = [
  "anyhow",
  "console_error_panic_hook",

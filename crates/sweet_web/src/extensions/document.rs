@@ -15,7 +15,11 @@ pub impl Document {
 	async fn x_await_load_by_id(id: &str) -> anyhow::Result<()> {
 		HtmlEventListener::wait_with_target(
 			"load",
-			Self::get().get_element_by_id(id).ok()?.dyn_into().unwrap(),
+			Self::get()
+				.get_element_by_id(id)
+				.or_err()?
+				.dyn_into()
+				.unwrap(),
 		)
 		.await;
 		Ok(())

@@ -1,7 +1,5 @@
 use crate::test_runner::*;
 use anyhow::Result;
-use glob::Pattern;
-use sweet_web::prelude::SearchParams;
 
 impl TestRunnerConfig {
 	pub fn from_deno_args() -> Result<Self> {
@@ -17,19 +15,17 @@ impl TestRunnerConfig {
 		Ok(Self::from_raw_args(args.into_iter()))
 	}
 
+	// pub fn from_search_params() -> Self {
+	// 	const FILTERS_KEY: &str = "f";
+	// 	let quiet = SearchParams::get_flag("quiet");
 
-
-	pub fn from_search_params() -> Self {
-		const FILTERS_KEY: &str = "f";
-		let quiet = SearchParams::get_flag("quiet");
-
-		let filters = SearchParams::get_all(FILTERS_KEY)
-			.iter()
-			.map(|f| Pattern::new(&format!("*{f}*")).unwrap())
-			.collect::<Vec<_>>();
-		let mut config = Self::default();
-		config.filters = filters;
-		config.quiet = quiet;
-		config
-	}
+	// 	let filters = SearchParams::get_all(FILTERS_KEY)
+	// 		.iter()
+	// 		.map(|f| Pattern::new(&format!("*{f}*")).unwrap())
+	// 		.collect::<Vec<_>>();
+	// 	let mut config = Self::default();
+	// 	config.filters = filters;
+	// 	config.quiet = quiet;
+	// 	config
+	// }
 }
