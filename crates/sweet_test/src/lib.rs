@@ -58,8 +58,6 @@ pub mod test_case;
 pub mod wasm;
 
 pub mod prelude {
-	#[cfg(target_arch = "wasm32")]
-	pub use crate as sweet;
 	pub use crate::backtrace::*;
 	#[cfg(feature = "bevy")]
 	pub use crate::bevy::*;
