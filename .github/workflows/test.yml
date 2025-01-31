@@ -48,7 +48,6 @@ jobs:
         default: true
     - name: 🔨 Add wasm target
       run: rustup target add wasm32-unknown-unknown
-        # components: rustfmt, clippy
     - name: 🔨 Install wasm bindgen cli
       run: which wasm-bindgen || cargo install wasm-bindgen-cli --version 0.2.99
     - name: 🔨 Install Deno

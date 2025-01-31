@@ -1,4 +1,3 @@
-use super::*;
 use crate::*;
 use js_sys::Function;
 use js_sys::Promise;
@@ -15,7 +14,7 @@ use web_sys::Event;
 use web_sys::EventTarget;
 
 pub struct HtmlEventListenerInner<T> {
-	closure: FnClosure<T>,
+	closure: Closure<dyn FnMut(T)>,
 	target: EventTarget,
 	name: &'static str,
 }

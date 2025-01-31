@@ -29,13 +29,18 @@ clean-analyzer:
 test-cli *args:
 	just watch 'cargo test -p sweet-cli --lib -- --watch {{args}}'
 
+
+# could possibly be a cli command
 test crate *args:
 	just watch 'cargo test -p {{crate}} --lib -- --watch {{args}}'
-test-wasm crate *args:
-	just watch 'cargo test -p {{crate}} --lib --target wasm32-unknown-unknown -- --watch {{args}}'
 test-e2e crate test_name *args:
 	just watch 'cargo test -p {{crate}} --test {{test_name}} -- --watch {{args}}'
-
+test-feat crate *args:
+	just watch 'cargo test -p {{crate}} --lib --all-features -- {{args}}'
+test-wasm crate *args:
+	just watch 'cargo test -p {{crate}} --lib --target wasm32-unknown-unknown -- --watch {{args}}'
+test-wasm-feat crate *args:
+	just watch 'cargo test -p {{crate}} --lib --target wasm32-unknown-unknown --all-features -- {{args}}'
 test-wasm-e2e crate test_name *args:
 	just watch 'cargo test -p {{crate}} --test {{test_name}} --target wasm32-unknown-unknown -- --watch {{args}}'
 

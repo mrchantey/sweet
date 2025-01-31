@@ -44,12 +44,14 @@ impl<T> PanicStoreOut<Result<T, JsValue>> {
 				result_tx.send(result).expect("channel was dropped");
 			}
 			PanicStoreOut::NoPanic(Err(err)) => {
-				let test_result = TestResult::from_test_result(
-					Err(err
-						.as_string()
-						.expect("all test errors should be strings")),
-					desc,
-				);
+				let err = if err.is_string() {
+					err.as_string().unwrap()
+				} else {
+					format!("{:?}", err)
+				};
+
+
+				let test_result = TestResult::from_test_result(Err(err), desc);
 				result_tx
 					.send(TestDescAndResult::new(desc.clone(), test_result))
 					.expect("channel was dropped");
