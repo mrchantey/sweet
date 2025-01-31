@@ -1,7 +1,7 @@
+use crate::prelude::*;
 use proc_macro2::TokenStream;
 use quote::quote;
 use quote::ToTokens;
-use sweet_core::tokens::RsxRustTokens;
 
 pub enum RsxNodeTokens<T> {
 	Phantom(std::marker::PhantomData<T>),

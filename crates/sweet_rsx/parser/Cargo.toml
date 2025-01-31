@@ -1,5 +1,5 @@
 [package]
-name = "sweet_rsx_macros"
+name = "sweet_rsx_parser"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -11,23 +11,24 @@ repository.workspace = true
 categories.workspace = true
 keywords.workspace = true
 
-[features]
-default = ["signals"]
-signals = []
-
-[lib]
-proc-macro = true
 
 [dependencies]
-sweet_rsx_parser.workspace = true
-syn.workspace = true
-quote.workspace = true
-proc-macro2.workspace = true
+sweet_utils.workspace = true
 anyhow.workspace = true
 
+syn = { workspace = true, features = ["visit"] }
+quote.workspace = true
+prettyplease.workspace = true
+proc-macro2.workspace = true
 rstml = { version = "0.12", features = ["rawtext-stable-hack"] }
 proc-macro2-diagnostics = "0.10"
 
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+web-sys.workspace = true
 
 [dev-dependencies]
-sweet = { workspace = true, features = ["test"] }
+sweet_test.workspace = true
+sweet_rsx_macros.workspace = true
+
+[target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
+forky = { workspace = true, features = ["fs"] }

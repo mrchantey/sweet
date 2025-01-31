@@ -34,17 +34,4 @@ impl StringRsx {
 			value: block.clone().into_attribute_value(),
 		}
 	}
-
-}
-
-#[cfg(feature = "tokens")]
-use proc_macro2::TokenStream;
-#[cfg(feature = "tokens")]
-use quote::quote;
-
-#[cfg(feature = "tokens")]
-impl crate::prelude::RsxRustTokens for StringRsx {
-	fn ident() -> TokenStream {
-		quote! {sweet::string_rsx::StringRsx}
-	}
 }

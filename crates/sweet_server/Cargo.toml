@@ -17,8 +17,6 @@ keywords.workspace = true
 thiserror.workspace = true
 anyhow.workspace = true
 flume.workspace = true
-sweet_core.workspace = true
-
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 forky = { workspace = true, features = ["fs"] }

@@ -5,8 +5,8 @@
 #[cfg(not(target_arch = "wasm32"))]
 mod test {
 	use forky::prelude::*;
-	use sweet_core::string_rsx::StringRsx;
-	use sweet_rsx::prelude::*;
+	use sweet_rsx::string_rsx::StringRsx;
+	use sweet_rsx_parser::prelude::*;
 	use sweet_test::prelude::*;
 
 	#[test]

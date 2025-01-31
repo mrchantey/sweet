@@ -52,8 +52,3 @@ impl From<&str> for ParseError {
 impl From<std::num::ParseIntError> for ParseError {
 	fn from(e: std::num::ParseIntError) -> Self { Self::Other(e.to_string()) }
 }
-
-#[cfg(feature = "serde")]
-impl From<bincode::Error> for ParseError {
-	fn from(e: bincode::Error) -> Self { Self::Serde(e.to_string()) }
-}

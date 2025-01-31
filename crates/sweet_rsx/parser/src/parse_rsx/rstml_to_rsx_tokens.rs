@@ -13,7 +13,7 @@ use rstml::node::NodeFragment;
 use rstml::node::NodeName;
 use std::collections::HashMap;
 use std::collections::HashSet;
-use sweet_core::tokens::RsxRustTokens;
+use crate::prelude::*;
 use syn::spanned::Spanned;
 
 #[derive(Debug, Clone)]

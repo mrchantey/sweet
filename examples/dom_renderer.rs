@@ -1,8 +1,7 @@
-use sweet_core as sweet;
-use sweet_core::prelude::*;
-use sweet_core::signals_rsx::effect;
-use sweet_core::signals_rsx::signal;
-use sweet_rsx_macros::rsx;
+use sweet_rsx as sweet;
+use sweet_rsx::prelude::*;
+use sweet_rsx::signals_rsx::effect;
+use sweet_rsx::signals_rsx::signal;
 
 struct MyComponent {
 	initial: u32,

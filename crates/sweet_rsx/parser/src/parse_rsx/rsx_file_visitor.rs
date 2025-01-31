@@ -1,5 +1,4 @@
 use crate::prelude::*;
-use sweet_core::tokens::RsxRustTokens;
 use syn::visit_mut;
 use syn::visit_mut::VisitMut;
 

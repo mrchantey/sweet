@@ -1,6 +1,5 @@
-use sweet_core as sweet;
-use sweet_core::prelude::*;
-use sweet_rsx_macros::rsx;
+use sweet_rsx as sweet;
+use sweet_rsx::prelude::*;
 
 /// its my component
 struct MyComponent {

@@ -161,23 +161,6 @@ mod test {
 	}
 
 	#[test]
-	fn component() {
-		struct Child {
-			value: u32,
-		}
-		impl Component for Child {
-			fn render(self) -> impl Rsx {
-				rsx! {
-					<div>{self.value}</div>
-				}
-			}
-		}
-		expect(RsxToHtml::render_body(&rsx! { <Child value=7/> }))
-			.to_be("<div>7</div>");
-	}
-
-
-	#[test]
 	fn nested() {
 		let world = "mars";
 		expect(RsxToHtml::render_body(&rsx! {
@@ -197,5 +180,65 @@ mod test {
 			</div>
 		}))
 		.to_be("<div onclick=\"needs-event-cx\"><p>hello mars</p></div>");
+	}
+
+	#[test]
+	fn component_props() {
+		struct Child {
+			value: usize,
+		}
+		impl Component for Child {
+			fn render(self) -> impl Rsx {
+				rsx! {<p>hello {self.value}</p>}
+			}
+		}
+		let node = rsx! {<div> the child is <Child value=38/>! </div>};
+
+		expect(RsxToHtml::render_body(&node))
+			.to_be("<div> the child is <p>hello 38</p>! </div>");
+	}
+	#[test]
+	fn component_children() {
+		struct Layout;
+		impl Component for Layout {
+			fn render(self) -> impl Rsx {
+				rsx! {
+					<div>
+						<h1>welcome</h1>
+						<p><slot/></p>
+					</div>
+				}
+			}
+		}
+		let node = rsx! {<Layout><b>foo</b></Layout>};
+
+		expect(RsxToHtml::render_body(&node))
+			.to_be("<div><h1>welcome</h1><p><b>foo</b></p></div>");
+	}
+	#[test]
+	fn component_slots() {
+		struct Layout;
+		impl Component for Layout {
+			fn render(self) -> impl Rsx {
+				rsx! {
+					<article>
+						<h1>welcome</h1>
+						<p><slot name="tagline"/></p>
+						<main>
+							<slot/>
+						</main>
+					</article>
+				}
+			}
+		}
+		let node = rsx! {
+			<Layout>
+				<b slot="tagline">what a cool article</b>
+				<div>direct child</div>
+			</Layout>
+		};
+
+		expect(RsxToHtml::render_body(&node))
+			.to_be("<article><h1>welcome</h1><p><b>what a cool article</b></p><main><div>direct child</div></main></article>");
 	}
 }

@@ -72,18 +72,6 @@ impl SignalsRsx {
 	}
 }
 
-// yes it looks right but i think these types will always be the same
-#[cfg(feature = "tokens")]
-use proc_macro2::TokenStream;
-#[cfg(feature = "tokens")]
-use quote::quote;
-
-#[cfg(feature = "tokens")]
-impl RsxRustTokens for SignalsRsx {
-	fn ident() -> TokenStream {
-		quote! {sweet::signals_rsx::SignalsRsx}
-	}
-}
 
 #[cfg(test)]
 mod test {

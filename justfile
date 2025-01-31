@@ -64,7 +64,7 @@ expand test *args:
 
 # order matters
 publish-all:
-	just publish sweet_core					| true
+	just publish sweet_rsx_parser		| true
 	just publish sweet_rsx_macros		| true
 	just publish sweet_rsx					| true
 	just publish sweet_server				| true

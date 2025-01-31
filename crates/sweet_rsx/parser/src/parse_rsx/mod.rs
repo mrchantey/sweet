@@ -2,7 +2,9 @@ mod rsx_node_tokens;
 pub mod tokens_to_rstml;
 #[allow(unused_imports)]
 pub use self::tokens_to_rstml::*;
+mod rsx_rust_tokens;
 pub use rsx_node_tokens::*;
+pub use rsx_rust_tokens::*;
 pub mod rsx_file_visitor;
 #[allow(unused_imports)]
 pub use self::rsx_file_visitor::*;
@@ -10,7 +12,6 @@ pub mod rstml_to_rsx_tokens;
 #[allow(unused_imports)]
 pub use self::rstml_to_rsx_tokens::*;
 use proc_macro2::TokenStream;
-use sweet_core::tokens::RsxRustTokens;
 use syn::visit_mut::VisitMut;
 use syn::Expr;
 use syn::File;
@@ -103,89 +104,5 @@ pub fn macro_or_err(expr: &Expr) -> syn::Result<&syn::Macro> {
 		Ok(&mac.mac)
 	} else {
 		Err(syn::Error::new_spanned(expr, "expected macro"))
-	}
-}
-#[cfg(test)]
-mod test {
-	use sweet_core::prelude::*;
-	use sweet_core::rsx::Component;
-	use sweet_core::{
-		self as sweet,
-	};
-	use sweet_rsx_macros::rsx;
-	use sweet_test::prelude::*;
-
-	#[test]
-	fn compiles() {
-		let onclick = |_| {};
-		let world = "mars";
-		let _rsx = rsx! {<div onclick=onclick><p>hello {world}</p></div>};
-	}
-	#[test]
-	fn render_html() {
-		let onclick = |_| {};
-		let node = rsx! {<div onclick=onclick> the value is {3} </div>};
-
-		expect(RsxToHtml::render_body(&node))
-			.to_be("<div onclick=\"needs-event-cx\"> the value is 3</div>");
-	}
-	#[test]
-	fn component_props() {
-		struct Child {
-			value: usize,
-		}
-		impl Component for Child {
-			fn render(self) -> impl Rsx {
-				rsx! {<p>hello {self.value}</p>}
-			}
-		}
-		let node = rsx! {<div> the child is <Child value=38/>! </div>};
-
-		expect(RsxToHtml::render_body(&node))
-			.to_be("<div> the child is <p>hello 38</p>! </div>");
-	}
-	#[test]
-	fn component_children() {
-		struct Layout;
-		impl Component for Layout {
-			fn render(self) -> impl Rsx {
-				rsx! {
-					<div>
-						<h1>welcome</h1>
-						<p><slot/></p>
-					</div>
-				}
-			}
-		}
-		let node = rsx! {<Layout><b>foo</b></Layout>};
-
-		expect(RsxToHtml::render_body(&node))
-			.to_be("<div><h1>welcome</h1><p><b>foo</b></p></div>");
-	}
-	#[test]
-	fn component_slots() {
-		struct Layout;
-		impl Component for Layout {
-			fn render(self) -> impl Rsx {
-				rsx! {
-					<article>
-						<h1>welcome</h1>
-						<p><slot name="tagline"/></p>
-						<main>
-							<slot/>
-						</main>
-					</article>
-				}
-			}
-		}
-		let node = rsx! {
-			<Layout>
-				<b slot="tagline">what a cool article</b>
-				<div>direct child</div>
-			</Layout>
-		};
-
-		expect(RsxToHtml::render_body(&node))
-			.to_be("<article><h1>welcome</h1><p><b>what a cool article</b></p><main><div>direct child</div></main></article>");
 	}
 }

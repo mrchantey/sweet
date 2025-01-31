@@ -1,11 +1,9 @@
 [workspace]
 resolver = "2" # Important! wgpu/Bevy needs this!
 members = [
-	"crates/sweet_bevy",
-	"crates/sweet_core",
 	"crates/sweet_rsx",
+	"crates/sweet_rsx/parser",
 	"crates/sweet_rsx/macros",
-	"crates/sweet_leptos",
 	"crates/sweet_server",
 	"crates/sweet_site",
 	"crates/sweet_utils",
@@ -35,12 +33,10 @@ keywords = ["full-stack", "browser", "web", "test", "e2e"]
 [workspace.dependencies]
 # dont specify version to allow it to be included as a dev dependency but ignored by cargo publish
 sweet = { path = "" }
-sweet_bevy = { path = "crates/sweet_bevy", version = "0.3.0-rc.2" }
-sweet_core = { path = "crates/sweet_core", version = "0.3.0-rc.2" }
-sweet_utils = { path = "crates/sweet_utils", version = "0.3.0-rc.2" }
-sweet_leptos = { path = "crates/sweet_leptos", version = "0.3.0-rc.2" }
 sweet_rsx = { path = "crates/sweet_rsx", version = "0.3.0-rc.2" }
+sweet_rsx_parser = { path = "crates/sweet_rsx/parser", version = "0.3.0-rc.2" }
 sweet_rsx_macros = { path = "crates/sweet_rsx/macros", version = "0.3.0-rc.2" }
+sweet_utils = { path = "crates/sweet_utils", version = "0.3.0-rc.2" }
 sweet_server = { path = "crates/sweet_server", version = "0.3.0-rc.2" }
 sweet_test = { path = "crates/sweet_test", version = "0.3.0-rc.2" }
 sweet_test_macros = { path = "crates/sweet_test/macros", version = "0.3.0-rc.2" }
@@ -170,11 +166,8 @@ categories.workspace = true
 keywords.workspace = true
 
 [features]
-default = ["core", "macros"]
+default = ["rsx"]
 # default = ["server", "rsx", "macros", "render"]
-
-core = ["dep:sweet_core"]
-macros = ["dep:sweet_rsx_macros"]
 rsx = ["dep:sweet_rsx"]
 server = ["dep:sweet_server"]
 bevy = ["sweet_test?/bevy"]
@@ -182,10 +175,8 @@ test = ["dep:sweet_test"]
 
 [dependencies]
 sweet_utils.workspace = true
-sweet_core = { workspace = true, optional = true }
 sweet_test = { workspace = true, optional = true }
 sweet_rsx = { workspace = true, optional = true }
-sweet_rsx_macros = { workspace = true, optional = true }
 sweet_server = { workspace = true, optional = true }
 
 # [examples]
