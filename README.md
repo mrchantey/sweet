@@ -17,7 +17,7 @@
     <!-- <span> | </span> -->
     <a href="https://docs.rs/sweet">API Docs</a>
     <!-- <span> | </span> -->
-    <!-- <a href="https://mrchantey.github.io/forky/docs/other/contributing.html">Contributing</a> -->
+    <!-- <a href="https://mrchantey.github.io/sweet/docs/other/contributing.html">Contributing</a> -->
   </h3>
 
   <sub>made with ❤️‍🔥 by mrchantey</a></sub>

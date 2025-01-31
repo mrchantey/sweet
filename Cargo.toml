@@ -1,10 +1,12 @@
 [workspace]
 resolver = "2" # Important! wgpu/Bevy needs this!
 members = [
-	"crates/sweet_site",
-	"crates/sweet_utils",
+	"crates/sweet_fs",
+	# "crates/sweet_site",
 	"crates/sweet_test/macros",
 	"crates/sweet_test",
+	"crates/sweet_utils",
+	"crates/sweet_web",
 	"crates/sweet-cli",
 ]
 
@@ -14,8 +16,8 @@ edition = "2021"
 license = "MIT OR Apache-2.0"
 authors = ["Peter Hayman <peteyhayman@gmail.com>"]
 readme = "README.md"
-description = "Delightful Rust testing"
-documentation = "https://mrchantey.github.io/forky/docs"
+description = "Sweet cross-platform rust dev tools"
+documentation = "https://docs.rs/sweet"
 repository = "https://github.com/mrchantey/sweet"
 categories = [
 	"compilers",
@@ -27,16 +29,12 @@ categories = [
 keywords = ["full-stack", "browser", "web", "test", "e2e"]
 
 [workspace.dependencies]
-# dont specify version to allow it to be included as a dev dependency but ignored by cargo publish
-sweet = { path = "" }
-sweet_utils = { path = "crates/sweet_utils", version = "0.3.0-rc.2" }
+sweet = { path = "", version = "0.3.0-rc.2" }
+sweet_fs = { path = "crates/sweet_fs", version = "0.3.0-rc.2" }
 sweet_test = { path = "crates/sweet_test", version = "0.3.0-rc.2" }
 sweet_test_macros = { path = "crates/sweet_test/macros", version = "0.3.0-rc.2" }
-# forky = { version = "0.2.0-rc.2", path = "../forky/crates/forky" }
-# forky = { version = "0.2.1-rc.1", git = "https://github.com/mrchantey/forky" }
-# forky = { path = "../forky" }
-forky = { version = "0.2.1-rc.1" }
-
+sweet_web = { path = "crates/sweet_web", version = "0.3.0-rc.2" }
+sweet_utils = { path = "crates/sweet_utils", version = "0.3.0-rc.2" }
 
 #💡 utility
 log = "0.4"
@@ -86,60 +84,7 @@ js-sys = "0.3.63"
 wasm-bindgen = "=0.2.99"
 wasm-bindgen-futures = "0.4.36"
 console_error_panic_hook = "0.1.7"
-
-#https://rustwasm.github.io/wasm-bindgen/api/web_sys/
-#https://github.com/rustwasm/wasm-bindgen/blob/main/crates/web-sys/Cargo.toml
-[workspace.dependencies.web-sys]
-version = "0.3.76"
-features = [
-	"Text",
-	"Comment",
-	"Node",
-	"NodeList",
-	# Blob
-	'Blob',
-	'BlobEvent',
-	'BlobEventInit',
-	'BlobPropertyBag',
-	# HTML
-	'Headers',
-	'Document',
-	'Element',
-	'Window',
-	'HtmlIFrameElement',
-	# Style
-	'MediaQueryList',
-	# Events
-	'MouseEvent',
-	'KeyboardEvent',
-	# JS
-	'console',
-	'Navigator',
-	'Performance',
-	# Fetch
-	'Request',
-	'RequestInit',
-	'RequestMode',
-	'Response',
-	# Blob
-	'Blob',
-	'BlobEvent',
-	'BlobEventInit',
-	'BlobPropertyBag',
-	# Url
-	'Url',
-	'History',
-	'Location',
-	'UrlSearchParams',
-	# Sockets
-	'BinaryType',
-	'FileReader',
-	'ErrorEvent',
-	'MessageEvent',
-	'ProgressEvent',
-	'WebSocket',
-]
-
+web-sys = "0.3.76"
 
 [package]
 name = "sweet"
@@ -157,11 +102,15 @@ keywords.workspace = true
 [features]
 # default = ["server", "rsx", "macros", "render"]
 test = ["dep:sweet_test"]
+fs = ["dep:sweet_fs"]
+web = ["dep:sweet_web"]
 bevy = ["sweet_test?/bevy"]
 
 [dependencies]
 sweet_utils.workspace = true
 sweet_test = { workspace = true, optional = true }
+sweet_fs = { workspace = true, optional = true }
+sweet_web = { workspace = true, optional = true }
 
 # [examples]
 # counter = { required_features = ["server"] }
@@ -170,14 +119,8 @@ sweet_test = { workspace = true, optional = true }
 [dev-dependencies]
 sweet = { workspace = true, features = ["test"] }
 
-forky.workspace = true
-
-# basic reactivity
-once_cell.workspace = true
-flume.workspace = true
-
 [target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
-forky = { workspace = true, features = ["fs"] }
+# sweet = { workspace = true, features = ["test", "fs"] }
 
 [target.'cfg(target_arch = "wasm32")'.dev-dependencies]
 console_error_panic_hook.workspace = true

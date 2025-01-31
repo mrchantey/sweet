@@ -12,14 +12,14 @@ categories.workspace = true
 keywords.workspace = true
 
 [features]
-fn_traits = [] # allow for fn_traits, ie mock_fn(3);
+fn_traits = []      # allow for fn_traits, ie mock_fn(3);
 bevy = ["dep:bevy"]
 
 [dependencies]
 #💡 internal 
 sweet_utils.workspace = true
+sweet_web.workspace = true
 sweet_test_macros.workspace = true
-forky.workspace = true
 
 #💡 misc 
 anyhow.workspace = true
@@ -48,8 +48,9 @@ bevy = { workspace = true, optional = true }
 #💡 native
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 tokio.workspace = true
-forky = { workspace = true, features = ["fs"] }
+sweet_fs.workspace = true
 pin-project-lite = "0.2.15"
+gag = "1"
 
 #💡 wasm
 [target.'cfg(target_arch = "wasm32")'.dependencies]
@@ -59,13 +60,5 @@ web-sys.workspace = true
 wasm-bindgen.workspace = true
 wasm-bindgen-futures.workspace = true
 console_error_panic_hook.workspace = true
-getrandom.workspace = true                       # enable js feature
-forky = { workspace = true, features = ["web"] }
-
-[[test]]
-name = "hello_test"
-path = "test_examples/hello_test.rs"
-
-[[test]]
-name = "hello_async"
-path = "test_examples/hello_async.rs"
+getrandom.workspace = true                # enable js feature
+# sweet_web.workspace = true

@@ -2,6 +2,8 @@
 #![cfg_attr(test, feature(test, custom_test_frameworks))]
 #![cfg_attr(test, test_runner(sweet_test::test_runner))]
 use anyhow::Result;
+#[cfg(target_arch = "wasm32")]
+use sweet_test as sweet;
 
 #[test]
 #[ignore]

@@ -1,11 +1,7 @@
 use anyhow::Result;
 use clap::Parser;
-use forky::prelude::ReadDir;
 use std::path::PathBuf;
-
-
-
-
+use sweet::prelude::*;
 
 /**
 Welcome to the sweet rsx preprocessor!

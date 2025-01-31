@@ -19,7 +19,7 @@ fn clear() {
 	#[cfg(target_arch = "wasm32")]
 	web_sys::console::clear();
 	#[cfg(not(target_arch = "wasm32"))]
-	forky::prelude::terminal::clear();
+	sweet_fs::prelude::terminal::clear().unwrap();
 }
 
 impl RunnerLogger {
@@ -48,8 +48,9 @@ impl RunnerLogger {
 		}
 		#[cfg(target_arch = "wasm32")]
 		{
-			use forky::web::*;
-			let start_time = performance_now();
+			let start_time =
+				web_sys::window().unwrap().performance().unwrap().now();
+
 			Self {
 				start_time,
 				case_logger,
@@ -72,7 +73,8 @@ impl RunnerLogger {
 		return self.start_time.elapsed();
 		#[cfg(target_arch = "wasm32")]
 		return Duration::from_millis(
-			(forky::web::performance_now() - self.start_time) as u64,
+			(web_sys::window().unwrap().performance().unwrap().now()
+				- self.start_time) as u64,
 		);
 	}
 

@@ -1,5 +1,5 @@
 use anyhow::Result;
-use forky::prelude::*;
+use sweet_web::prelude::*;
 use web_sys::Document;
 use web_sys::HtmlIFrameElement;
 

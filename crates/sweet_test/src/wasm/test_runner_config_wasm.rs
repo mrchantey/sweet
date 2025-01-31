@@ -1,7 +1,7 @@
 use crate::test_runner::*;
 use anyhow::Result;
-use forky::web::SearchParams;
 use glob::Pattern;
+use sweet_web::prelude::SearchParams;
 
 impl TestRunnerConfig {
 	pub fn from_deno_args() -> Result<Self> {

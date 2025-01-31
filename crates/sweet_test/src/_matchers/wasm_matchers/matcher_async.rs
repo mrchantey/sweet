@@ -1,6 +1,6 @@
 use crate::matchers::*;
 use anyhow::Result;
-use forky::web::*;
+use sweet_web::prelude::*;
 
 impl<T> Matcher<T> {
 	pub async fn poll<T2>(

@@ -1,7 +1,7 @@
 use anyhow::Result;
 use clap::Parser;
-use forky::prelude::*;
 use std::process::Child;
+use sweet::prelude::*;
 
 /// Spin up a server, run some tests, then shut it down.
 ///

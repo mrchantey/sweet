@@ -4,7 +4,6 @@ use ::test::TestDesc;
 use anyhow::Result;
 use backtrace::BacktraceFrame;
 use colorize::*;
-use forky::prelude::*;
 use std::panic::PanicHookInfo;
 use std::path::Path;
 use std::path::PathBuf;
@@ -131,16 +130,17 @@ impl BacktraceLocation {
 				String::from(format!("{}{}|", curr_line_no, buffer)).faint();
 			let full_prefix = format!("{} {}", prefix, line_prefix);
 			// let prefix_len = 6;
-			output.push_string(&full_prefix);
+			output.push_str(&full_prefix);
 			output.push_str(lines[i]);
 			output.push('\n');
 			if is_err_line {
 				//TODO string length
-				output.push_string(
+				output.push_str(
 					&format!("{}|", " ".repeat(2 + LINE_BUFFER_LEN)).faint(),
 				);
 				output.push_str(&" ".repeat(self.col_no));
-				output.push_str_line(String::from("^").red().as_str());
+				output.push_str(&String::from("^").red().as_str());
+				output.push('\n');
 			}
 		}
 
@@ -196,7 +196,7 @@ impl BacktraceLocation {
 		}
 
 		output.push('\n');
-		output.push_string(&stack_locations.join("\n"));
+		output.push_str(&stack_locations.join("\n"));
 
 		Ok(output)
 	}
@@ -209,7 +209,7 @@ impl BacktraceLocation {
 		#[cfg(not(target_arch = "wasm32"))]
 		return std::env::var("SWEET_ROOT")
 			.map(PathBuf::from)
-			.unwrap_or_else(|_| FsExt::workspace_root());
+			.unwrap_or_else(|_| sweet_fs::prelude::FsExt::workspace_root());
 		#[cfg(target_arch = "wasm32")]
 		return js_runtime::sweet_root()
 			.map(PathBuf::from)
@@ -249,7 +249,7 @@ SWEET_ROOT = { value = "", relative = true }
 	let file = js_runtime::read_file(&path.to_string_lossy().to_string())
 		.ok_or_else(|| bail(&js_runtime::cwd()))?;
 	#[cfg(not(target_arch = "wasm32"))]
-	let file = ReadFile::to_string(path).map_err(|_| {
+	let file = sweet_fs::prelude::ReadFile::to_string(path).map_err(|_| {
 		bail(
 			&std::env::current_dir()
 				.unwrap_or_default()

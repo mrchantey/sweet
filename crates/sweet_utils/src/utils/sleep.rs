@@ -8,12 +8,12 @@ pub async fn sleep_millis(millis: u64) {
 }
 
 /// Cross platform sleep function
+#[allow(unused)]
 pub async fn sleep(duration: Duration) {
-	#[cfg(not(target_arch = "wasm32"))]
+	#[cfg(all(feature = "tokio", not(target_arch = "wasm32")))]
 	{
 		tokio::time::sleep(duration).await;
 	}
-
 	#[cfg(target_arch = "wasm32")]
 	{
 		use wasm_bindgen_futures::JsFuture;
@@ -32,4 +32,6 @@ pub async fn sleep(duration: Duration) {
 			.await
 			.expect("should await `setTimeout` OK");
 	}
+	#[cfg(not(any(feature = "tokio", target_arch = "wasm32")))]
+	panic!("enable tokio feature for sleep on non wasm32 targets");
 }

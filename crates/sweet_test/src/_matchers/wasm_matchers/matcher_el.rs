@@ -1,5 +1,5 @@
 use crate::matchers::*;
-use forky::web::*;
+use sweet_web::prelude::*;
 use web_sys::*;
 
 impl<T> Matcher<T>
@@ -36,7 +36,6 @@ where
 		expect_suffix: &str,
 	) {
 		let result = receive.contains(other);
-		// forky::core::log!("result: {result}");
 		let mut received = receive.chars().take(100).collect::<String>();
 		if received.len() == 100 {
 			received.push_str("...TRUNCATED...");
