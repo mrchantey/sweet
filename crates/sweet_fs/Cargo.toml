@@ -30,7 +30,3 @@ notify-debouncer-full = "0.4"
 ## async
 tokio.workspace = true
 futures.workspace = true
-
-
-[dev-dependencies]
-sweet_test.workspace = true

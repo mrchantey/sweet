@@ -145,42 +145,37 @@ impl ReadDir {
 #[cfg(test)]
 mod test {
 	use crate::prelude::*;
-	use sweet_test::prelude::*;
 
 	#[test]
 	fn fails() {
-		expect(
-			ReadDir::default()
-				.read(FsExt::test_dir().join("foo"))
-				.unwrap_err()
-				.to_string(),
-		)
-		.to_contain("test_dir/foo");
+		let err_str = ReadDir::default()
+			.read(FsExt::test_dir().join("foo"))
+			.unwrap_err()
+			.to_string();
+		assert!(err_str.contains("test_dir/foo"));
 	}
+
 	#[test]
 	fn dirs() {
-		expect(
-			ReadDir::dirs(FsExt::test_dir().join("foo"))
-				.unwrap_err()
-				.to_string(),
-		)
-		.to_contain("test_dir/foo");
-		expect(ReadDir::dirs(FsExt::test_dir()).unwrap().len()).to_be(2);
+		let err_str = ReadDir::dirs(FsExt::test_dir().join("foo"))
+			.unwrap_err()
+			.to_string();
+		assert!(err_str.contains("test_dir/foo"));
+		assert_eq!(ReadDir::dirs(FsExt::test_dir()).unwrap().len(), 2);
 	}
+
 	#[test]
 	fn read_dir_recursive() {
-		expect(ReadDir::dirs_recursive(FsExt::test_dir()).unwrap().len())
-			.to_be(2);
+		assert_eq!(ReadDir::dirs_recursive(FsExt::test_dir()).unwrap().len(), 2);
 	}
 
 	#[test]
 	fn files() {
-		expect(ReadDir::files(FsExt::test_dir()).unwrap().len()).to_be(3);
+		assert_eq!(ReadDir::files(FsExt::test_dir()).unwrap().len(), 3);
 	}
 
 	#[test]
 	fn files_recursive() {
-		expect(ReadDir::files_recursive(FsExt::test_dir()).unwrap().len())
-			.to_be(3);
+		assert_eq!(ReadDir::files_recursive(FsExt::test_dir()).unwrap().len(), 3);
 	}
 }

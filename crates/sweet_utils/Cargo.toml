@@ -30,9 +30,8 @@ tokio = { workspace = true, optional = true }
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 wasm-bindgen.workspace = true
 wasm-bindgen-futures.workspace = true
-web-sys = { workspace = true, features = ["Window"] }
+web-sys = { workspace = true, features = ["Window", "console"] }
 js-sys.workspace = true
 
 [dev-dependencies]
-sweet_test.workspace = true
-sweet_utils = { workspace = true, features = ["tokio"] }
+sweet_utils = { path = "", features = ["tokio"] }

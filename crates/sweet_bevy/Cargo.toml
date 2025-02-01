@@ -32,4 +32,4 @@ js-sys.workspace = true
 
 [dev-dependencies]
 sweet_test = { workspace = true, features = ["bevy"] }
-sweet_bevy = { workspace = true, features = ["rand"] }
+sweet_bevy = { path = "", features = ["rand"] }

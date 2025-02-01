@@ -80,19 +80,17 @@ impl FsExt {
 #[cfg(test)]
 mod test {
 	use super::FsExt;
-	use sweet_test::prelude::*;
 
 	#[test]
 	fn workspace_root() {
-		expect(
+		assert_eq!(
 			FsExt::workspace_root()
 				.file_stem()
 				.unwrap()
 				.to_str()
 				.unwrap(),
-		)
-		.to_be("sweet");
-		expect(FsExt::workspace_root().join("Cargo.lock").exists())
-			.to_be_true();
+			"sweet"
+		);
+		assert!(FsExt::workspace_root().join("Cargo.lock").exists());
 	}
 }

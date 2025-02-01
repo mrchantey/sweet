@@ -59,14 +59,15 @@ expand test *args:
 #💡 Publish
 
 # order matters
-publish-all:
-	just publish sweet_utils				| true
-	just publish sweet_test_macros	| true
-	just publish sweet_test					| true
-	just publish sweet_fs						| true
-	just publish sweet_web					| true
-	just publish sweet 							| true
-	just publish sweet-cli					| true
+publish-all *args:
+	just publish sweet_utils				{{args}} | true
+	just publish sweet_fs						{{args}} | true
+	just publish sweet_test_macros	{{args}} | true
+	just publish sweet_test					{{args}} | true
+	just publish sweet_web					{{args}} | true
+	just publish sweet_bevy					{{args}} | true
+	just publish sweet 							{{args}} | true
+	just publish sweet-cli					{{args}} | true
 
 publish crate *args:
 	cargo publish -p {{crate}} --allow-dirty --no-verify {{args}}

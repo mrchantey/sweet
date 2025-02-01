@@ -57,44 +57,31 @@ impl ReadFile {
 #[cfg(test)]
 mod test {
 	use crate::prelude::*;
-	use sweet_test::prelude::*;
 
 	#[test]
 	fn to_string() {
-		expect(ReadFile::to_string(FsExt::test_dir().join("mod.rs")).unwrap())
-			.to_contain("pub mod included_dir;");
+		let content = ReadFile::to_string(FsExt::test_dir().join("mod.rs")).unwrap();
+		assert!(content.contains("pub mod included_dir;"));
 
-		expect(ReadFile::to_string(FsExt::test_dir().join("foo.rs")))
-			.to_be_err();
+		assert!(ReadFile::to_string(FsExt::test_dir().join("foo.rs")).is_err());
 	}
 
 	#[test]
 	fn to_bytes() {
-		expect(
-			ReadFile::to_bytes(FsExt::test_dir().join("mod.rs"))
-				.unwrap()
-				.len(),
-		)
-		.to_be_greater_than(10);
+		let bytes = ReadFile::to_bytes(FsExt::test_dir().join("mod.rs")).unwrap();
+		assert!(bytes.len() > 10);
 
-		expect(ReadFile::to_bytes(FsExt::test_dir().join("foo.rs")))
-			.to_be_err();
+		assert!(ReadFile::to_bytes(FsExt::test_dir().join("foo.rs")).is_err());
 	}
-
 
 	#[test]
 	fn hash() {
-		let hash1 =
-			ReadFile::hash_file(FsExt::test_dir().join("mod.rs")).unwrap();
-		let hash2 =
-			ReadFile::hash_file(FsExt::test_dir().join("included_file.rs"))
-				.unwrap();
-		expect(hash1).not().to_be(hash2);
+		let hash1 = ReadFile::hash_file(FsExt::test_dir().join("mod.rs")).unwrap();
+		let hash2 = ReadFile::hash_file(FsExt::test_dir().join("included_file.rs")).unwrap();
+		assert_ne!(hash1, hash2);
 
-
-		let str =
-			ReadFile::to_string(FsExt::test_dir().join("mod.rs")).unwrap();
+		let str = ReadFile::to_string(FsExt::test_dir().join("mod.rs")).unwrap();
 		let hash3 = ReadFile::hash_string(&str);
-		expect(hash3).to_be(hash1);
+		assert_eq!(hash3, hash1);
 	}
 }

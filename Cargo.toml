@@ -119,13 +119,13 @@ sweet_test = { workspace = true, optional = true }
 sweet_web = { workspace = true, optional = true }
 
 [dev-dependencies]
-sweet = { workspace = true, features = ["bevy", "rand", "test"] }
+sweet = { path = "", features = ["bevy", "rand", "test"] }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
-sweet = { workspace = true, features = ["test", "fs"] }
+sweet = { path = "", features = ["fs"] }
 
 [target.'cfg(target_arch = "wasm32")'.dev-dependencies]
-sweet = { workspace = true, features = ["web"] }
+sweet = { path = "", features = ["web"] }
 console_error_panic_hook.workspace = true
 console_log.workspace = true
 js-sys.workspace = true
