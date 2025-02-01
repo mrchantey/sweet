@@ -97,6 +97,7 @@ keywords.workspace = true
 
 [features]
 # default = ["server", "rsx", "macros", "render"]
+rand = ["sweet_bevy?/rand"]
 test = ["dep:sweet_test"]
 fs = ["dep:sweet_fs"]
 web = ["dep:sweet_web"]
