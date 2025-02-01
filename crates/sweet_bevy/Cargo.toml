@@ -9,12 +9,22 @@ readme.workspace = true
 description.workspace = true
 repository.workspace = true
 
+[features]
+# default = ["rand"]
+# wasm support requires rust flags
+# https://docs.rs/getrandom/latest/getrandom/#webassembly-support
+rand = ["dep:rand", "dep:rand_chacha", "dep:getrandom"]
+
 [dependencies]
 sweet_utils.workspace = true
 bevy.workspace = true
 
 anyhow.workspace = true
 extend.workspace = true
+rand = { version = "0.9", optional = true }
+rand_chacha = { version = "0.9", optional = true }
+getrandom = { version = "0.3.1", optional = true, features = ["wasm_js"] }
+
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 sweet_web.workspace = true
@@ -26,3 +36,4 @@ js-sys.workspace = true
 
 [dev-dependencies]
 sweet_test = { workspace = true, features = ["bevy"] }
+sweet_bevy = { workspace = true, features = ["rand"] }

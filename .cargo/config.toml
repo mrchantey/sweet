@@ -13,3 +13,7 @@ runner = 'cargo run -p sweet-cli -- test-wasm'
 
 [env]
 SWEET_ROOT = { value = "", relative = true }
+
+
+[build]
+rustflags = ["--cfg", "getrandom_backend=\"wasm_js\""]
