@@ -10,4 +10,6 @@ pub mod prelude {
 	pub use crate::extensions::*;
 	pub use crate::resources::*;
 	pub use crate::systems::*;
+	#[cfg(feature = "rand")]
+	pub use rand::Rng;
 }
