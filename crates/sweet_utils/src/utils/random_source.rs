@@ -1,13 +1,13 @@
-use bevy::prelude::*;
 use rand::Rng;
 use rand::SeedableRng;
 use rand_chacha::ChaCha8Rng;
 
 /// A simple random source, by default retrieved from entropy.
 ///
+/// Enable the `bevy` feature to derive [Resource](bevy::prelude::Resource) 
 /// ```rust
 /// # use bevy::prelude::*;
-/// # use sweet_bevy::prelude::*;
+/// # use sweet_utils::prelude::*;
 /// # use rand::Rng;
 ///
 /// // defaults to from entropy
@@ -24,8 +24,8 @@ use rand_chacha::ChaCha8Rng;
 /// }
 /// ```
 ///https://bevyengine.org/examples/math/random-sampling/
-#[derive(Resource, Deref, DerefMut)]
-pub struct RandomSource(ChaCha8Rng);
+#[cfg_attr(feature = "bevy", derive(bevy::prelude::Resource))]
+pub struct RandomSource(pub ChaCha8Rng);
 
 impl RandomSource {
 	pub fn from_seed(seed: u64) -> Self {
@@ -109,21 +109,19 @@ impl RandomSource {
 #[cfg(test)]
 mod test {
 	use crate::prelude::*;
-	use sweet_test::prelude::*;
-
 
 	#[test]
 	fn seed() {
 		let mut source = RandomSource::from_seed(7);
 		let val = source.random_range(10..100);
-		expect(val).to_be(22);
+		assert_eq!(val, 22);
 	}
 
 	#[test]
 	fn entropy() {
 		let mut source = RandomSource::default();
 		let val = source.random_range(10..100);
-		expect(val).to_be_greater_or_equal_to(10);
-		expect(val).to_be_less_than(100);
+		assert!(val >= 10);
+		assert!(val < 100);
 	}
 }

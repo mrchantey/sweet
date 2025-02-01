@@ -12,11 +12,17 @@ categories.workspace = true
 keywords.workspace = true
 
 [features]
+bevy = ["dep:bevy"]
 tokio = ["dep:tokio"]
+rand = ["dep:rand", "dep:rand_chacha", "dep:getrandom"]
 
 [dependencies]
 extend.workspace = true
 anyhow.workspace = true
+bevy = { workspace = true, optional = true }
+rand = { workspace = true, optional = true }
+rand_chacha = { workspace = true, optional = true }
+getrandom = { workspace = true, optional = true }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 tokio = { workspace = true, optional = true }

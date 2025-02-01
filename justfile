@@ -46,13 +46,10 @@ test-wasm-e2e crate test_name *args:
 
 test-all *args:
 	cargo test --workspace -- {{args}}
-	cargo test -p sweet_test --test macros --target wasm32-unknown-unknown -- {{args}}
-	cargo test -p sweet_test --test hello_test --target wasm32-unknown-unknown -- {{args}}
-	cargo test -p sweet_test --test hello_async --target wasm32-unknown-unknown -- {{args}}
-	cargo test -p sweet_test --test single_async --target wasm32-unknown-unknown -- {{args}}
-	cargo test -p sweet_test --target wasm32-unknown-unknown -- {{args}}
-	cargo test -p sweet_bevy --target wasm32-unknown-unknown -- {{args}}
-	cargo test -p sweet_web  --target wasm32-unknown-unknown -- {{args}}
+	cargo test --target wasm32-unknown-unknown --all-features -p sweet_utils	-- {{args}}
+	cargo test --target wasm32-unknown-unknown --all-features -p sweet_test   -- {{args}}
+	cargo test --target wasm32-unknown-unknown --all-features -p sweet_bevy   -- {{args}}
+	cargo test --target wasm32-unknown-unknown --all-features -p sweet_web   	-- {{args}}
 
 expand-wasm test *args:
 	just watch 'cargo expand --test {{test}} --target wasm32-unknown-unknown {{args}}'

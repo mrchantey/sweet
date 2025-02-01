@@ -74,6 +74,13 @@ proc-macro2 = "1"
 syn = { version = "2", features = ["full"] }
 quote = "1"
 
+#💡 random
+rand = "0.9"
+rand_chacha = "0.9"
+# wasm_js ignored in native
+getrandom = { version = "0.3.1", features = ["wasm_js"] }
+
+
 #💡wasm
 console_log = "1.0"
 js-sys = "0.3"
@@ -95,32 +102,30 @@ repository.workspace = true
 categories.workspace = true
 keywords.workspace = true
 
+
 [features]
 # default = ["server", "rsx", "macros", "render"]
-rand = ["sweet_bevy?/rand"]
-test = ["dep:sweet_test"]
+bevy = ["dep:sweet_bevy", "sweet_utils/bevy", "sweet_test?/bevy"]
 fs = ["dep:sweet_fs"]
+rand = ["sweet_utils/rand", "sweet_bevy?/rand"]
+test = ["dep:sweet_test"]
 web = ["dep:sweet_web"]
-bevy = ["dep:sweet_bevy", "sweet_test?/bevy"]
 
 [dependencies]
 sweet_utils.workspace = true
 sweet_bevy = { workspace = true, optional = true }
-sweet_test = { workspace = true, optional = true }
 sweet_fs = { workspace = true, optional = true }
+sweet_test = { workspace = true, optional = true }
 sweet_web = { workspace = true, optional = true }
 
-# [examples]
-# counter = { required_features = ["server"] }
-# render_counter = { required_features = ["server"] }
-
 [dev-dependencies]
-sweet = { workspace = true, features = ["test"] }
+sweet = { workspace = true, features = ["bevy", "rand", "test"] }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
-# sweet = { workspace = true, features = ["test", "fs"] }
+sweet = { workspace = true, features = ["test", "fs"] }
 
 [target.'cfg(target_arch = "wasm32")'.dev-dependencies]
+sweet = { workspace = true, features = ["web"] }
 console_error_panic_hook.workspace = true
 console_log.workspace = true
 js-sys.workspace = true
