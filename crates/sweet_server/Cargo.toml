@@ -1,0 +1,38 @@
+[package]
+name = "sweet_server"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+documentation.workspace = true
+license.workspace = true
+readme.workspace = true
+description.workspace = true
+repository.workspace = true
+
+
+[dependencies]
+sweet_utils.workspace = true
+sweet_fs.workspace = true
+## utils
+anyhow.workspace = true
+thiserror.workspace = true
+extend.workspace = true
+clap.workspace = true
+colorize.workspace = true
+
+# async
+futures.workspace = true
+tokio.workspace = true
+
+# http
+http = "1"
+axum = "0.8"
+axum-extra = "0.10"
+axum-server = { version = "0.7", features = ["tls-rustls"] }
+tower = "0.5"
+tower-http = { version = "0.6", features = ["fs", "cors"] }
+tower-livereload = "0.9"
+
+
+[dev-dependencies]
+sweet_test.workspace = true

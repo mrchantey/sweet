@@ -2,6 +2,8 @@
 pub use sweet_bevy as bevy;
 #[cfg(feature = "fs")]
 pub use sweet_fs as fs;
+#[cfg(feature = "server")]
+pub use sweet_server as server;
 #[cfg(feature = "test")]
 pub use sweet_test as test;
 #[cfg(feature = "test")]
@@ -25,4 +27,6 @@ pub mod prelude {
 	pub use sweet_utils::prelude::*;
 	#[cfg(feature = "web")]
 	pub use sweet_web::prelude::*;
+	#[cfg(feature = "server")]
+	pub use sweet_server::prelude::*;
 }

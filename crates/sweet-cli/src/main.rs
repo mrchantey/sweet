@@ -3,6 +3,7 @@
 use anyhow::Result;
 use clap::Parser;
 use clap::Subcommand;
+use sweet::prelude::*;
 use sweet_cli::prelude::*;
 
 
@@ -19,6 +20,7 @@ enum Commands {
 	Rsx(RsxCommand),
 	TestServer(TestServer),
 	TestWasm(TestWasm),
+	Serve(Server),
 }
 
 fn main() -> Result<()> {
@@ -27,5 +29,6 @@ fn main() -> Result<()> {
 		Commands::Rsx(cmd) => cmd.run(),
 		Commands::TestServer(cmd) => cmd.run(),
 		Commands::TestWasm(cmd) => cmd.run(),
+		Commands::Serve(cmd) => cmd.run(),
 	}
 }

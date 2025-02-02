@@ -4,6 +4,7 @@ members = [
 	"crates/sweet_bevy",
 	"crates/sweet_fs",
 	# "crates/sweet_site",
+	"crates/sweet_server",
 	"crates/sweet_test/macros",
 	"crates/sweet_test",
 	"crates/sweet_utils",
@@ -33,6 +34,7 @@ keywords = ["full-stack", "browser", "web", "test", "e2e"]
 sweet = { path = "", version = "0.3.0-rc.3" }
 sweet_bevy = { path = "crates/sweet_bevy", version = "0.3.0-rc.3" }
 sweet_fs = { path = "crates/sweet_fs", version = "0.3.0-rc.3" }
+sweet_server = { path = "crates/sweet_server", version = "0.3.0-rc.3" }
 sweet_test = { path = "crates/sweet_test", version = "0.3.0-rc.3" }
 sweet_test_macros = { path = "crates/sweet_test/macros", version = "0.3.0-rc.3" }
 sweet_web = { path = "crates/sweet_web", version = "0.3.0-rc.3" }
@@ -110,6 +112,7 @@ fs = ["dep:sweet_fs"]
 rand = ["sweet_utils/rand", "sweet_bevy?/rand"]
 test = ["dep:sweet_test"]
 web = ["dep:sweet_web"]
+server = ["dep:sweet_server"]
 
 [dependencies]
 sweet_utils.workspace = true
@@ -117,6 +120,7 @@ sweet_bevy = { workspace = true, optional = true }
 sweet_fs = { workspace = true, optional = true }
 sweet_test = { workspace = true, optional = true }
 sweet_web = { workspace = true, optional = true }
+sweet_server = { workspace = true, optional = true }
 
 [dev-dependencies]
 sweet = { path = "", features = ["bevy", "rand", "test"] }
