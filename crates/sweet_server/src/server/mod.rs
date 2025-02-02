@@ -27,13 +27,13 @@ pub struct Server {
 	pub dir: String,
 	/// Specify port
 	#[arg(long, default_value = "3000")]
-	port: String,
+	pub port: String,
 	/// Specify host
 	#[arg(long, default_value = "0.0.0.0")]
-	host: String,
+	pub host: String,
 	/// Run with https, *only for development*
 	#[arg(long)]
-	secure: bool,
+	pub secure: bool,
 	// pub address: Address,
 	#[arg(long, default_value = "true")]
 	pub clear: bool,
@@ -44,7 +44,11 @@ pub struct Server {
 	pub fallback: String,
 	/// Add 'access-control-allow-origin: *' header
 	#[arg(long)]
-	any_origin: bool,
+	pub any_origin: bool,
+}
+
+impl Default for Server {
+	fn default() -> Self { Self::parse_from(&[""]) }
 }
 
 impl Server {
