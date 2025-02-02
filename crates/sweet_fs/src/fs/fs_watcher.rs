@@ -13,6 +13,7 @@ use sweet_utils::prelude::*;
 
 #[derive(Debug, Clone)]
 pub struct FsWatcher {
+	/// the path to watch, defaults to "./"
 	pub path: String,
 	/// throttle the on_change callback
 	pub interval: Duration,
@@ -47,8 +48,8 @@ impl Default for FsWatcher {
 impl FsWatcher {
 	pub fn new() -> Self { Self::default() }
 
-	pub fn with_path(mut self, path: String) -> Self {
-		self.path = path;
+	pub fn with_path(mut self, path: impl Into<String>) -> Self {
+		self.path = path.into();
 		self
 	}
 	pub fn with_quiet(mut self, quiet: bool) -> Self {

@@ -23,12 +23,13 @@ enum Commands {
 	Serve(Server),
 }
 
-fn main() -> Result<()> {
+#[tokio::main]
+async fn main() -> Result<()> {
 	match Cli::parse().command {
 		Commands::BenchAssert(cmd) => cmd.run(),
 		Commands::Rsx(cmd) => cmd.run(),
 		Commands::TestServer(cmd) => cmd.run(),
 		Commands::TestWasm(cmd) => cmd.run(),
-		Commands::Serve(cmd) => cmd.run(),
+		Commands::Serve(cmd) => cmd.run().await,
 	}
 }

@@ -52,8 +52,6 @@ impl Default for Server {
 }
 
 impl Server {
-	pub fn run(self) -> Result<()> { self.serve_with_default_reload() }
-
 	pub fn with_dir(mut self, dir: &str) -> Self {
 		self.dir = dir.to_string();
 		self
@@ -62,17 +60,22 @@ impl Server {
 		self.quiet = true;
 		self
 	}
+	pub async fn run(self) -> Result<()> {
+		self.serve_with_default_reload().await
+	}
 
-	pub fn serve_with_default_reload(&self) -> Result<()> {
+	pub async fn serve_with_default_reload(&self) -> Result<()> {
 		let (livereload, _handle) = self.default_reload();
-		self.serve_with_reload(livereload)
+		self.serve_with_reload(livereload).await
 	}
 
-	pub fn serve_with_reload(&self, livereload: LiveReloadLayer) -> Result<()> {
-		self.serve_with_options(Some(livereload))
+	pub async fn serve_with_reload(
+		&self,
+		livereload: LiveReloadLayer,
+	) -> Result<()> {
+		self.serve_with_options(Some(livereload)).await
 	}
 
-	#[tokio::main]
 	pub async fn serve_with_options(
 		&self,
 		livereload: Option<LiveReloadLayer>,
