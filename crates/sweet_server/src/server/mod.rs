@@ -39,9 +39,9 @@ pub struct Server {
 	pub clear: bool,
 	#[arg(long)]
 	pub quiet: bool,
-	/// If a url is not found, do not fallback to index.html
-	#[arg(long)]
-	pub no_fallback: bool,
+	/// If a url is not found, fallback to the provided file
+	#[arg(long, default_value = "404.html")]
+	pub fallback: String,
 	/// Add 'access-control-allow-origin: *' header
 	#[arg(long)]
 	any_origin: bool,
@@ -77,14 +77,11 @@ impl Server {
 
 		let mut router = Router::new().route_service("/__ping__", get(ping));
 
-		if self.no_fallback {
-			router = router.fallback_service(ServeDir::new(self.dir.as_str()));
-		} else {
-			router = router.fallback_service(
-				ServeDir::new(self.dir.as_str())
-					.fallback(ServeFile::new("index.html")),
-			);
-		}
+		router = router.fallback_service(
+			ServeDir::new(self.dir.as_str())
+				.append_index_html_on_directories(true)
+				.fallback(ServeFile::new(&self.fallback)),
+		);
 		if let Some(livereload) = livereload {
 			router = router.layer(livereload);
 		}
