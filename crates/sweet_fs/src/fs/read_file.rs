@@ -42,15 +42,6 @@ impl ReadFile {
 			_ => false,
 		}
 	}
-
-	/// Write a file, ensuring the path exists
-	pub fn write(path: impl AsRef<Path>, data: &str) -> FsResult<()> {
-		if let Some(parent) = path.as_ref().parent() {
-			fs::create_dir_all(parent)?;
-		}
-		fs::write(path, data)?;
-		Ok(())
-	}
 }
 
 

@@ -32,6 +32,12 @@ impl FsExt {
 		Ok(())
 	}
 
+	/// remove a directory and all its contents
+	pub fn remove(path: impl AsRef<Path>) -> FsResult<()> {
+		fs::remove_dir_all(path).map_err(FsError::from_io)?;
+		Ok(())
+	}
+
 
 	// pub fn dir_contains(path: PathBuf, pattern: &str) -> bool {
 	// 	let pattern = Pattern::new(pattern).unwrap();
@@ -66,6 +72,16 @@ impl FsExt {
 			}
 		}
 		panic!("No Cargo.lock found in the current directory or any of its ancestors");
+	}
+
+
+	/// Write a file, ensuring the path exists
+	pub fn write(path: impl AsRef<Path>, data: &str) -> FsResult<()> {
+		if let Some(parent) = path.as_ref().parent() {
+			fs::create_dir_all(parent)?;
+		}
+		fs::write(path, data)?;
+		Ok(())
 	}
 }
 
