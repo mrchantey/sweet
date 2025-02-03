@@ -108,8 +108,10 @@ impl ReadDir {
 			.map_err(|e| FsError::from_io_with_dir(e, path))?;
 		for child in children {
 			let child = child.map_err(|e| FsError::Io(e)).map(|c| c.path())?;
-			if child.is_dir() && self.dirs {
-				paths.push(child.clone());
+			if child.is_dir() {
+				if self.dirs {
+					paths.push(child.clone());
+				}
 				if self.recursive {
 					self.read_inner(child, paths)?;
 				}
@@ -166,7 +168,10 @@ mod test {
 
 	#[test]
 	fn read_dir_recursive() {
-		assert_eq!(ReadDir::dirs_recursive(FsExt::test_dir()).unwrap().len(), 2);
+		assert_eq!(
+			ReadDir::dirs_recursive(FsExt::test_dir()).unwrap().len(),
+			2
+		);
 	}
 
 	#[test]
@@ -176,6 +181,9 @@ mod test {
 
 	#[test]
 	fn files_recursive() {
-		assert_eq!(ReadDir::files_recursive(FsExt::test_dir()).unwrap().len(), 3);
+		assert_eq!(
+			ReadDir::files_recursive(FsExt::test_dir()).unwrap().len(),
+			5
+		);
 	}
 }
