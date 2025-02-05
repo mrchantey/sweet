@@ -11,7 +11,7 @@ use axum_server::tls_rustls::RustlsConfig;
 use std::net::SocketAddr;
 
 impl Server {
-	pub async fn serve_insecure(&self, router: Router) -> Result<()> {
+	pub async fn serve_insecure(self, router: Router) -> Result<()> {
 		let listener =
 			tokio::net::TcpListener::bind(&self.address()?.to_socket_addr())
 				.await?;

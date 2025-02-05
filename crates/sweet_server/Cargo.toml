@@ -19,6 +19,7 @@ thiserror.workspace = true
 extend.workspace = true
 clap.workspace = true
 colorize.workspace = true
+glob.workspace = true
 
 # async
 futures.workspace = true

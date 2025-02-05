@@ -6,6 +6,8 @@
 		"target/**/*": true,
 	},
 	"files.exclude": {
+		"LICENSE-APACHE.txt": true,
+		"LICENSE-MIT.txt": true,
 		"**/.git": true,
 		"**/.svn": true,
 		"**/.hg": true,

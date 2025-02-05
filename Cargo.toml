@@ -54,7 +54,7 @@ strum_macros = "0.26"
 bevy = { version = "0.15", default-features = false }
 
 #💡 io ###
-clap = { version = "4.2", features = ["derive"] }
+clap = { version = "4", features = ["derive"] }
 colorize = "0.1"
 glob = "0.3"
 serde = { version = "1", features = ["derive"] }
@@ -62,14 +62,15 @@ serde = { version = "1", features = ["derive"] }
 #💡 async
 futures = "0.3"
 futures-util = "0.3"
-tokio = { version = "1.42", features = [
+tokio = { version = "1", features = [
 	"macros",
+	"sync",
 	"rt",
 	"rt-multi-thread",
 	"time",
 ] }
 flume = "0.11"
-rayon = "1.7"
+rayon = "1"
 
 #💡 macros
 proc-macro2 = "1"
@@ -80,7 +81,7 @@ quote = "1"
 rand = "0.9"
 rand_chacha = "0.9"
 # wasm_js ignored in native
-getrandom = { version = "0.3.1", features = ["wasm_js"] }
+getrandom = { version = "0.3", features = ["wasm_js"] }
 
 
 #💡wasm

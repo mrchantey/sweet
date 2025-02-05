@@ -9,22 +9,22 @@ use axum::response::Response;
 use axum::routing::get;
 use axum::Router;
 use clap::Parser;
-use futures::Future;
-use std::pin::Pin;
+use std::path::PathBuf;
 use std::thread::JoinHandle;
+use std::time::Duration;
 use sweet_fs::prelude::*;
 use tower_http::cors::CorsLayer;
 use tower_http::services::ServeDir;
 use tower_http::services::ServeFile;
 use tower_livereload::LiveReloadLayer;
 
-/// Serve static files
+/// Serve static files with hot reloading
 #[derive(Debug, Clone, Parser)]
 #[command(name = "serve")]
 pub struct Server {
 	/// Directory to serve
-	#[arg(default_value = "./")]
-	pub dir: String,
+	#[arg(default_value = ".")]
+	pub dir: PathBuf,
 	/// Specify port
 	#[arg(long, default_value = "3000")]
 	pub port: String,
@@ -35,16 +35,28 @@ pub struct Server {
 	#[arg(long)]
 	pub secure: bool,
 	// pub address: Address,
-	#[arg(long, default_value = "true")]
-	pub clear: bool,
+	#[arg(long)]
+	pub no_clear: bool,
 	#[arg(long)]
 	pub quiet: bool,
 	/// If a url is not found, fallback to the provided file
-	#[arg(long, default_value = "404.html")]
-	pub fallback: String,
+	#[arg(long)]
+	pub fallback: Option<String>,
 	/// Add 'access-control-allow-origin: *' header
 	#[arg(long)]
 	pub any_origin: bool,
+	//
+	// [FsWatcher] args, we dont include because of dir/path collision
+	//
+	/// glob for watch patterns
+	#[arg(long,value_parser = parse_glob_pattern)]
+	pub include: Vec<glob::Pattern>,
+	/// glob for ignore patterns
+	#[arg(long,value_parser = parse_glob_pattern,default_value="*.git*,*target*")]
+	pub exclude: Vec<glob::Pattern>,
+	/// debounce time in milliseconds
+	#[arg(short,long="debounce-millis",value_parser = parse_duration,default_value="50")]
+	pub debounce: Duration,
 }
 
 impl Default for Server {
@@ -52,8 +64,8 @@ impl Default for Server {
 }
 
 impl Server {
-	pub fn with_dir(mut self, dir: &str) -> Self {
-		self.dir = dir.to_string();
+	pub fn with_dir(mut self, dir: impl Into<PathBuf>) -> Self {
+		self.dir = dir.into();
 		self
 	}
 	pub fn quietly(mut self) -> Self {
@@ -64,31 +76,37 @@ impl Server {
 		self.serve_with_default_reload().await
 	}
 
-	pub async fn serve_with_default_reload(&self) -> Result<()> {
+	pub async fn serve_with_default_reload(self) -> Result<()> {
 		let (livereload, _handle) = self.default_reload();
 		self.serve_with_reload(livereload).await
 	}
 
 	pub async fn serve_with_reload(
-		&self,
+		self,
 		livereload: LiveReloadLayer,
 	) -> Result<()> {
 		self.serve_with_options(Some(livereload)).await
 	}
 
 	pub async fn serve_with_options(
-		&self,
+		self,
 		livereload: Option<LiveReloadLayer>,
 	) -> Result<()> {
 		self.print_start();
 
 		let mut router = Router::new().route_service("/__ping__", get(ping));
 
-		router = router.fallback_service(
-			ServeDir::new(self.dir.as_str())
-				.append_index_html_on_directories(true)
-				.fallback(ServeFile::new(&self.fallback)),
-		);
+		if let Some(fallback) = &self.fallback {
+			router = router.fallback_service(
+				ServeDir::new(&self.dir)
+					.append_index_html_on_directories(true)
+					.fallback(ServeFile::new(fallback)),
+			);
+		} else {
+			router = router.fallback_service(
+				ServeDir::new(&self.dir).append_index_html_on_directories(true),
+			);
+		}
 		if let Some(livereload) = livereload {
 			router = router.layer(livereload);
 		}
@@ -112,38 +130,31 @@ impl Server {
 		let this = self.clone();
 		let reload_handle = std::thread::spawn(move || -> Result<()> {
 			let mut this2 = this.clone();
-			this2.clear = false;
-			FsWatcher::new()
-				.with_path(this.dir)
-				.with_quiet(this.quiet)
-				.watch(move |_| {
+			this2.no_clear = false;
+
+			FsWatcher {
+				path: this.dir.clone(),
+				include: this.include.clone(),
+				exclude: this.exclude.clone(),
+				debounce: this.debounce.clone(),
+			}
+			.watch_blocking(move |e| {
+				if let Some(events) = e.mutated_pretty() {
 					reload.reload();
 					this2.print_start();
-					Ok(())
-				})
+					println!("{}", events);
+				}
+				Ok(())
+			})
 		});
 		(livereload, reload_handle)
-	}
-
-	//not yet implemented
-	fn _default_shutdown(&self) -> Pin<Box<dyn Future<Output = ()>>> {
-		let dir = self.dir.clone();
-		let quiet = self.quiet;
-		Box::pin(async move {
-			FsWatcher::new()
-				.with_path(dir)
-				.with_quiet(quiet)
-				.block_async()
-				.await
-				.unwrap();
-		})
 	}
 
 	fn print_start(&self) {
 		if self.quiet {
 			return;
 		}
-		if self.clear {
+		if !self.no_clear {
 			// doesnt seem error worthy here
 			terminal::clear().ok();
 		}
@@ -154,7 +165,7 @@ impl Server {
 		};
 		println!(
 			"serving '{}' at {}{any_origin}",
-			self.dir,
+			self.dir.display(),
 			self.address().unwrap(),
 		);
 	}

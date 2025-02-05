@@ -21,6 +21,7 @@ enum Commands {
 	TestServer(TestServer),
 	TestWasm(TestWasm),
 	Serve(Server),
+	Watch(FsWatcher),
 }
 
 #[tokio::main]
@@ -31,5 +32,6 @@ async fn main() -> Result<()> {
 		Commands::TestServer(cmd) => cmd.run(),
 		Commands::TestWasm(cmd) => cmd.run(),
 		Commands::Serve(cmd) => cmd.run().await,
+		Commands::Watch(cmd) => cmd.watch_log().await,
 	}
 }
