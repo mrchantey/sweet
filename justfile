@@ -51,6 +51,13 @@ test-all *args:
 	cargo test --target wasm32-unknown-unknown --all-features -p sweet_bevy   -- {{args}}
 	cargo test --target wasm32-unknown-unknown --all-features -p sweet_web   	-- {{args}}
 
+# upstream from sweet_test
+test-fs *args:
+	just watch cargo test -p sweet_fs --lib {{args}}
+# upstream from sweet_test
+test-utils *args:
+	just watch cargo test -p sweet_utils --lib {{args}}
+
 expand-wasm test *args:
 	just watch 'cargo expand --test {{test}} --target wasm32-unknown-unknown {{args}}'
 expand test *args:

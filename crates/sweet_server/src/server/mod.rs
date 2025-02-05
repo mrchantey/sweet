@@ -35,6 +35,7 @@ pub struct Server {
 	#[arg(long)]
 	pub secure: bool,
 	// pub address: Address,
+	// do not clear the dir
 	#[arg(long)]
 	pub no_clear: bool,
 	#[arg(long)]
@@ -52,7 +53,7 @@ pub struct Server {
 	#[arg(long,value_parser = parse_glob_pattern)]
 	pub include: Vec<glob::Pattern>,
 	/// glob for ignore patterns
-	#[arg(long,value_parser = parse_glob_pattern,default_value="*.git*,*target*")]
+	#[arg(long,value_parser = parse_glob_pattern)]
 	pub exclude: Vec<glob::Pattern>,
 	/// debounce time in milliseconds
 	#[arg(short,long="debounce-millis",value_parser = parse_duration,default_value="50")]
@@ -129,8 +130,7 @@ impl Server {
 		let reload = livereload.reloader();
 		let this = self.clone();
 		let reload_handle = std::thread::spawn(move || -> Result<()> {
-			let mut this2 = this.clone();
-			this2.no_clear = false;
+			let this2 = this.clone();
 
 			FsWatcher {
 				path: this.dir.clone(),
@@ -141,8 +141,8 @@ impl Server {
 			.watch_blocking(move |e| {
 				if let Some(events) = e.mutated_pretty() {
 					reload.reload();
-					this2.print_start();
 					println!("{}", events);
+					this2.print_start();
 				}
 				Ok(())
 			})
@@ -154,7 +154,7 @@ impl Server {
 		if self.quiet {
 			return;
 		}
-		if !self.no_clear {
+		if self.no_clear == false {
 			// doesnt seem error worthy here
 			terminal::clear().ok();
 		}

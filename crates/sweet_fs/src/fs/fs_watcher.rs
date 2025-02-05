@@ -12,19 +12,18 @@ use std::num::ParseIntError;
 use std::path::Path;
 use std::path::PathBuf;
 use std::time::Duration;
-use sweet_utils::prelude::*;
 
 /// A file watcher with glob patterns
-#[derive(Debug, Clone, Parser)]
+#[derive(Clone, Parser)]
 pub struct FsWatcher {
 	/// the path to watch
 	#[arg(default_value = "./")]
 	pub path: PathBuf,
-	/// glob for watch patterns
+	/// glob for watch patterns, leave empty to include all
 	#[arg(long,value_parser = parse_glob_pattern)]
 	pub include: Vec<glob::Pattern>,
 	/// glob for ignore patterns
-	#[arg(long,value_parser = parse_glob_pattern,default_value="*.git*,*target*")]
+	#[arg(long,value_parser = parse_glob_pattern)]
 	pub exclude: Vec<glob::Pattern>,
 	/// debounce time in milliseconds
 	#[arg(short,long="debounce-millis",value_parser = parse_duration,default_value="50")]
@@ -42,19 +41,44 @@ impl Default for FsWatcher {
 	fn default() -> Self { Self::parse_from(&[""]) }
 }
 
+impl std::fmt::Debug for FsWatcher {
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		f.debug_struct("FsWatcher")
+			.field("path", &self.path)
+			.field(
+				"include",
+				&self
+					.include
+					.iter()
+					.map(|p| p.to_string())
+					.collect::<Vec<_>>(),
+			)
+			.field(
+				"exclude",
+				&self
+					.exclude
+					.iter()
+					.map(|p| p.to_string())
+					.collect::<Vec<_>>(),
+			)
+			.field("debounce", &self.debounce)
+			.finish()
+	}
+}
+
 impl FsWatcher {
 	pub fn with_path(mut self, path: impl Into<PathBuf>) -> Self {
 		self.path = path.into();
 		self
 	}
-	pub fn with_watches(mut self, watch: Vec<&str>) -> Self {
+	pub fn set_include(mut self, watch: Vec<&str>) -> Self {
 		self.include = watch
 			.iter()
 			.map(|w| glob::Pattern::new(w).unwrap())
 			.collect();
 		self
 	}
-	pub fn with_ignores(mut self, ignore: Vec<&str>) -> Self {
+	pub fn set_exclude(mut self, ignore: Vec<&str>) -> Self {
 		self.exclude = ignore
 			.iter()
 			.map(|w| glob::Pattern::new(w).unwrap())
@@ -62,54 +86,28 @@ impl FsWatcher {
 		self
 	}
 
-	pub fn with_watch(mut self, watch: &str) -> Self {
+	pub fn with_include(mut self, watch: &str) -> Self {
 		self.include.push(glob::Pattern::new(watch).unwrap());
 		self
 	}
-	pub fn with_ignore(mut self, watch: &str) -> Self {
+	pub fn with_exclude(mut self, watch: &str) -> Self {
 		self.exclude.push(glob::Pattern::new(watch).unwrap());
 		self
 	}
 
-	pub fn passes(&self, path: &Path) -> bool {
-		let path = PathExt::to_forward_slash_str(path);
-		self.passes_watch(&path) && self.passes_ignore(&path)
-	}
-
-	pub fn passes_watch(&self, path: &str) -> bool {
-		self.include.iter().any(|watch| watch.matches(path))
-			|| self.include.is_empty()
-	}
-
-	pub fn passes_ignore(&self, path: &str) -> bool {
-		false == self.exclude.iter().any(|watch| watch.matches(path))
-	}
 	/// just print the events
 	pub async fn watch_log(&self) -> Result<()> {
+		terminal::clear().unwrap();
+		println!("{:#?}", self);
 		self.watch_async(|e| {
-			if e.has_mutate() {
-				println!("{:?}", e);
+			if let Some(mutated) = e.mutated_pretty() {
+				terminal::clear().unwrap();
+				println!("{:#?}\n{}", self, mutated);
 			}
 			Ok(())
 		})
 		.await?;
 		Ok(())
-	}
-	pub fn print_globs(&self) {
-		terminal::clear().unwrap();
-		println!(
-			"watching: {}\nignoring: {}\n",
-			self.include
-				.iter()
-				.map(|w| w.as_str())
-				.collect::<Vec<_>>()
-				.join(","),
-			self.exclude
-				.iter()
-				.map(|w| w.as_str())
-				.collect::<Vec<_>>()
-				.join(",")
-		);
 	}
 
 	pub fn watch_blocking(
@@ -150,6 +148,15 @@ impl FsWatcher {
 		}
 		Ok(())
 	}
+
+	fn passes(&self, path: &Path) -> bool {
+		let pass_include =
+			self.include.iter().any(|watch| watch.matches_path(path))
+				|| self.include.is_empty();
+		let pass_exclude =
+			self.exclude.iter().any(|watch| watch.matches_path(path)) == false;
+		pass_include && pass_exclude
+	}
 }
 
 /// Wrapper for debounced events,
@@ -186,7 +193,7 @@ impl WatchEvent {
 			.flatten()
 			.find_map(func)
 	}
-	/// is_create || is_modify || is_remove
+	/// equivilent to `is_create() || is_modify() || is_remove()`
 	pub fn has_mutate(&self) -> bool {
 		self.has_create() || self.has_modify() || self.has_remove()
 	}
@@ -264,5 +271,42 @@ impl WatchEvent {
 	}
 	pub fn has_other(&self) -> bool {
 		self.events.iter().any(|e| e.kind.is_other())
+	}
+}
+
+
+#[cfg(test)]
+mod test {
+	use crate::prelude::*;
+	use glob::Pattern;
+	use std::path::Path;
+	#[test]
+	fn pattern() {
+		let pat = Pattern::new("*target*").unwrap();
+		assert!(!pat.matches("foo"));
+		assert!(pat.matches("target"));
+		assert!(pat.matches("foo/target/foo"));
+		// let mut watcher = FsWatcher::default();
+		// expect(watcher.exclude
+	}
+	#[test]
+	fn passes() {
+		let watcher = FsWatcher {
+			include: vec![],
+			exclude: vec![Pattern::new("*bar*").unwrap()],
+			..Default::default()
+		};
+		assert!(watcher.passes(&Path::new("foo")));
+		assert!(!watcher.passes(&Path::new("bar")));
+
+		let watcher = FsWatcher {
+			include: vec![Pattern::new("*foo*").unwrap()],
+			exclude: vec![Pattern::new("*bar*").unwrap()],
+			..Default::default()
+		};
+
+		assert!(watcher.passes(&Path::new("bing/foo/bong")));
+		assert!(!watcher.passes(&Path::new("froo")));
+		assert!(!watcher.passes(&Path::new("bar")));
 	}
 }
