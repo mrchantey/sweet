@@ -111,7 +111,7 @@ impl FsWatcher {
 
 	pub fn watch_blocking(
 		&self,
-		mut on_change: impl FnMut(WatchEvent) -> Result<()>,
+		mut on_change: impl FnMut(WatchEventVec) -> Result<()>,
 	) -> Result<()> {
 		let (tx, rx) = std::sync::mpsc::channel();
 		let mut debouncer = new_debouncer(self.debounce, None, move |ev| {
@@ -121,7 +121,7 @@ impl FsWatcher {
 		})?;
 		debouncer.watch(&self.path, RecursiveMode::Recursive)?;
 		for ev in rx {
-			let ev = WatchEvent::new(ev);
+			let ev = WatchEventVec::new(ev);
 			if ev.any(|ev| self.passes(&ev.path)) {
 				on_change(ev)?;
 			}
@@ -130,7 +130,7 @@ impl FsWatcher {
 	}
 	pub async fn watch_async(
 		&self,
-		mut on_change: impl FnMut(WatchEvent) -> Result<()>,
+		mut on_change: impl FnMut(WatchEventVec) -> Result<()>,
 	) -> Result<()> {
 		let (tx, mut rx) = tokio::sync::mpsc::unbounded_channel();
 		let mut debouncer = new_debouncer(self.debounce, None, move |ev| {
@@ -140,7 +140,7 @@ impl FsWatcher {
 		})?;
 		debouncer.watch(&self.path, RecursiveMode::Recursive)?;
 		while let Some(ev) = rx.recv().await {
-			let ev = WatchEvent::new(ev);
+			let ev = WatchEventVec::new(ev);
 			if ev.any(|ev| self.passes(&ev.path)) {
 				on_change(ev)?;
 			}
@@ -159,11 +159,11 @@ impl FsWatcher {
 }
 
 #[derive(Debug, Default, Clone, PartialEq, Eq, Hash)]
-pub struct FileWatchEvent {
+pub struct WatchEvent {
 	pub kind: EventKind,
 	pub path: PathBuf,
 }
-impl FileWatchEvent {
+impl WatchEvent {
 	pub fn new(kind: EventKind, path: impl Into<PathBuf>) -> Self {
 		Self {
 			kind,
@@ -172,7 +172,7 @@ impl FileWatchEvent {
 	}
 	pub fn display(&self) -> String { format!("{}", self) }
 }
-impl std::fmt::Display for FileWatchEvent {
+impl std::fmt::Display for WatchEvent {
 	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
 		write!(f, "{:?}: {}", self.kind, self.path.display())
 	}
@@ -181,11 +181,11 @@ impl std::fmt::Display for FileWatchEvent {
 /// Wrapper for debounced events,
 /// queries are match
 #[derive(Debug)]
-pub struct WatchEvent {
-	pub events: Vec<FileWatchEvent>,
+pub struct WatchEventVec {
+	pub events: Vec<WatchEvent>,
 	pub errors: Vec<Error>,
 }
-impl WatchEvent {
+impl WatchEventVec {
 	pub fn new(events: DebounceEventResult) -> Self {
 		match events {
 			Ok(events) => Self {
@@ -196,7 +196,7 @@ impl WatchEvent {
 						e.event
 							.paths
 							.into_iter()
-							.map(move |p| FileWatchEvent::new(kind.clone(), p))
+							.map(move |p| WatchEvent::new(kind.clone(), p))
 					})
 					.flatten()
 					.collect(),
@@ -209,12 +209,12 @@ impl WatchEvent {
 		}
 	}
 
-	pub fn any(&self, func: impl FnMut(&FileWatchEvent) -> bool) -> bool {
+	pub fn any(&self, func: impl FnMut(&WatchEvent) -> bool) -> bool {
 		self.events.iter().any(func)
 	}
 	pub fn find<O>(
 		&self,
-		func: impl FnMut(&FileWatchEvent) -> Option<O>,
+		func: impl FnMut(&WatchEvent) -> Option<O>,
 	) -> Option<O> {
 		self.events.iter().find_map(func)
 	}
@@ -222,7 +222,7 @@ impl WatchEvent {
 	pub fn has_mutate(&self) -> bool {
 		self.has_create() || self.has_modify() || self.has_remove()
 	}
-	pub fn mutated(&self) -> Vec<&FileWatchEvent> {
+	pub fn mutated(&self) -> Vec<&WatchEvent> {
 		self.events
 			.iter()
 			.filter_map(|e| {
