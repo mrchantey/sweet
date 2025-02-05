@@ -7,7 +7,6 @@ use notify::event::RemoveKind;
 use notify::*;
 use notify_debouncer_full::new_debouncer;
 use notify_debouncer_full::DebounceEventResult;
-use notify_debouncer_full::DebouncedEvent;
 use std::num::ParseIntError;
 use std::path::Path;
 use std::path::PathBuf;
@@ -123,7 +122,7 @@ impl FsWatcher {
 		debouncer.watch(&self.path, RecursiveMode::Recursive)?;
 		for ev in rx {
 			let ev = WatchEvent::new(ev);
-			if ev.any_path(|p| self.passes(p)) {
+			if ev.any(|ev| self.passes(&ev.path)) {
 				on_change(ev)?;
 			}
 		}
@@ -142,7 +141,7 @@ impl FsWatcher {
 		debouncer.watch(&self.path, RecursiveMode::Recursive)?;
 		while let Some(ev) = rx.recv().await {
 			let ev = WatchEvent::new(ev);
-			if ev.any_path(|p| self.passes(p)) {
+			if ev.any(|ev| self.passes(&ev.path)) {
 				on_change(ev)?;
 			}
 		}
@@ -159,18 +158,48 @@ impl FsWatcher {
 	}
 }
 
+#[derive(Debug, Default, Clone, PartialEq, Eq, Hash)]
+pub struct FileWatchEvent {
+	pub kind: EventKind,
+	pub path: PathBuf,
+}
+impl FileWatchEvent {
+	pub fn new(kind: EventKind, path: impl Into<PathBuf>) -> Self {
+		Self {
+			kind,
+			path: path.into(),
+		}
+	}
+	pub fn display(&self) -> String { format!("{}", self) }
+}
+impl std::fmt::Display for FileWatchEvent {
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		write!(f, "{:?}: {}", self.kind, self.path.display())
+	}
+}
+
 /// Wrapper for debounced events,
 /// queries are match
 #[derive(Debug)]
 pub struct WatchEvent {
-	pub events: Vec<DebouncedEvent>,
+	pub events: Vec<FileWatchEvent>,
 	pub errors: Vec<Error>,
 }
 impl WatchEvent {
 	pub fn new(events: DebounceEventResult) -> Self {
 		match events {
 			Ok(events) => Self {
-				events,
+				events: events
+					.into_iter()
+					.map(|e| {
+						let kind = e.kind;
+						e.event
+							.paths
+							.into_iter()
+							.map(move |p| FileWatchEvent::new(kind.clone(), p))
+					})
+					.flatten()
+					.collect(),
 				errors: Vec::new(),
 			},
 			Err(errors) => Self {
@@ -180,24 +209,20 @@ impl WatchEvent {
 		}
 	}
 
-	pub fn any_path(&self, func: impl FnMut(&PathBuf) -> bool) -> bool {
-		self.events.iter().map(|e| &e.paths).flatten().any(func)
+	pub fn any(&self, func: impl FnMut(&FileWatchEvent) -> bool) -> bool {
+		self.events.iter().any(func)
 	}
-	pub fn find_path<O>(
+	pub fn find<O>(
 		&self,
-		func: impl FnMut(&PathBuf) -> Option<O>,
+		func: impl FnMut(&FileWatchEvent) -> Option<O>,
 	) -> Option<O> {
-		self.events
-			.iter()
-			.map(|e| &e.paths)
-			.flatten()
-			.find_map(func)
+		self.events.iter().find_map(func)
 	}
 	/// equivilent to `is_create() || is_modify() || is_remove()`
 	pub fn has_mutate(&self) -> bool {
 		self.has_create() || self.has_modify() || self.has_remove()
 	}
-	pub fn mutated(&self) -> Vec<&DebouncedEvent> {
+	pub fn mutated(&self) -> Vec<&FileWatchEvent> {
 		self.events
 			.iter()
 			.filter_map(|e| {
@@ -217,17 +242,7 @@ impl WatchEvent {
 		let str = self
 			.mutated()
 			.iter()
-			.map(|e| {
-				format!(
-					"{:?}: {}",
-					e.kind,
-					e.paths
-						.iter()
-						.map(|p| p.to_string_lossy())
-						.collect::<Vec<_>>()
-						.join(",")
-				)
-			})
+			.map(|e| e.display())
 			.collect::<Vec<_>>()
 			.join("\n");
 		if str.is_empty() {
@@ -244,14 +259,14 @@ impl WatchEvent {
 		self.events.iter().any(|e| e.kind.is_create())
 	}
 	pub fn has_create_file(&self) -> bool {
-		self.events.iter().any(|e| {
-			matches!(e.event.kind, EventKind::Create(CreateKind::File))
-		})
+		self.events
+			.iter()
+			.any(|e| matches!(e.kind, EventKind::Create(CreateKind::File)))
 	}
 	pub fn has_create_dir(&self) -> bool {
-		self.events.iter().any(|e| {
-			matches!(e.event.kind, EventKind::Create(CreateKind::Folder))
-		})
+		self.events
+			.iter()
+			.any(|e| matches!(e.kind, EventKind::Create(CreateKind::Folder)))
 	}
 	pub fn has_modify(&self) -> bool {
 		self.events.iter().any(|e| e.kind.is_modify())
@@ -260,14 +275,14 @@ impl WatchEvent {
 		self.events.iter().any(|e| e.kind.is_remove())
 	}
 	pub fn has_remove_file(&self) -> bool {
-		self.events.iter().any(|e| {
-			matches!(e.event.kind, EventKind::Remove(RemoveKind::File))
-		})
+		self.events
+			.iter()
+			.any(|e| matches!(e.kind, EventKind::Remove(RemoveKind::File)))
 	}
 	pub fn has_remove_dir(&self) -> bool {
-		self.events.iter().any(|e| {
-			matches!(e.event.kind, EventKind::Remove(RemoveKind::Folder))
-		})
+		self.events
+			.iter()
+			.any(|e| matches!(e.kind, EventKind::Remove(RemoveKind::Folder)))
 	}
 	pub fn has_other(&self) -> bool {
 		self.events.iter().any(|e| e.kind.is_other())
