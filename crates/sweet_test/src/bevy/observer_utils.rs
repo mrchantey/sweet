@@ -16,7 +16,7 @@ pub fn observe_trigger_names<E: Event>(world: &mut World) -> Func<String> {
 	let func: Func<String> = mock_func(|a| a);
 	let func2 = func.clone();
 	world.add_observer(move |on_result: Trigger<E>, query: Query<&Name>| {
-		if let Ok(name) = query.get(on_result.entity()) {
+		if let Ok(name) = query.get(on_result.target()) {
 			func2.call(name.to_string());
 		}
 	});

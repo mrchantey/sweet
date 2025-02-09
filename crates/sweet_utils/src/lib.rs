@@ -1,4 +1,4 @@
-pub use utils::log::*;
+pub use utils::logging::*;
 pub use utils::sleep::*;
 pub mod extensions;
 pub mod utils;

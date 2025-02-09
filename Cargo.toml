@@ -51,7 +51,9 @@ strum = "0.26"
 strum_macros = "0.26"
 
 #💡 game
-bevy = { version = "0.15", default-features = false }
+# bevy = { version = "0.15", default-features = false }
+# 0.16 relations
+bevy = { git = "https://github.com/bevyengine/bevy", rev = "c679b86", default-features = false }
 
 #💡 io ###
 clap = { version = "4", features = ["derive"] }
