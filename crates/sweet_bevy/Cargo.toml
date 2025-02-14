@@ -13,7 +13,7 @@ repository.workspace = true
 rand = ["dep:rand", "dep:rand_chacha", "dep:getrandom"]
 
 [dependencies]
-sweet_utils.workspace = true
+sweet_utils = { workspace = true, features = ["bevy"] }
 bevy.workspace = true
 
 anyhow.workspace = true

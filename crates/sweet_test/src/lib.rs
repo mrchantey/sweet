@@ -1,33 +1,14 @@
 #![cfg_attr(test, feature(custom_test_frameworks))]
 #![cfg_attr(test, test_runner(crate::test_runner))]
 #![feature(test)]
+// #![deny(missing_docs)]
+#![doc = include_str!("../README.md")]
 #![feature(panic_payload_as_str)]
 // implement FnMut for MockFunc
 #![feature(unboxed_closures)]
 #![cfg_attr(feature = "fn_traits", feature(fn_traits))]
 // #![feature(panic_payload_as_str)]
-//!
-//! # Usage
-//!
-//! ```rust
-//! #![cfg_attr(test, feature(test, custom_test_frameworks))]
-//! #![cfg_attr(test, test_runner(sweet::test_runner))]
-//!
-//!
-//! # use sweet_test::prelude::*;
-//!
-//! #[test]
-//! fn it_passes() -> Result<()>{
-//! 	assert!(1 + 1 == 2);
-//! 	expect("sweet").not().to_contain("verbose matchers")
-//! }
-//!
-//! ```
-//!
-//! ```sh
-//! cargo run --example sweet
-//! ```
-//!
+
 extern crate test;
 // the #[sweet::test] macro
 pub use sweet_test_macros;
