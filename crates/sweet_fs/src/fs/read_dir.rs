@@ -3,8 +3,8 @@ use std::fs;
 use std::path::Path;
 use std::path::PathBuf;
 
-/// Read a directory, returning nothing at all by default.
-/// All options are opt-in.
+/// Read a directory or file into a Vec<PathBuf>.
+/// All options are false by default.
 #[derive(Debug)]
 pub struct ReadDir {
 	/// include files
@@ -89,7 +89,8 @@ impl ReadDir {
 	}
 
 
-	/// Read dir with the provided options
+	/// Read dir with the provided options. if the root is a file, the
+	/// file will be returned.
 	pub fn read(&self, root: impl AsRef<Path>) -> FsResult<Vec<PathBuf>> {
 		let mut paths = Vec::new();
 		if self.root {
@@ -100,10 +101,16 @@ impl ReadDir {
 	}
 	fn read_inner(
 		&self,
-		dir: impl AsRef<Path>,
+		file_or_dir: impl AsRef<Path>,
 		paths: &mut Vec<PathBuf>,
 	) -> FsResult<()> {
-		let path = dir.as_ref();
+		let path = file_or_dir.as_ref();
+		if path.is_file() {
+			if self.files {
+				paths.push(path.to_path_buf());
+			}
+			return Ok(());
+		}
 		let children = fs::read_dir(path)
 			.map_err(|e| FsError::from_io_with_dir(e, path))?;
 		for child in children {

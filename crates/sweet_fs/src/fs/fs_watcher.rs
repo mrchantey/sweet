@@ -313,6 +313,7 @@ mod test {
 		};
 		assert!(watcher.passes(&Path::new("foo")));
 		assert!(!watcher.passes(&Path::new("bar")));
+		assert!(!watcher.passes(&Path::new("foo/bar/bazz")));
 
 		let watcher = FsWatcher {
 			include: vec![Pattern::new("*foo*").unwrap()],

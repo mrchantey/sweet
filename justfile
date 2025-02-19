@@ -71,6 +71,7 @@ publish-all *args:
 	just publish sweet_fs						{{args}} | true
 	just publish sweet_test_macros	{{args}} | true
 	just publish sweet_test					{{args}} | true
+	just publish sweet_server				{{args}} | true
 	just publish sweet_web					{{args}} | true
 	just publish sweet_bevy					{{args}} | true
 	just publish sweet 							{{args}} | true
