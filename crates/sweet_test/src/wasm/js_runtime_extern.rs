@@ -52,6 +52,7 @@ mod test {
 	}
 	#[test]
 	fn sweet_root() {
-		expect(js_runtime::sweet_root().unwrap()).to_end_with("sweet/");
+		expect(js_runtime::sweet_root().unwrap().replace("\\", "/"))
+			.to_end_with("sweet/");
 	}
 }

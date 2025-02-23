@@ -91,4 +91,7 @@ build-wasm crate example *args:
 	~/.cargo_target/wasm32-unknown-unknown/debug/examples/{{example}}.wasm
 
 watch *command:
-	forky watch --rusty	-- {{command}}
+	sweet watch \
+	--include "**/*.rs" \
+	--exclude "{.git,target,html}/**" \
+	-- {{command}}

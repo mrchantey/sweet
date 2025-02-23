@@ -52,8 +52,14 @@ impl SweetError {
 	pub const BACKTRACE_LEVEL_0: usize = 0;
 
 
+	#[allow(unused_mut)]
+	pub fn new(message: impl Into<String>, mut assertion_depth: usize) -> Self {
+		// not sure why the windows backtrace is so much deeper
+		#[cfg(target_os = "windows")]
+		{
+			assertion_depth += 4;
+		}
 
-	pub fn new(message: impl Into<String>, assertion_depth: usize) -> Self {
 		#[cfg(target_arch = "wasm32")]
 		return Self {
 			message: message.into(),

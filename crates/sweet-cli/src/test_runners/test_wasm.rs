@@ -168,7 +168,7 @@ mod test {
 
 	#[test]
 	fn works() {
-		expect(deno_runner_path().to_string_lossy())
+		expect(deno_runner_path().to_string_lossy().replace("\\", "/"))
 			.to_end_with("target/sweet/deno.ts");
 	}
 }

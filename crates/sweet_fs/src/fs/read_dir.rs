@@ -160,7 +160,8 @@ mod test {
 		let err_str = ReadDir::default()
 			.read(FsExt::test_dir().join("foo"))
 			.unwrap_err()
-			.to_string();
+			.to_string()
+			.replace("\\", "/");
 		assert!(err_str.contains("test_dir/foo"));
 	}
 
@@ -168,7 +169,8 @@ mod test {
 	fn dirs() {
 		let err_str = ReadDir::dirs(FsExt::test_dir().join("foo"))
 			.unwrap_err()
-			.to_string();
+			.to_string()
+			.replace("\\", "/");
 		assert!(err_str.contains("test_dir/foo"));
 		assert_eq!(ReadDir::dirs(FsExt::test_dir()).unwrap().len(), 2);
 	}
