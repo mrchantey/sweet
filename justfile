@@ -92,4 +92,3 @@ build-wasm crate example *args:
 
 watch *command:
 	forky watch --rusty	-- {{command}}
-

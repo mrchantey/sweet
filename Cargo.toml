@@ -108,6 +108,7 @@ keywords.workspace = true
 
 [features]
 # default = ["server", "rsx", "macros", "render"]
+bevy_default = ["bevy", "sweet_bevy/bevy_default"]
 bevy = ["dep:sweet_bevy", "sweet_utils/bevy", "sweet_test?/bevy"]
 fs = ["dep:sweet_fs"]
 rand = ["sweet_utils/rand", "sweet_bevy?/rand"]
