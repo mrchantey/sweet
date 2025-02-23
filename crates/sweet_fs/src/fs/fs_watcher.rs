@@ -13,6 +13,11 @@ use std::path::PathBuf;
 use std::time::Duration;
 
 /// A file watcher with glob patterns
+/// ## Common pitfalls:
+/// - If the directory is removed while watching, the
+/// 	watcher will silently stop listening
+/// - If the directory does not exist when the watcher
+/// 	starts it will
 #[derive(Clone, Parser)]
 pub struct FsWatcher {
 	/// the path to watch
@@ -109,10 +114,24 @@ impl FsWatcher {
 		Ok(())
 	}
 
+	/// It is not valid to watch an empty path, it
+	/// will never be triggered!
+	pub fn assert_path_exists(&self) -> Result<()> {
+		if self.path.exists() == false {
+			Err(anyhow::anyhow!(
+				"Path does not exist: {}\nThe watcher will never be triggered!",
+				self.path.display()
+			))
+		} else {
+			Ok(())
+		}
+	}
+
 	pub fn watch_blocking(
 		&self,
 		mut on_change: impl FnMut(WatchEventVec) -> Result<()>,
 	) -> Result<()> {
+		self.assert_path_exists()?;
 		let (tx, rx) = std::sync::mpsc::channel();
 		let mut debouncer = new_debouncer(self.debounce, None, move |ev| {
 			if let Err(err) = tx.send(ev) {
@@ -132,6 +151,7 @@ impl FsWatcher {
 		&self,
 		mut on_change: impl FnMut(WatchEventVec) -> Result<()>,
 	) -> Result<()> {
+		self.assert_path_exists()?;
 		let (tx, mut rx) = tokio::sync::mpsc::unbounded_channel();
 		let mut debouncer = new_debouncer(self.debounce, None, move |ev| {
 			if let Err(err) = tx.send(ev) {

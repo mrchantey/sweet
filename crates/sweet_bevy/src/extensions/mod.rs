@@ -10,5 +10,7 @@ mod quat;
 pub use self::quat::*;
 mod transform_x;
 pub use self::transform_x::*;
+mod hierarchy;
+pub use self::hierarchy::*;
 mod vec3;
 pub use self::vec3::*;
