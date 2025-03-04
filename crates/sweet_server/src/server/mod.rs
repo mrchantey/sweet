@@ -133,10 +133,11 @@ impl Server {
 			let this2 = this.clone();
 
 			FsWatcher {
-				path: this.dir.clone(),
+				cwd: this.dir.clone(),
 				include: this.include.clone(),
 				exclude: this.exclude.clone(),
 				debounce: this.debounce.clone(),
+				cmd: Default::default(),
 			}
 			.watch_blocking(move |e| {
 				if let Some(events) = e.mutated_pretty() {

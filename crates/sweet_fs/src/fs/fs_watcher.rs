@@ -12,17 +12,22 @@ use std::path::Path;
 use std::path::PathBuf;
 use std::time::Duration;
 
-/// A file watcher with glob patterns
+/// A file watcher with glob patterns. All `include` and `exclude`
+/// patterns will be normalized to forward slashes
 /// ## Common pitfalls:
+/// - If the directory does not exist when the watcher
+/// 	starts it will error
 /// - If the directory is removed while watching, the
 /// 	watcher will silently stop listening
-/// - If the directory does not exist when the watcher
-/// 	starts it will
 #[derive(Clone, Parser)]
 pub struct FsWatcher {
+	/// the command to run on change. This will run before any provided
+	/// `on_change` callback.
+	#[arg(long)]
+	pub cmd: Option<String>,
 	/// the path to watch
-	#[arg(default_value = "./")]
-	pub path: PathBuf,
+	#[arg(long, default_value = "./")]
+	pub cwd: PathBuf,
 	/// glob for watch patterns, leave empty to include all
 	#[arg(long,value_parser = parse_glob_pattern)]
 	pub include: Vec<glob::Pattern>,
@@ -30,7 +35,12 @@ pub struct FsWatcher {
 	#[arg(long,value_parser = parse_glob_pattern)]
 	pub exclude: Vec<glob::Pattern>,
 	/// debounce time in milliseconds
-	#[arg(short,long="debounce-millis",value_parser = parse_duration,default_value="50")]
+	#[arg(
+		short,
+		long="debounce-millis",
+		value_parser = parse_duration,
+		default_value="50"
+	)]
 	pub debounce: Duration,
 }
 
@@ -48,7 +58,7 @@ impl Default for FsWatcher {
 impl std::fmt::Debug for FsWatcher {
 	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
 		f.debug_struct("FsWatcher")
-			.field("path", &self.path)
+			.field("cwd", &self.cwd)
 			.field(
 				"include",
 				&self
@@ -66,13 +76,14 @@ impl std::fmt::Debug for FsWatcher {
 					.collect::<Vec<_>>(),
 			)
 			.field("debounce", &self.debounce)
+			.field("cmd", &self.cmd)
 			.finish()
 	}
 }
 
 impl FsWatcher {
 	pub fn with_path(mut self, path: impl Into<PathBuf>) -> Self {
-		self.path = path.into();
+		self.cwd = path.into();
 		self
 	}
 	pub fn set_include(mut self, watch: Vec<&str>) -> Self {
@@ -99,14 +110,17 @@ impl FsWatcher {
 		self
 	}
 
-	/// just print the events
-	pub async fn watch_log(&self) -> Result<()> {
+	/// Run the command once, then watch, printing the 
+	/// mutated file each time.
+	pub async fn run_and_watch(&self) -> Result<()> {
 		terminal::clear().unwrap();
 		println!("{:#?}", self);
+		self.try_run_cmd()?;
 		self.watch_async(|e| {
 			if let Some(mutated) = e.mutated_pretty() {
 				terminal::clear().unwrap();
-				println!("{:#?}\n{}", self, mutated);
+				println!("{}", mutated);
+				// println!("{:#?}\n{}", self, mutated);
 			}
 			Ok(())
 		})
@@ -117,10 +131,10 @@ impl FsWatcher {
 	/// It is not valid to watch an empty path, it
 	/// will never be triggered!
 	pub fn assert_path_exists(&self) -> Result<()> {
-		if self.path.exists() == false {
+		if self.cwd.exists() == false {
 			Err(anyhow::anyhow!(
-				"Path does not exist: {}\nThe watcher will never be triggered!",
-				self.path.display()
+				"Path does not exist: {}\nOnly existing paths can be watched",
+				self.cwd.display()
 			))
 		} else {
 			Ok(())
@@ -138,11 +152,12 @@ impl FsWatcher {
 				eprintln!("{:?}", err);
 			}
 		})?;
-		debouncer.watch(&self.path, RecursiveMode::Recursive)?;
+		debouncer.watch(&self.cwd, RecursiveMode::Recursive)?;
 		for ev in rx {
 			let ev = WatchEventVec::new(ev);
 			if ev.any(|ev| self.passes(&ev.path)) {
 				on_change(ev)?;
+				self.try_run_cmd()?;
 			}
 		}
 		Ok(())
@@ -158,17 +173,39 @@ impl FsWatcher {
 				eprintln!("{:?}", err);
 			}
 		})?;
-		debouncer.watch(&self.path, RecursiveMode::Recursive)?;
+		debouncer.watch(&self.cwd, RecursiveMode::Recursive)?;
+
 		while let Some(ev) = rx.recv().await {
 			let ev = WatchEventVec::new(ev);
 			if ev.any(|ev| self.passes(&ev.path)) {
 				on_change(ev)?;
+				self.try_run_cmd()?;
+			}
+		}
+		Ok(())
+	}
+
+	fn try_run_cmd(&self) -> Result<()> {
+		if let Some(cmd) = &self.cmd {
+			let cmd_vec = cmd.split_whitespace().collect::<Vec<_>>();
+			let status = std::process::Command::new(&cmd_vec[0])
+				.args(&cmd_vec[1..])
+				.status()?;
+
+			if !status.success() {
+				return Err(anyhow::anyhow!(
+					"Command failed: {}\n{}",
+					cmd,
+					status
+				));
 			}
 		}
 		Ok(())
 	}
 
 	fn passes(&self, path: &Path) -> bool {
+		// let path_str = path.to_string_lossy().replace('\\', "/");
+		// let path = Path::new(&path_str);
 		let pass_include =
 			self.include.iter().any(|watch| watch.matches_path(path))
 				|| self.include.is_empty();
@@ -342,7 +379,19 @@ mod test {
 		};
 
 		assert!(watcher.passes(&Path::new("bing/foo/bong")));
+		// bacslashes are normalized to forward slashes
+		assert!(watcher.passes(&Path::new("bing\\foo\\bong")));
 		assert!(!watcher.passes(&Path::new("froo")));
 		assert!(!watcher.passes(&Path::new("bar")));
+
+
+		let watcher = FsWatcher {
+			include: vec![Pattern::new("foo/bar").unwrap()],
+			..Default::default()
+		};
+
+		assert!(watcher.passes(&Path::new("foo/bar")));
+		// bacslashes are normalized to forward slashes
+		assert!(watcher.passes(&Path::new("foo\\bar")));
 	}
 }

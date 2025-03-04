@@ -22,11 +22,11 @@ pub mod prelude {
 	pub use sweet_bevy::prelude::*;
 	#[cfg(feature = "fs")]
 	pub use sweet_fs::prelude::*;
+	#[cfg(feature = "server")]
+	pub use sweet_server::prelude::*;
 	#[cfg(feature = "test")]
 	pub use sweet_test::prelude::*;
 	pub use sweet_utils::prelude::*;
 	#[cfg(feature = "web")]
 	pub use sweet_web::prelude::*;
-	#[cfg(feature = "server")]
-	pub use sweet_server::prelude::*;
 }

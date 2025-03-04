@@ -53,10 +53,10 @@ test-all *args:
 
 # upstream from sweet_test
 test-fs *args:
-	just watch cargo test -p sweet_fs --lib {{args}}
+	just watch 'cargo test -p sweet_fs --lib {{args}}'
 # upstream from sweet_test
 test-utils *args:
-	just watch cargo test -p sweet_utils --lib {{args}}
+	just watch 'cargo test -p sweet_utils --lib {{args}}'
 
 expand-wasm test *args:
 	just watch 'cargo expand --test {{test}} --target wasm32-unknown-unknown {{args}}'
@@ -94,4 +94,4 @@ watch *command:
 	sweet watch \
 	--include "**/*.rs" \
 	--exclude "{.git,target,html}/**" \
-	-- {{command}}
+	--cmd "{{command}}"
