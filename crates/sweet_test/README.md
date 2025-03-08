@@ -1,6 +1,6 @@
 # Sweet Test
 
-A sweet test runner.
+A pretty cross platform test runner.
 
 # Usage
 

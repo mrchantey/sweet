@@ -6,9 +6,11 @@ use clap::Subcommand;
 use sweet::prelude::*;
 use sweet_cli::prelude::*;
 
-
+/// Sweet CLI
+///
+/// Various commands for testing and serving files.
 #[derive(Parser)]
-#[command(version, about, long_about = None)]
+#[command(version)]
 struct Cli {
 	#[command(subcommand)]
 	command: Commands,

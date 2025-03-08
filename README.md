@@ -18,3 +18,15 @@
   </h3>
   <sub>made with ❤️‍🔥 by mrchantey</a></sub>
 </div>
+
+
+
+
+
+| Crate                                                   | Description                            |
+| ------------------------------------------------------- | -------------------------------------- |
+| [`sweet_bevy`](https://crates.io/crates/sweet_bevy)     | Bevy utilities                         |
+| [`sweet_fs`](https://crates.io/crates/sweet_fs)         | FS utilities                           |
+| [`sweet_server`](https://crates.io/crates/sweet_server) | Simple file server with live reload    |
+| [`sweet_test`](https://crates.io/crates/sweet_test)     | A pretty cross platform test runner    |
+| [`sweet-cli`](https://crates.io/crates/sweet-cli)       | Cross-platform utilities and dev tools |

@@ -13,7 +13,7 @@ members = [
 ]
 
 [workspace.package]
-version = "0.3.0-rc.4"
+version = "0.3.0"
 edition = "2021"
 license = "MIT OR Apache-2.0"
 authors = ["Peter Hayman"]
@@ -31,14 +31,14 @@ categories = [
 keywords = ["full-stack", "browser", "web", "test", "e2e"]
 
 [workspace.dependencies]
-sweet = { path = "", version = "0.3.0-rc.4" }
-sweet_bevy = { path = "crates/sweet_bevy", version = "0.3.0-rc.4" }
-sweet_fs = { path = "crates/sweet_fs", version = "0.3.0-rc.4" }
-sweet_server = { path = "crates/sweet_server", version = "0.3.0-rc.4" }
-sweet_test = { path = "crates/sweet_test", version = "0.3.0-rc.4" }
-sweet_test_macros = { path = "crates/sweet_test/macros", version = "0.3.0-rc.4" }
-sweet_web = { path = "crates/sweet_web", version = "0.3.0-rc.4" }
-sweet_utils = { path = "crates/sweet_utils", version = "0.3.0-rc.4" }
+sweet = { path = "", version = "0.3.0" }
+sweet_bevy = { path = "crates/sweet_bevy", version = "0.3.0" }
+sweet_fs = { path = "crates/sweet_fs", version = "0.3.0" }
+sweet_server = { path = "crates/sweet_server", version = "0.3.0" }
+sweet_test = { path = "crates/sweet_test", version = "0.3.0" }
+sweet_test_macros = { path = "crates/sweet_test/macros", version = "0.3.0" }
+sweet_web = { path = "crates/sweet_web", version = "0.3.0" }
+sweet_utils = { path = "crates/sweet_utils", version = "0.3.0" }
 
 #💡 utility
 log = "0.4"
