@@ -20,7 +20,7 @@ enum Commands {
 	TestServer(TestServer),
 	TestWasm(TestWasm),
 	Serve(Server),
-	Watch(FsWatcher),
+	Watch(FsWatchCmd),
 }
 
 #[tokio::main]

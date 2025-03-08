@@ -1,15 +1,12 @@
-pub mod fs_watcher;
-#[allow(unused_imports)]
-pub use self::fs_watcher::*;
-pub mod fs_error;
-#[allow(unused_imports)]
-pub use self::fs_error::*;
-pub mod fs_ext;
-#[allow(unused_imports)]
-pub use self::fs_ext::*;
-pub mod read_dir;
-#[allow(unused_imports)]
-pub use self::read_dir::*;
-pub mod read_file;
-#[allow(unused_imports)]
-pub use self::read_file::*;
+mod fs_watcher;
+pub use fs_watcher::*;
+mod fs_error;
+pub use fs_error::*;
+mod fs_watch_cmd;
+pub use fs_watch_cmd::*;
+mod fs_ext;
+pub use fs_ext::*;
+mod read_dir;
+pub use read_dir::*;
+mod read_file;
+pub use read_file::*;

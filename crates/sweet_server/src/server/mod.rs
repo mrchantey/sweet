@@ -47,7 +47,7 @@ pub struct Server {
 	#[arg(long)]
 	pub any_origin: bool,
 	//
-	// [FsWatcher] args, we dont include because of dir/path collision
+	// [FsWatcher] args, we dont include because of dir/cwd collision
 	//
 	/// glob for watch patterns
 	#[arg(long,value_parser = parse_glob_pattern)]
@@ -137,7 +137,6 @@ impl Server {
 				include: this.include.clone(),
 				exclude: this.exclude.clone(),
 				debounce: this.debounce.clone(),
-				cmd: Default::default(),
 			}
 			.watch_blocking(move |e| {
 				if let Some(events) = e.mutated_pretty() {

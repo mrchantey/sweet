@@ -1,5 +1,5 @@
 use crate::prelude::*;
-/// Alias for [`Matcher::new()`]
+/// Create a new matcher with the provided received value.
 ///
 /// # Example
 ///
