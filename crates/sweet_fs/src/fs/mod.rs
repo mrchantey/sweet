@@ -1,6 +1,8 @@
 mod fs_watcher;
+mod graceful_child;
 mod path_ext;
 pub use fs_watcher::*;
+pub use graceful_child::*;
 pub use path_ext::*;
 mod fs_error;
 pub use fs_error::*;

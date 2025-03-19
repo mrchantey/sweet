@@ -23,6 +23,7 @@ crossterm = "0.28"
 
 ## cli
 clap.workspace = true
+ctrlc = "3"
 
 ## fs
 notify = "8"
