@@ -111,10 +111,14 @@ impl ReadDir {
 			}
 			return Ok(());
 		}
-		let children = fs::read_dir(path)
-			.map_err(|e| FsError::from_io_with_dir(e, path))?;
+		let children = fs::read_dir(path).map_err(|e| FsError::io(path, e))?;
 		for child in children {
-			let child = child.map_err(|e| FsError::Io(e)).map(|c| c.path())?;
+			let child = child
+				.map_err(|err| FsError::ChildIo {
+					parent: path.into(),
+					err,
+				})
+				.map(|c| c.path())?;
 			if child.is_dir() {
 				if self.dirs {
 					paths.push(child.clone());
@@ -142,7 +146,8 @@ impl ReadDir {
 				Ok(val) => {
 					vec.extend(val);
 				}
-				Err(FsError::DirNotFound(_)) => {}
+				// do nothing
+				Err(FsError::DirNotFound { .. }) => {}
 				Err(err) => return Err(err),
 			};
 		}

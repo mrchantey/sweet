@@ -1,5 +1,7 @@
 mod fs_watcher;
+mod path_ext;
 pub use fs_watcher::*;
+pub use path_ext::*;
 mod fs_error;
 pub use fs_error::*;
 mod fs_watch_cmd;

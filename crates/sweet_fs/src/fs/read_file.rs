@@ -12,11 +12,10 @@ pub struct ReadFile;
 
 impl ReadFile {
 	pub fn to_string(path: impl AsRef<Path>) -> FsResult<String> {
-		std::fs::read_to_string(&path)
-			.map_err(|e| FsError::from_io_with_file(e, path))
+		std::fs::read_to_string(&path).map_err(|e| FsError::io(path, e))
 	}
 	pub fn to_bytes(path: impl AsRef<Path>) -> FsResult<Vec<u8>> {
-		std::fs::read(&path).map_err(|e| FsError::from_io_with_file(e, path))
+		std::fs::read(&path).map_err(|e| FsError::io(path, e))
 	}
 
 
@@ -51,7 +50,8 @@ mod test {
 
 	#[test]
 	fn to_string() {
-		let content = ReadFile::to_string(FsExt::test_dir().join("mod.rs")).unwrap();
+		let content =
+			ReadFile::to_string(FsExt::test_dir().join("mod.rs")).unwrap();
 		assert!(content.contains("pub mod included_dir;"));
 
 		assert!(ReadFile::to_string(FsExt::test_dir().join("foo.rs")).is_err());
@@ -59,7 +59,8 @@ mod test {
 
 	#[test]
 	fn to_bytes() {
-		let bytes = ReadFile::to_bytes(FsExt::test_dir().join("mod.rs")).unwrap();
+		let bytes =
+			ReadFile::to_bytes(FsExt::test_dir().join("mod.rs")).unwrap();
 		assert!(bytes.len() > 10);
 
 		assert!(ReadFile::to_bytes(FsExt::test_dir().join("foo.rs")).is_err());
@@ -67,11 +68,15 @@ mod test {
 
 	#[test]
 	fn hash() {
-		let hash1 = ReadFile::hash_file(FsExt::test_dir().join("mod.rs")).unwrap();
-		let hash2 = ReadFile::hash_file(FsExt::test_dir().join("included_file.rs")).unwrap();
+		let hash1 =
+			ReadFile::hash_file(FsExt::test_dir().join("mod.rs")).unwrap();
+		let hash2 =
+			ReadFile::hash_file(FsExt::test_dir().join("included_file.rs"))
+				.unwrap();
 		assert_ne!(hash1, hash2);
 
-		let str = ReadFile::to_string(FsExt::test_dir().join("mod.rs")).unwrap();
+		let str =
+			ReadFile::to_string(FsExt::test_dir().join("mod.rs")).unwrap();
 		let hash3 = ReadFile::hash_string(&str);
 		assert_eq!(hash3, hash1);
 	}

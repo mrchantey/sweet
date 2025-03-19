@@ -1,78 +1,60 @@
 use std::io;
 use std::path::Path;
+use std::path::PathBuf;
 use thiserror::Error;
+
+pub type FsResult<T> = std::result::Result<T, FsError>;
 
 
 /// An fs error that actuall outputs the missing path
 #[derive(Debug, Error)]
 pub enum FsError {
-	#[error("file not found: {0}")]
-	FileNotFound(String),
-	#[error("dir not found: {0}")]
-	DirNotFound(String),
-	#[error("io error: {0}")]
-	Io(io::Error),
-	#[error("fs error: {0}")]
-	Other(String),
+	#[error("Fs Error - File Not Found\nPath: {path}")]
+	FileNotFound { path: PathBuf },
+	#[error("Fs Error - Dir Not Found\nPath: {path}")]
+	DirNotFound { path: PathBuf },
+	/// Catch-all error for io errors that are not [`io::ErrorKind::NotFound`]
+	#[error("Fs Error - IO\nPath: {path}\nError: {err}")]
+	Io { path: PathBuf, err: io::Error },
+	/// fs::read_dir may succeed but reading one child may fail
+	/// in which case we dont know the child path
+	#[error("Fs Error - Child IO\nParent: {parent}\nError: {err}")]
+	ChildIo { parent: PathBuf, err: io::Error },
+	#[error("Fs Error\nPath: {path}\nError: {err}")]
+	Other { path: PathBuf, err: String },
 }
 
 impl FsError {
 	pub fn assert_dir(path: impl AsRef<Path>) -> FsResult<()> {
 		if !path.as_ref().is_dir() {
-			Err(FsError::DirNotFound(
-				path.as_ref().to_string_lossy().to_string(),
-			))
+			Err(FsError::DirNotFound {
+				path: path.as_ref().into(),
+			})
 		} else {
 			Ok(())
 		}
 	}
 
 
-	pub fn from_io(e: io::Error) -> Self { FsError::Io(e) }
-
-	pub fn from_io_with_dir(e: io::Error, path: impl AsRef<Path>) -> Self {
-		match e.kind() {
-			io::ErrorKind::NotFound => FsError::DirNotFound(
-				path.as_ref().to_string_lossy().to_string(),
-			),
-			_ => FsError::Io(e),
+	pub fn io(path: impl AsRef<Path>, e: io::Error) -> Self {
+		let path: PathBuf = path.as_ref().into();
+		match (e.kind(), path.is_dir()) {
+			(io::ErrorKind::NotFound, true) => FsError::DirNotFound { path },
+			(io::ErrorKind::NotFound, false) => FsError::FileNotFound { path },
+			_ => FsError::Io { path, err: e },
 		}
 	}
-	pub fn from_io_with_file(e: io::Error, path: impl AsRef<Path>) -> Self {
-		match e.kind() {
-			io::ErrorKind::NotFound => FsError::FileNotFound(
-				path.as_ref().to_string_lossy().to_string(),
-			),
-			_ => FsError::Io(e),
+
+	pub fn other(path: impl AsRef<Path>, err: impl ToString) -> Self {
+		FsError::Other {
+			path: path.as_ref().into(),
+			err: err.to_string(),
 		}
 	}
 
 	pub fn file_not_found(path: impl AsRef<Path>) -> Self {
-		FsError::FileNotFound(path.as_ref().to_string_lossy().to_string())
-	}
-
-	pub fn from_io_with_path(e: io::Error, path: impl AsRef<Path>) -> Self {
-		let path = path.as_ref();
-		if path.is_dir() {
-			Self::from_io_with_dir(e, path)
-		} else {
-			Self::from_io_with_file(e, path)
+		FsError::FileNotFound {
+			path: path.as_ref().into(),
 		}
 	}
 }
-
-
-impl From<io::Error> for FsError {
-	fn from(e: io::Error) -> Self { FsError::from_io(e) }
-}
-
-impl From<&str> for FsError {
-	fn from(e: &str) -> Self { FsError::Other(e.to_string()) }
-}
-
-impl From<anyhow::Error> for FsError {
-	fn from(e: anyhow::Error) -> Self { FsError::Other(e.to_string()) }
-}
-
-
-pub type FsResult<T> = std::result::Result<T, FsError>;

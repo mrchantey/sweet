@@ -4,8 +4,8 @@ use glob::PatternError;
 use notify::event::CreateKind;
 use notify::event::RemoveKind;
 use notify::*;
-use notify_debouncer_full::new_debouncer;
 use notify_debouncer_full::DebounceEventResult;
+use notify_debouncer_full::new_debouncer;
 use std::num::ParseIntError;
 use std::path::Path;
 use std::path::PathBuf;
@@ -130,8 +130,9 @@ impl FsWatcher {
 		})?;
 		debouncer.watch(&self.cwd, RecursiveMode::Recursive)?;
 		for ev in rx {
-			let ev = WatchEventVec::new(ev);
-			if ev.any(|ev| self.passes(&ev.path)) {
+			if let Some(ev) =
+				WatchEventVec::new(ev).apply_filter(|ev| self.passes(&ev.path))
+			{
 				on_change(ev)?;
 			}
 		}
@@ -156,8 +157,9 @@ impl FsWatcher {
 		debouncer.watch(&self.cwd, RecursiveMode::Recursive)?;
 
 		while let Some(ev) = rx.recv().await {
-			let ev = WatchEventVec::new(ev);
-			if ev.any(|ev| self.passes(&ev.path)) {
+			if let Some(ev) =
+				WatchEventVec::new(ev).apply_filter(|ev| self.passes(&ev.path))
+			{
 				on_change(ev)?;
 			}
 		}
@@ -171,8 +173,10 @@ impl FsWatcher {
 		let pass_include =
 			self.include.iter().any(|watch| watch.matches(&path_str))
 				|| self.include.is_empty();
-		let pass_exclude =
-			self.exclude.iter().any(|watch| watch.matches(&path_str)) == false;
+		let pass_exclude = self
+			.exclude
+			.iter()
+			.all(|watch| watch.matches(&path_str) == false);
 		pass_include && pass_exclude
 	}
 }
@@ -228,6 +232,19 @@ impl WatchEventVec {
 		}
 	}
 
+	/// Returns None if no events match the filter
+	pub fn apply_filter(
+		mut self,
+		filter: impl Fn(&WatchEvent) -> bool,
+	) -> Option<Self> {
+		self.events.retain(|e| filter(e));
+		if self.events.is_empty() {
+			None
+		} else {
+			Some(self)
+		}
+	}
+
 	pub fn any(&self, func: impl FnMut(&WatchEvent) -> bool) -> bool {
 		self.events.iter().any(func)
 	}
@@ -264,11 +281,7 @@ impl WatchEventVec {
 			.map(|e| e.display())
 			.collect::<Vec<_>>()
 			.join("\n");
-		if str.is_empty() {
-			None
-		} else {
-			Some(str)
-		}
+		if str.is_empty() { None } else { Some(str) }
 	}
 
 	pub fn has_access(&self) -> bool {
@@ -359,5 +372,13 @@ mod test {
 
 		let pat = Pattern::new("**/*.rs").unwrap();
 		assert_eq!(pat.as_str(), "**/*.rs");
+
+
+		let watcher = FsWatcher::default()
+			.with_exclude("*.git*")
+			.with_exclude("*target*");
+
+		assert!(watcher.passes(&Path::new("/foo/bar/bazz.rs")));
+		assert!(!watcher.passes(&Path::new("/foo/target/bazz.rs")));
 	}
 }

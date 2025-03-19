@@ -3,12 +3,16 @@ use std::ffi::OsString;
 use std::fs;
 use std::path::Path;
 use std::path::PathBuf;
-use sweet_utils::prelude::PathExt;
 
 /// Better Fs, actually outputs missing path
 pub struct FsExt;
 
 impl FsExt {
+	pub fn current_dir() -> FsResult<PathBuf> {
+		std::env::current_dir().map_err(|e| FsError::io(".", e))
+	}
+
+
 	/// Copy a directory recursively, creating it if it doesnt exist
 	/// This also provides consistent behavior with the `cp` command:
 	/// -
@@ -26,7 +30,7 @@ impl FsExt {
 				Self::copy_recursive(&entry, destination.join(stem))?;
 			} else {
 				fs::copy(&entry, destination.join(stem))
-					.map_err(FsError::from_io)?;
+					.map_err(|err| FsError::io(entry, err))?;
 			}
 		}
 		Ok(())
@@ -34,7 +38,8 @@ impl FsExt {
 
 	/// remove a directory and all its contents
 	pub fn remove(path: impl AsRef<Path>) -> FsResult<()> {
-		fs::remove_dir_all(path).map_err(FsError::from_io)?;
+		let path = path.as_ref();
+		fs::remove_dir_all(path).map_err(|err| FsError::io(path, err))?;
 		Ok(())
 	}
 
@@ -71,16 +76,20 @@ impl FsExt {
 				return PathBuf::from(p);
 			}
 		}
-		panic!("No Cargo.lock found in the current directory or any of its ancestors");
+		panic!(
+			"No Cargo.lock found in the current directory or any of its ancestors"
+		);
 	}
 
 
 	/// Write a file, ensuring the path exists
 	pub fn write(path: impl AsRef<Path>, data: &str) -> FsResult<()> {
-		if let Some(parent) = path.as_ref().parent() {
-			fs::create_dir_all(parent)?;
+		let path = path.as_ref();
+		if let Some(parent) = path.parent() {
+			fs::create_dir_all(parent)
+				.map_err(|err| FsError::io(parent, err))?;
 		}
-		fs::write(path, data)?;
+		fs::write(path, data).map_err(|err| FsError::io(path, err))?;
 		Ok(())
 	}
 }

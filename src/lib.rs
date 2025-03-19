@@ -1,8 +1,8 @@
 #[cfg(feature = "bevy")]
 pub use sweet_bevy as bevy;
-#[cfg(feature = "fs")]
+#[cfg(all(feature = "fs", not(target_arch = "wasm32")))]
 pub use sweet_fs as fs;
-#[cfg(feature = "server")]
+#[cfg(all(feature = "server", not(target_arch = "wasm32")))]
 pub use sweet_server as server;
 #[cfg(feature = "test")]
 pub use sweet_test as test;
@@ -20,9 +20,9 @@ pub use sweet_web as web;
 pub mod prelude {
 	#[cfg(feature = "bevy")]
 	pub use sweet_bevy::prelude::*;
-	#[cfg(feature = "fs")]
+	#[cfg(all(feature = "fs", not(target_arch = "wasm32")))]
 	pub use sweet_fs::prelude::*;
-	#[cfg(feature = "server")]
+	#[cfg(all(feature = "server", not(target_arch = "wasm32")))]
 	pub use sweet_server::prelude::*;
 	#[cfg(feature = "test")]
 	pub use sweet_test::prelude::*;
