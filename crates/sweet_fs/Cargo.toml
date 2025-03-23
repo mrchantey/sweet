@@ -9,11 +9,13 @@ readme.workspace = true
 description = "FS utilities"
 repository.workspace = true
 
+[features]
+default = ["serde"]
+serde = ["dep:serde"]
 
 [dependencies]
 sweet_utils.workspace = true
 ## utils
-glob.workspace = true
 anyhow.workspace = true
 thiserror.workspace = true
 extend.workspace = true
@@ -31,3 +33,6 @@ notify-debouncer-full = "0.5"
 ## async
 tokio.workspace = true
 futures.workspace = true
+
+
+serde = { workspace = true, optional = true }

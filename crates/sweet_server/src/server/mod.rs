@@ -3,16 +3,17 @@ pub use self::address::*;
 pub mod tls;
 pub use self::tls::*;
 use anyhow::Result;
+use axum::Router;
 use axum::extract::Request;
 use axum::http::Method;
 use axum::response::Response;
 use axum::routing::get;
-use axum::Router;
 use clap::Parser;
 use std::path::PathBuf;
 use std::thread::JoinHandle;
 use std::time::Duration;
 use sweet_fs::prelude::*;
+use sweet_utils::prelude::*;
 use tower_http::cors::CorsLayer;
 use tower_http::services::ServeDir;
 use tower_http::services::ServeFile;
@@ -49,12 +50,8 @@ pub struct Server {
 	//
 	// [FsWatcher] args, we dont include because of dir/cwd collision
 	//
-	/// glob for watch patterns
-	#[arg(long,value_parser = parse_glob_pattern)]
-	pub include: Vec<glob::Pattern>,
-	/// glob for ignore patterns
-	#[arg(long,value_parser = parse_glob_pattern)]
-	pub exclude: Vec<glob::Pattern>,
+	#[command(flatten)]
+	pub filter: GlobFilter,
 	/// debounce time in milliseconds
 	#[arg(short,long="debounce-millis",value_parser = parse_duration,default_value="50")]
 	pub debounce: Duration,
@@ -134,8 +131,7 @@ impl Server {
 
 			FsWatcher {
 				cwd: this.dir.clone(),
-				include: this.include.clone(),
-				exclude: this.exclude.clone(),
+				filter: this.filter.clone(),
 				debounce: this.debounce.clone(),
 			}
 			.watch_blocking(move |e| {

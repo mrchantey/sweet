@@ -1,15 +1,14 @@
 use anyhow::Result;
 use clap::Parser;
-use glob::PatternError;
 use notify::event::CreateKind;
 use notify::event::RemoveKind;
 use notify::*;
 use notify_debouncer_full::DebounceEventResult;
 use notify_debouncer_full::new_debouncer;
 use std::num::ParseIntError;
-use std::path::Path;
 use std::path::PathBuf;
 use std::time::Duration;
+use sweet_utils::prelude::*;
 
 /// A file watcher with glob patterns. All matches against
 /// `include` and `exclude` patterns will be normalized to forward slashes
@@ -18,17 +17,13 @@ use std::time::Duration;
 /// 	starts it will error
 /// - If the directory is removed while watching, the
 /// 	watcher will silently stop listening
-#[derive(Clone, Parser)]
+#[derive(Debug, Clone, Parser)]
 pub struct FsWatcher {
 	/// the path to watch
 	#[arg(long, default_value = "./")]
 	pub cwd: PathBuf,
-	/// glob for watch patterns, leave empty to include all
-	#[arg(long,value_parser = parse_glob_pattern)]
-	pub include: Vec<glob::Pattern>,
-	/// glob for ignore patterns
-	#[arg(long,value_parser = parse_glob_pattern)]
-	pub exclude: Vec<glob::Pattern>,
+	#[command(flatten)]
+	pub filter: GlobFilter,
 	/// debounce time in milliseconds
 	#[arg(
 		short,
@@ -39,9 +34,6 @@ pub struct FsWatcher {
 	pub debounce: Duration,
 }
 
-pub fn parse_glob_pattern(s: &str) -> Result<glob::Pattern, PatternError> {
-	glob::Pattern::new(s)
-}
 pub fn parse_duration(s: &str) -> Result<Duration, ParseIntError> {
 	s.parse().map(Duration::from_millis)
 }
@@ -50,59 +42,8 @@ impl Default for FsWatcher {
 	fn default() -> Self { Self::parse_from(&[""]) }
 }
 
-impl std::fmt::Debug for FsWatcher {
-	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-		f.debug_struct("FsWatcher")
-			.field("cwd", &self.cwd)
-			.field(
-				"include",
-				&self
-					.include
-					.iter()
-					.map(|p| p.to_string())
-					.collect::<Vec<_>>(),
-			)
-			.field(
-				"exclude",
-				&self
-					.exclude
-					.iter()
-					.map(|p| p.to_string())
-					.collect::<Vec<_>>(),
-			)
-			.field("debounce", &self.debounce)
-			.finish()
-	}
-}
 
 impl FsWatcher {
-	pub fn with_path(mut self, path: impl Into<PathBuf>) -> Self {
-		self.cwd = path.into();
-		self
-	}
-	pub fn set_include(mut self, watch: Vec<&str>) -> Self {
-		self.include = watch
-			.iter()
-			.map(|w| glob::Pattern::new(w).unwrap())
-			.collect();
-		self
-	}
-	pub fn set_exclude(mut self, ignore: Vec<&str>) -> Self {
-		self.exclude = ignore
-			.iter()
-			.map(|w| glob::Pattern::new(w).unwrap())
-			.collect();
-		self
-	}
-
-	pub fn with_include(mut self, watch: &str) -> Self {
-		self.include.push(glob::Pattern::new(watch).unwrap());
-		self
-	}
-	pub fn with_exclude(mut self, watch: &str) -> Self {
-		self.exclude.push(glob::Pattern::new(watch).unwrap());
-		self
-	}
 
 	/// It is not valid to watch an empty path, it
 	/// will never be triggered!
@@ -130,8 +71,8 @@ impl FsWatcher {
 		})?;
 		debouncer.watch(&self.cwd, RecursiveMode::Recursive)?;
 		for ev in rx {
-			if let Some(ev) =
-				WatchEventVec::new(ev).apply_filter(|ev| self.passes(&ev.path))
+			if let Some(ev) = WatchEventVec::new(ev)
+				.apply_filter(|ev| self.filter.passes(&ev.path))
 			{
 				on_change(ev)?;
 			}
@@ -157,27 +98,13 @@ impl FsWatcher {
 		debouncer.watch(&self.cwd, RecursiveMode::Recursive)?;
 
 		while let Some(ev) = rx.recv().await {
-			if let Some(ev) =
-				WatchEventVec::new(ev).apply_filter(|ev| self.passes(&ev.path))
+			if let Some(ev) = WatchEventVec::new(ev)
+				.apply_filter(|ev| self.filter.passes(&ev.path))
 			{
 				on_change(ev)?;
 			}
 		}
 		Ok(())
-	}
-
-
-	fn passes(&self, path: &Path) -> bool {
-		let path_str = path.to_string_lossy().replace('\\', "/");
-		// let path = Path::new(&path_str);
-		let pass_include =
-			self.include.iter().any(|watch| watch.matches(&path_str))
-				|| self.include.is_empty();
-		let pass_exclude = self
-			.exclude
-			.iter()
-			.all(|watch| watch.matches(&path_str) == false);
-		pass_include && pass_exclude
 	}
 }
 
@@ -318,67 +245,5 @@ impl WatchEventVec {
 	}
 	pub fn has_other(&self) -> bool {
 		self.events.iter().any(|e| e.kind.is_other())
-	}
-}
-
-
-#[cfg(test)]
-mod test {
-	use crate::prelude::*;
-	use glob::Pattern;
-	use std::path::Path;
-	#[test]
-	fn pattern() {
-		let pat = Pattern::new("*target*").unwrap();
-		assert!(!pat.matches("foo"));
-		assert!(pat.matches("target"));
-		assert!(pat.matches("foo/target/foo"));
-		// let mut watcher = FsWatcher::default();
-		// expect(watcher.exclude
-	}
-	#[test]
-	fn passes() {
-		let watcher = FsWatcher {
-			include: vec![],
-			exclude: vec![Pattern::new("*bar*").unwrap()],
-			..Default::default()
-		};
-		assert!(watcher.passes(&Path::new("foo")));
-		assert!(!watcher.passes(&Path::new("bar")));
-		assert!(!watcher.passes(&Path::new("foo/bar/bazz")));
-
-		let watcher = FsWatcher {
-			include: vec![Pattern::new("*foo*").unwrap()],
-			exclude: vec![Pattern::new("*bar*").unwrap()],
-			..Default::default()
-		};
-
-		assert!(watcher.passes(&Path::new("bing/foo/bong")));
-		// backslashes are normalized to forward slashes
-		assert!(watcher.passes(&Path::new("bing\\foo\\bong")));
-		assert!(!watcher.passes(&Path::new("froo")));
-		assert!(!watcher.passes(&Path::new("bar")));
-
-
-		let watcher = FsWatcher {
-			include: vec![Pattern::new("foo/bar").unwrap()],
-			..Default::default()
-		};
-
-		assert!(watcher.passes(&Path::new("foo/bar")));
-		// backslashes are normalized to forward slashes
-		assert!(watcher.passes(&Path::new("foo\\bar")));
-
-
-		let pat = Pattern::new("**/*.rs").unwrap();
-		assert_eq!(pat.as_str(), "**/*.rs");
-
-
-		let watcher = FsWatcher::default()
-			.with_exclude("*.git*")
-			.with_exclude("*target*");
-
-		assert!(watcher.passes(&Path::new("/foo/bar/bazz.rs")));
-		assert!(!watcher.passes(&Path::new("/foo/target/bazz.rs")));
 	}
 }

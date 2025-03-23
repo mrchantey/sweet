@@ -35,6 +35,8 @@ test crate *args:
 	just watch 'cargo test -p {{crate}} --lib -- --watch {{args}}'
 test-e2e crate test_name *args:
 	just watch 'cargo test -p {{crate}} --test {{test_name}} -- --watch {{args}}'
+test-doc crate *args:
+	just watch 'cargo test -p {{crate}} --doc -- {{args}}'
 test-feat crate *args:
 	just watch 'cargo test -p {{crate}} --lib --all-features -- {{args}}'
 test-wasm crate *args:
@@ -44,12 +46,14 @@ test-wasm-feat crate *args:
 test-wasm-e2e crate test_name *args:
 	just watch 'cargo test -p {{crate}} --test {{test_name}} --target wasm32-unknown-unknown -- --watch {{args}}'
 
+# really hard to test sweet_utils wasm as is upstream of sweet_test
+# good news is at least compilation is tested because sweet_test depends on it
+# cargo test --lib --target wasm32-unknown-unknown --all-features -p sweet_utils	-- {{args}}
 test-all *args:
 	cargo test --workspace -- {{args}}
-	cargo test --target wasm32-unknown-unknown --all-features -p sweet_utils	-- {{args}}
-	cargo test --target wasm32-unknown-unknown --all-features -p sweet_test   -- {{args}}
-	cargo test --target wasm32-unknown-unknown --all-features -p sweet_bevy   -- {{args}}
-	cargo test --target wasm32-unknown-unknown --all-features -p sweet_web   	-- {{args}}
+	cargo test --lib --target wasm32-unknown-unknown --all-features -p sweet_test   -- {{args}}
+	cargo test --lib --target wasm32-unknown-unknown --all-features -p sweet_bevy   -- {{args}}
+	cargo test --lib --target wasm32-unknown-unknown --all-features -p sweet_web   	-- {{args}}
 
 # upstream from sweet_test
 test-fs *args:

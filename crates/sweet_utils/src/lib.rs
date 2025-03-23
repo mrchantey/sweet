@@ -1,22 +1,16 @@
 pub use utils::log::*;
 pub use utils::sleep::*;
 pub mod extensions;
+pub mod path_utils;
 pub mod utils;
 
 
+
 pub mod prelude {
+	pub use crate::canonical_file;
 	pub use crate::extensions::*;
+	pub use crate::path_utils::*;
 	pub use crate::utils::*;
 	#[cfg(feature = "rand")]
 	pub use rand::Rng;
 }
-// #[cfg(test)]
-// mod test {
-// 	use crate::prelude::*;
-
-// 	#[test]
-// 	fn works() {
-// 		assert_eq!(1, 0);
-// 	}
-
-// }

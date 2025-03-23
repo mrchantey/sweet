@@ -3,6 +3,7 @@ use std::ffi::OsString;
 use std::fs;
 use std::path::Path;
 use std::path::PathBuf;
+use std::str::FromStr;
 
 /// Better Fs, actually outputs missing path
 pub struct FsExt;
@@ -59,12 +60,20 @@ impl FsExt {
 	// 		.any(|p| pattern. p.to_str().unwrap().contains(pattern))
 	// }
 
-	/// Return the closest ancestor (inclusive) that contains a `Cargo.lock` file
-	/// # Panics
+
+	/// First tries to get the `SWEET_ROOT` env var.
+	/// 
+	/// Otherwise return the closest ancestor (inclusive) that contains a `Cargo.lock` file
+	/// 
+	/// ## Panics
 	/// - The current directory is not found
 	/// - Insufficient permissions to access the current directory
 	/// - There is no `Cargo.lock` in the directory or any of its ancestors
 	pub fn workspace_root() -> PathBuf {
+		if let Ok(root_str) = std::env::var("SWEET_ROOT") {
+			return PathBuf::from_str(&root_str).unwrap();
+		}
+
 		let path = std::env::current_dir().unwrap();
 		let mut path_ancestors = path.as_path().ancestors();
 		while let Some(p) = path_ancestors.next() {
