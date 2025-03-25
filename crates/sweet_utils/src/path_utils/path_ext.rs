@@ -26,8 +26,9 @@ impl PathExt {
 
 	/// Create an absolute path from a relative path
 	pub fn canonicalize(path: impl AsRef<Path>) -> FsResult<PathBuf> {
-		let path = path.as_ref();
-		path.canonicalize().map_err(|e| FsError::io(path, e))
+		path.as_ref()
+			.canonicalize()
+			.map_err(|e| FsError::io(path, e))
 	}
 	pub fn to_forward_slash(path: impl AsRef<Path>) -> PathBuf {
 		Path::new(&path.as_ref().to_string_lossy().replace("\\", "/"))

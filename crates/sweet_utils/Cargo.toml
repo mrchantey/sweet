@@ -24,6 +24,7 @@ anyhow.workspace = true
 glob.workspace = true
 thiserror.workspace = true
 clap.workspace = true
+path-clean = "1"
 
 bevy = { workspace = true, optional = true }
 rand = { workspace = true, optional = true }

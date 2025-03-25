@@ -1,8 +1,10 @@
+use super::FsError;
 use super::FsExt;
-use std::hash::Hash;
-use std::hash::Hasher;
+use super::FsResult;
+use super::PathExt;
 use std::path::Path;
 use std::path::PathBuf;
+use std::str::FromStr;
 
 /// Wrapper for `CanonicalPathBuf::new_workspace_rel(file!())`,
 /// for use as a drop-in replacement for `file!()`.
@@ -15,7 +17,7 @@ use std::path::PathBuf;
 #[macro_export]
 macro_rules! canonical_file {
 	() => {
-		CanonicalPathBuf::new_workspace_rel(file!())
+		CanonicalPathBuf::new_workspace_rel(file!()).unwrap()
 	};
 }
 
@@ -26,14 +28,9 @@ macro_rules! canonical_file {
 /// 2. on windows backslashes are replaced by forward slashes
 /// 3. The hash is cross-platform as it uses encoded bytes
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct CanonicalPathBuf(PathBuf);
 
-impl std::ops::Deref for CanonicalPathBuf {
-	type Target = PathBuf;
-
-	fn deref(&self) -> &Self::Target { &self.0 }
-}
 
 
 impl CanonicalPathBuf {
@@ -54,49 +51,52 @@ impl CanonicalPathBuf {
 	/// # use sweet_utils::prelude::*;
 	/// let path = CanonicalPathBuf::new("Cargo.toml");
 	/// ```
-	pub fn new(path: impl AsRef<Path>) -> Self {
+	pub fn new(path: impl AsRef<Path>) -> FsResult<Self> {
 		#[cfg(target_os = "windows")]
 		{
-			let path = path.as_ref().to_string_lossy().replace('\\', "/");
-			let canonical = Path::new(&path).canonicalize().unwrap();
-			Self(canonical)
+			let canonical = PathExt::canonicalize(path)?;
+			let canonical = canonical.to_string_lossy().replace('\\', "/");
+			Ok(Self(canonical))
 		}
 		#[cfg(not(target_os = "windows"))]
 		{
-			Self(path.as_ref().canonicalize().unwrap())
+			Ok(Self(PathExt::canonicalize(path)?))
 		}
 	}
 	/// Create a new [`CanonicalPathBuf`] from a path relative to the workspace root,
 	/// ie from using the `file!()` macro.
-	pub fn new_workspace_rel(path: impl AsRef<Path>) -> Self {
+	pub fn new_workspace_rel(path: impl AsRef<Path>) -> FsResult<Self> {
 		let path = FsExt::workspace_root().join(path);
 		Self::new(path)
 	}
 }
-
+impl FromStr for CanonicalPathBuf {
+	type Err = FsError;
+	fn from_str(val: &str) -> Result<Self, Self::Err> { Self::new(val) }
+}
 
 impl AsRef<Path> for CanonicalPathBuf {
 	fn as_ref(&self) -> &Path { self.0.as_ref() }
 }
 
-impl Hash for CanonicalPathBuf {
-	fn hash<H: Hasher>(&self, state: &mut H) {
-		self.as_os_str().as_encoded_bytes().hash(state);
-	}
+impl std::ops::Deref for CanonicalPathBuf {
+	type Target = PathBuf;
+
+	fn deref(&self) -> &Self::Target { &self.0 }
 }
 
 
 #[cfg(test)]
+#[cfg(not(target_arch = "wasm32"))]
 mod test {
-	#[allow(unused_imports)]
 	use crate::prelude::*;
 	// use sweet_test::prelude::*;
 
 	#[test]
-	#[cfg(not(target_arch = "wasm32"))]
 	fn works() {
-		let _buf = CanonicalPathBuf::new("Cargo.toml");
-		let buf1 = CanonicalPathBuf::new(FsExt::workspace_root().join(file!()));
+		let _buf = CanonicalPathBuf::new("Cargo.toml").unwrap();
+		let buf1 = CanonicalPathBuf::new(FsExt::workspace_root().join(file!()))
+			.unwrap();
 		let buf2 = canonical_file!();
 		assert_eq!(buf1, buf2);
 		assert!(buf1.to_string_lossy().ends_with("canonical_path_buf.rs"));

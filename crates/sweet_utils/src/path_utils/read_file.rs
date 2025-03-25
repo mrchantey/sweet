@@ -45,6 +45,7 @@ impl ReadFile {
 
 
 #[cfg(test)]
+#[cfg(not(target_arch = "wasm32"))]
 mod test {
 	use crate::prelude::*;
 

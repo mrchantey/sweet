@@ -1,5 +1,4 @@
 use crate::prelude::*;
-use std::ffi::OsString;
 use std::fs;
 use std::path::Path;
 use std::path::PathBuf;
@@ -12,7 +11,6 @@ impl FsExt {
 	pub fn current_dir() -> FsResult<PathBuf> {
 		std::env::current_dir().map_err(|e| FsError::io(".", e))
 	}
-
 
 	/// Copy a directory recursively, creating it if it doesnt exist
 	/// This also provides consistent behavior with the `cp` command:
@@ -61,10 +59,10 @@ impl FsExt {
 	// }
 
 
-	/// First tries to get the `SWEET_ROOT` env var.
-	/// 
-	/// Otherwise return the closest ancestor (inclusive) that contains a `Cargo.lock` file
-	/// 
+	/// 1. tries to get the `SWEET_ROOT` env var.
+	/// 2. if wasm, returns an empty path
+	/// 3. Otherwise return the closest ancestor (inclusive) that contains a `Cargo.lock` file
+	///
 	/// ## Panics
 	/// - The current directory is not found
 	/// - Insufficient permissions to access the current directory
@@ -74,20 +72,27 @@ impl FsExt {
 			return PathBuf::from_str(&root_str).unwrap();
 		}
 
-		let path = std::env::current_dir().unwrap();
-		let mut path_ancestors = path.as_path().ancestors();
-		while let Some(p) = path_ancestors.next() {
-			if ReadDir::files(p)
-				.unwrap_or_default()
-				.into_iter()
-				.any(|p| p.file_name() == Some(&OsString::from("Cargo.lock")))
-			{
-				return PathBuf::from(p);
-			}
+		#[cfg(target_arch = "wasm32")]
+		{
+			return PathBuf::default();
 		}
-		panic!(
-			"No Cargo.lock found in the current directory or any of its ancestors"
-		);
+		#[cfg(not(target_arch = "wasm32"))]
+		{
+			use std::ffi::OsString;
+
+			let path = std::env::current_dir().unwrap();
+			let mut path_ancestors = path.as_path().ancestors();
+			while let Some(p) = path_ancestors.next() {
+				if ReadDir::files(p).unwrap_or_default().into_iter().any(|p| {
+					p.file_name() == Some(&OsString::from("Cargo.lock"))
+				}) {
+					return PathBuf::from(p);
+				}
+			}
+			panic!(
+				"No Cargo.lock found in the current directory or any of its ancestors"
+			);
+		}
 	}
 
 
@@ -112,6 +117,7 @@ impl FsExt {
 
 
 #[cfg(test)]
+#[cfg(not(target_arch = "wasm32"))]
 mod test {
 	use super::FsExt;
 

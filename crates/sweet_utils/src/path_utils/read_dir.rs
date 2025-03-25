@@ -5,6 +5,7 @@ use std::path::PathBuf;
 
 /// Read a directory or file into a Vec<PathBuf>.
 /// All options are false by default.
+/// All paths are relative to the current directory.
 #[derive(Debug)]
 pub struct ReadDir {
 	/// include files
@@ -155,10 +156,22 @@ impl ReadDir {
 	}
 }
 
-
 #[cfg(test)]
+#[cfg(not(target_arch = "wasm32"))]
 mod test {
 	use crate::prelude::*;
+
+	#[test]
+	fn relative_to() {
+		let a = std::fs::read_dir("../")
+			.unwrap()
+			.next()
+			.unwrap()
+			.unwrap()
+			.path();
+		println!("{:?}", a);
+	}
+
 
 	#[test]
 	fn fails() {
