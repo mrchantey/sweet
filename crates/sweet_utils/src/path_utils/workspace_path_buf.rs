@@ -8,8 +8,8 @@ use std::str::FromStr;
 
 
 
-/// A newtype `PathBuf` with several requirements:
-/// 1. the user pinky swears that the path is relative to the workspace root
+/// A newtype `PathBuf` with several guarantees:
+/// 1. the path is relative to the workspace root (because the user pinky-promises)
 /// 2. the path is cleaned using [`path_clean`]
 /// 3. on windows backslashes are replaced by forward slashes
 ///
@@ -63,10 +63,19 @@ impl WorkspacePathBuf {
 	}
 
 	#[cfg(not(target_arch = "wasm32"))]
-	/// Convert to a [`CanonicalPathBuf`]
+	/// Convert to a [`CanonicalPathBuf`]. This should be used instead of
+	/// canonicalize because canonicalize expects cwd relative paths.
 	pub fn into_canonical(&self) -> super::FsResult<super::CanonicalPathBuf> {
-		let path = super::FsExt::workspace_root().join(self);
+		let path = super::FsExt::workspace_root().join(self).clean();
 		let canonical = super::CanonicalPathBuf::new(path)?;
+		Ok(canonical)
+	}
+	#[cfg(not(target_arch = "wasm32"))]
+	/// Convert to a [`CanonicalPathBuf`] by simply prepending the workspace root
+	/// and cleaning, without checking if the path exists.
+	pub fn into_canonical_unchecked(&self) -> super::FsResult<super::CanonicalPathBuf> {
+		let path = super::FsExt::workspace_root().join(self);
+		let canonical = super::CanonicalPathBuf(path);
 		Ok(canonical)
 	}
 }
@@ -82,7 +91,12 @@ impl FromStr for WorkspacePathBuf {
 	type Err = anyhow::Error;
 	fn from_str(s: &str) -> Result<Self, Self::Err> { Ok(Self::new(s)) }
 }
-
+impl Into<WorkspacePathBuf> for &str {
+	fn into(self) -> WorkspacePathBuf { WorkspacePathBuf::new(self) }
+}
+impl Into<WorkspacePathBuf> for PathBuf {
+	fn into(self) -> WorkspacePathBuf { WorkspacePathBuf::new(self) }
+}
 
 
 #[cfg(test)]

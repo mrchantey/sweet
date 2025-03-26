@@ -24,21 +24,44 @@ impl PathExt {
 			.map_err(|e| FsError::other(path.as_ref(), e))
 	}
 
-	/// Create an absolute path from a relative path
+	/// Wraps [`Path::canonicalize`] error with a [`FsError`], actually
+	/// outputting the path that caused the error.
 	pub fn canonicalize(path: impl AsRef<Path>) -> FsResult<PathBuf> {
 		path.as_ref()
 			.canonicalize()
 			.map_err(|e| FsError::io(path, e))
 	}
-	pub fn to_forward_slash(path: impl AsRef<Path>) -> PathBuf {
-		Path::new(&path.as_ref().to_string_lossy().replace("\\", "/"))
-			.to_path_buf()
+
+	/// Create a relative path from a source to a destination:
+	/// ## Example
+	/// ```rust
+	///	# use sweet_utils::prelude::*;
+	/// # use std::path::PathBuf;
+	/// assert_eq!(
+	///		PathExt::create_relative("src", "src/lib.rs").unwrap(),
+	///		PathBuf::from("lib.rs")
+	/// );
+	/// assert_eq!(
+	///		PathExt::create_relative("foo/src", "foo/Cargo.toml").unwrap(),
+	///		PathBuf::from("../Cargo.toml")
+	///	);
+	/// ```
+	pub fn create_relative(
+		src: impl AsRef<Path>,
+		dst: impl AsRef<Path>,
+	) -> FsResult<PathBuf> {
+		let path = src.as_ref();
+		let dst = dst.as_ref();
+		pathdiff::diff_paths(dst, path).ok_or_else(|| {
+			FsError::other(
+				path,
+				format!("Could not create relative path to dest: {:?}", dst),
+			)
+		})
 	}
-	pub fn to_forward_slash_str(path: impl AsRef<Path>) -> String {
-		path.as_ref()
-			.to_str()
-			.unwrap_or_default()
-			.replace("\\", "/")
+
+	pub fn to_forward_slash(path: impl AsRef<Path>) -> PathBuf {
+		path.as_ref().to_string_lossy().replace("\\", "/").into()
 	}
 
 	pub fn file_stem(path: &impl AsRef<Path>) -> FsResult<&OsStr> {
@@ -52,5 +75,25 @@ impl PathExt {
 			Some(value) => value.to_str().unwrap() == ext,
 			None => path.is_dir(),
 		}
+	}
+}
+
+
+#[cfg(test)]
+mod test {
+	use crate::prelude::*;
+	use std::path::PathBuf;
+
+	#[test]
+	fn works() {
+		assert_eq!(
+			PathExt::create_relative("src", "src/lib.rs").unwrap(),
+			PathBuf::from("lib.rs")
+		);
+		assert_eq!(
+			PathExt::create_relative("foo/bar/src", "foo/bar/Cargo.toml")
+				.unwrap(),
+			PathBuf::from("../Cargo.toml")
+		);
 	}
 }
