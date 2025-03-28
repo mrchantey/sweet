@@ -2,6 +2,7 @@ use super::FsError;
 use super::FsExt;
 use super::FsResult;
 use super::PathExt;
+use path_clean::PathClean;
 use std::path::Path;
 use std::path::PathBuf;
 use std::str::FromStr;
@@ -29,9 +30,13 @@ macro_rules! canonical_file {
 /// 3. The hash is cross-platform as it uses encoded bytes
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct CanonicalPathBuf(pub(crate) PathBuf);
+pub struct CanonicalPathBuf(PathBuf);
 
-
+impl Default for CanonicalPathBuf {
+	fn default() -> Self {
+		Self::new(std::env::current_dir().unwrap()).unwrap()
+	}
+}
 
 impl CanonicalPathBuf {
 	/// Create a new [`CanonicalPathBuf`] from a `PathBuf`.
@@ -55,7 +60,8 @@ impl CanonicalPathBuf {
 		#[cfg(target_os = "windows")]
 		{
 			let canonical = PathExt::canonicalize(path)?;
-			let canonical = canonical.to_string_lossy().replace('\\', "/");
+			let canonical =
+				canonical.to_string_lossy().replace('\\', "/").to_path_buf();
 			Ok(Self(canonical))
 		}
 		#[cfg(not(target_os = "windows"))]
@@ -68,6 +74,17 @@ impl CanonicalPathBuf {
 	pub fn new_workspace_rel(path: impl AsRef<Path>) -> FsResult<Self> {
 		let path = FsExt::workspace_root().join(path);
 		Self::new(path)
+	}
+
+	pub fn new_unchecked(path: impl AsRef<Path>) -> Self {
+		let path = path.as_ref().clean();
+		#[cfg(target_os = "windows")]
+		{
+			let canonical =
+				path.to_string_lossy().replace('\\', "/").to_path_buf();
+			Ok(Self(canonical))
+		}
+		Self(path)
 	}
 }
 impl FromStr for CanonicalPathBuf {

@@ -5,7 +5,7 @@ use std::path::PathBuf;
 
 /// Read a directory or file into a Vec<PathBuf>.
 /// All options are false by default.
-/// All paths are relative to the current directory.
+/// All paths will include the root.
 #[derive(Debug)]
 pub struct ReadDir {
 	/// include files
@@ -169,7 +169,15 @@ mod test {
 			.unwrap()
 			.unwrap()
 			.path();
-		println!("{:?}", a);
+		assert_eq!("../sweet_fs", a.to_str().unwrap());
+		let _a =
+			std::fs::read_dir(std::env::current_dir().unwrap().join("../"))
+				.unwrap()
+				.next()
+				.unwrap()
+				.unwrap()
+				.path();
+		// assert_eq!("../sweet_fs", a.to_str().unwrap());
 	}
 
 
