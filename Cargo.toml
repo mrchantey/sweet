@@ -78,11 +78,15 @@ syn = { version = "2", features = ["full"] }
 quote = "1"
 
 #💡 random
-rand = "0.9"
-rand_chacha = "0.9"
-# wasm_js ignored in native
-getrandom = { version = "0.3", features = ["wasm_js"] }
-
+# rand = "0.9"
+# rand_chacha = "0.9"
+# # wasm_js ignored in native
+# getrandom = { version = "0.3", features = ["wasm_js"] }
+# old rand until https://github.com/bevyengine/bevy/pull/18047
+rand = "0.8.5"
+rand_chacha = "0.3.1"
+# # wasm_js ignored in native
+getrandom = { version = "0.2.15", features = ["js"] }
 
 #💡wasm
 console_log = "1.0"

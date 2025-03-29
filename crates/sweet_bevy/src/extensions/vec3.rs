@@ -60,35 +60,35 @@ pub impl Vec3 {
 	/// Random position inside a unit cube (0, 1)
 	fn random_in_cube_signed(rng: &mut impl rand::Rng) -> Self {
 		Vec3::new(
-			rng.random_range(-1.0..1.0),
-			rng.random_range(-1.0..1.0),
-			rng.random_range(-1.0..1.0),
+			rng.gen_range(-1.0..1.0),
+			rng.gen_range(-1.0..1.0),
+			rng.gen_range(-1.0..1.0),
 		)
 	}
 
 	#[cfg(feature = "rand")]
 	fn random_in_cube(rng: &mut impl rand::Rng) -> Self {
 		Vec3::new(
-			rng.random_range(0.0..1.0),
-			rng.random_range(0.0..1.0),
-			rng.random_range(0.0..1.0),
+			rng.gen_range(0.0..1.0),
+			rng.gen_range(0.0..1.0),
+			rng.gen_range(0.0..1.0),
 		)
 	}
 
 	#[cfg(feature = "rand")]
 	/// Random position on a unit sphere
 	fn random_on_sphere(rng: &mut impl rand::Rng) -> Self {
-		let theta = rng.random_range(0.0..std::f32::consts::TAU);
-		let phi = rng.random_range(0.0..std::f32::consts::PI);
+		let theta = rng.gen_range(0.0..std::f32::consts::TAU);
+		let phi = rng.gen_range(0.0..std::f32::consts::PI);
 		Vec3::new(phi.sin() * theta.cos(), phi.sin() * theta.sin(), phi.cos())
 	}
 
 	#[cfg(feature = "rand")]
 	/// Random position inside a unit sphere
 	fn random_in_sphere(rng: &mut impl rand::Rng) -> Self {
-		let theta = rng.random_range(0.0..std::f32::consts::TAU);
-		let phi = rng.random_range(0.0..std::f32::consts::PI);
-		let r = rng.random_range(0.0f32..1.0).powf(1. / 3.);
+		let theta = rng.gen_range(0.0..std::f32::consts::TAU);
+		let phi = rng.gen_range(0.0..std::f32::consts::PI);
+		let r = rng.gen_range(0.0f32..1.0).powf(1. / 3.);
 		Vec3::new(
 			r * phi.sin() * theta.cos(),
 			r * phi.sin() * theta.sin(),
@@ -107,7 +107,7 @@ mod test {
 
 	#[test]
 	pub fn works() {
-		let mut rng = rand::rng();
+		let mut rng = rand::thread_rng();
 		for _ in 0..10 {
 			let val = Vec3::random_in_cube(&mut rng);
 			expect(val.length()).to_be_less_than(2.);
