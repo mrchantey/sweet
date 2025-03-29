@@ -183,10 +183,19 @@ mod test {
 
 
 		let watcher = GlobFilter::default()
+			.with_include("**/*.rs")
 			.with_exclude("*.git*")
 			.with_exclude("*target*");
 
 		assert!(watcher.passes(&Path::new("/foo/bar/bazz.rs")));
 		assert!(!watcher.passes(&Path::new("/foo/target/bazz.rs")));
+
+		let watcher = GlobFilter::default()
+			.with_include("**/*.rs")
+			.with_exclude("{.git,target,html}/**")
+			.with_exclude("*codegen*");
+
+		assert!(watcher.passes(&Path::new("src/lib.rs")));
+		assert!(!watcher.passes(&Path::new("src/codegen/mockups.rs")));
 	}
 }
