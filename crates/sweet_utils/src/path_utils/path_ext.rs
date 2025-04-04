@@ -69,6 +69,11 @@ impl PathExt {
 		path.file_stem()
 			.ok_or_else(|| FsError::other(path, "No file stem"))
 	}
+	pub fn file_name(path: &impl AsRef<Path>) -> FsResult<&OsStr> {
+		let path = path.as_ref();
+		path.file_name()
+			.ok_or_else(|| FsError::other(path, "No file name"))
+	}
 	pub fn is_dir_or_extension(path: &impl AsRef<Path>, ext: &str) -> bool {
 		let path = path.as_ref();
 		match path.extension() {

@@ -23,12 +23,12 @@ impl FsExt {
 		let destination = destination.as_ref();
 
 		fs::create_dir_all(&destination).ok();
-		for entry in ReadDir::files(source)? {
-			let stem = PathExt::file_stem(&entry)?;
+		for entry in ReadDir::all(source)? {
+			let file_name = PathExt::file_name(&entry)?;
 			if entry.is_dir() {
-				Self::copy_recursive(&entry, destination.join(stem))?;
+				Self::copy_recursive(&entry, destination.join(file_name))?;
 			} else {
-				fs::copy(&entry, destination.join(stem))
+				fs::copy(&entry, destination.join(file_name))
 					.map_err(|err| FsError::io(entry, err))?;
 			}
 		}
