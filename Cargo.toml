@@ -72,11 +72,11 @@ tokio = { version = "1", features = [
 flume = "0.11"
 rayon = "1"
 
-#💡 macros
+#💡 parsing
 proc-macro2 = "1"
 syn = { version = "2", features = ["full"] }
 quote = "1"
-
+prettyplease = "0.2"
 #💡 random
 # rand = "0.9"
 # rand_chacha = "0.9"

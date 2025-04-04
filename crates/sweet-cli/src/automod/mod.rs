@@ -1,8 +1,9 @@
 use clap::Parser;
+use quote::quote;
 use std::path::Path;
 use std::path::PathBuf;
 use sweet::prelude::*;
-
+use syn::ItemMod;
 
 
 #[derive(Debug, Default, Clone, Parser)]
@@ -59,7 +60,7 @@ impl AutoMod {
 			anyhow::bail!("No parent found for path {}", path.display());
 		};
 		let is_lib_dir =
-			parent.file_name().map(|f| f == "lib").unwrap_or(false);
+			parent.file_name().map(|f| f == "src").unwrap_or(false);
 
 		let parent_mod = if is_lib_dir {
 			parent.join("lib.rs")
@@ -72,23 +73,68 @@ impl AutoMod {
 			anyhow::bail!("No file stem found for path {}", path.display());
 		};
 
-		let mut mod_file = ReadFile::to_string(&parent_mod).unwrap_or_default();
+		let new_mod_ident =
+			syn::Ident::new(&file_stem, proc_macro2::Span::call_site());
 
-		let vis = if is_lib_dir { "pub " } else { "" };
+		let mod_file = ReadFile::to_string(&parent_mod).unwrap_or_default();
+		let mut mod_file = syn::parse_file(&mod_file)?;
+		for item in &mut mod_file.items {
+			if let syn::Item::Mod(m) = item {
+				if m.ident == file_stem {
+					anyhow::bail!(
+						"Module {} already exists in {}",
+						file_stem,
+						parent_mod.display()
+					);
+				}
+			}
+		}
 
-		let mut new_mod_file = format!("{vis}mod {file_stem};");
+		let vis = if is_lib_dir {
+			quote! {pub}
+		} else {
+			Default::default()
+		};
+
+
+		let insert_pos = mod_file
+			.items
+			.iter()
+			.position(|item| matches!(item, syn::Item::Mod(_)))
+			.unwrap_or(mod_file.items.len());
+
+		let mod_def: ItemMod = syn::parse_quote!(#vis mod #new_mod_ident;);
+		mod_file.items.insert(insert_pos, mod_def.into());
 
 		if is_lib_dir {
-			mod_file = mod_file.replace(
-				"pub mod prelude {",
-				"pub mod prelude {\npub use crate::{file_stem}::*;",
-			);
+			// export in prelude
+			for item in &mut mod_file.items {
+				if let syn::Item::Mod(m) = item {
+					if m.ident == "prelude" {
+						if let Some(content) = m.content.as_mut() {
+							content.1.push(
+								syn::parse_quote!(pub use crate::#new_mod_ident::*;),
+							);
+						} else {
+							m.content =
+								Some((syn::token::Brace::default(), vec![
+									syn::parse_quote!(pub use crate::#new_mod_ident::*;),
+								]));
+						}
+						break;
+					}
+				}
+			}
 		} else {
-			new_mod_file.push_str(&format!("pub use {file_stem}::*;"));
+			// export at root
+			mod_file.items.insert(
+				insert_pos + 1,
+				syn::parse_quote!(pub use #new_mod_ident::*;),
+			);
 		}
-		new_mod_file.push_str(&mod_file);
 
-		Ok((parent_mod, new_mod_file))
+		let mod_file = prettyplease::unparse(&mod_file);
+		Ok((parent_mod, mod_file))
 	}
 }
 
@@ -101,14 +147,14 @@ mod test {
 	#[test]
 	fn works() {
 		expect(AutoMod::path_to_str("foo/bar.rs").unwrap().1)
-			.to_be("mod bar;pub use bar::*;");
-		expect(
-			AutoMod::path_to_str(CanonicalPathBuf::new_unchecked(
-				FsExt::workspace_root().join("crates/sweet-cli/src/foo.rs"),
-			))
-			.unwrap()
-			.1,
-		)
-		.to_be("mod foo;pub use foo::*;");
+			.to_be("mod bar;\npub use bar::*;\n");
+
+		let lib_update = AutoMod::path_to_str(CanonicalPathBuf::new_unchecked(
+			FsExt::workspace_root().join("crates/sweet-cli/src/foo.rs"),
+		))
+		.unwrap()
+		.1;
+		expect(&lib_update).to_contain("pub mod foo;");
+		expect(&lib_update).to_contain("pub use crate::foo::*;");
 	}
 }

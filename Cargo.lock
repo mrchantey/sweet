@@ -4670,7 +4670,11 @@ version = "0.3.0"
 dependencies = [
  "anyhow",
  "clap",
+ "prettyplease",
+ "proc-macro2",
+ "quote",
  "sweet",
+ "syn",
  "tokio",
 ]
 
