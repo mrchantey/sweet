@@ -18,6 +18,7 @@ path = "src/main.rs"
 [dependencies]
 anyhow.workspace = true
 sweet = { workspace = true, features = ["fs", "server", "test"] }
+rapidhash.workspace = true
 
 #💡 parsing
 proc-macro2.workspace = true

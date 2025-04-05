@@ -27,6 +27,7 @@ clap.workspace = true
 path-clean = "1"
 pathdiff = "0.2"
 
+rapidhash.workspace = true
 bevy = { workspace = true, optional = true }
 rand = { workspace = true, optional = true }
 serde = { workspace = true, optional = true }

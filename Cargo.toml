@@ -49,6 +49,8 @@ backtrace = "0.3"
 extend = "1"
 strum = "0.26"
 strum_macros = "0.26"
+rapidhash = "1"
+
 
 #💡 game
 bevy = { version = "0.15", default-features = false }

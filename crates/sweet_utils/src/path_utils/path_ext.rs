@@ -9,6 +9,8 @@ pub struct PathExt;
 
 impl PathExt {
 	/// Create a path relative to the current working directory
+	/// ## Errors
+	/// If the current working directory cannot be determined
 	pub fn relative(path: &impl AsRef<Path>) -> FsResult<&Path> {
 		let cwd = FsExt::current_dir()?;
 		PathExt::strip_prefix(path, &cwd)

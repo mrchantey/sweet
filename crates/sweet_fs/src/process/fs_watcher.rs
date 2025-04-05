@@ -32,6 +32,9 @@ pub struct FsWatcher {
 		default_value="50"
 	)]
 	pub debounce: Duration,
+	/// if true any error will be printed but will not terminate the program
+	#[arg(short, long)]
+	pub infallible: bool,
 }
 
 pub fn parse_duration(s: &str) -> Result<Duration, ParseIntError> {
@@ -44,7 +47,6 @@ impl Default for FsWatcher {
 
 
 impl FsWatcher {
-
 	/// It is not valid to watch an empty path, it
 	/// will never be triggered!
 	pub fn assert_path_exists(&self) -> Result<()> {
@@ -74,7 +76,7 @@ impl FsWatcher {
 			if let Some(ev) = WatchEventVec::new(ev)
 				.apply_filter(|ev| self.filter.passes(&ev.path))
 			{
-				on_change(ev)?;
+				self.handle_on_change_result(on_change(ev))?;
 			}
 		}
 		Ok(())
@@ -101,10 +103,23 @@ impl FsWatcher {
 			if let Some(ev) = WatchEventVec::new(ev)
 				.apply_filter(|ev| self.filter.passes(&ev.path))
 			{
-				on_change(ev)?;
+				self.handle_on_change_result(on_change(ev))?;
 			}
 		}
 		Ok(())
+	}
+
+	/// Decides how to handle a result from the [on_change] callback
+	/// based on the [`infallible`] flag.
+	fn handle_on_change_result(&self, result: Result<()>) -> Result<()> {
+		match (self.infallible, result) {
+			(false, Err(err)) => Err(err),
+			(true, Err(err)) => {
+				eprintln!("Error: {:?}", err);
+				Ok(())
+			}
+			_ => Ok(()),
+		}
 	}
 }
 

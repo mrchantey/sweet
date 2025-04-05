@@ -130,6 +130,7 @@ impl Server {
 			let this2 = this.clone();
 
 			FsWatcher {
+				infallible: false,
 				cwd: this.dir.clone(),
 				filter: this.filter.clone(),
 				debounce: this.debounce.clone(),
