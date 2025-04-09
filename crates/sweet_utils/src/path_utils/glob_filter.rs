@@ -90,8 +90,9 @@ impl GlobFilter {
 		self.exclude.push(glob::Pattern::new(watch).unwrap());
 		self
 	}
-
+	/// Currently converts to string with forward slashes
 	pub fn passes(&self, path: &Path) -> bool {
+		// TODO this is presumptuous
 		let path_str = path.to_string_lossy().replace('\\', "/");
 		// let path = Path::new(&path_str);
 		let pass_include =

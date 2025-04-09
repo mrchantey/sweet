@@ -1,3 +1,5 @@
+mod vec;
+pub use vec::*;
 pub mod duration;
 #[allow(unused_imports)]
 pub use self::duration::*;
