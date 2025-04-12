@@ -91,9 +91,9 @@ impl GlobFilter {
 		self
 	}
 	/// Currently converts to string with forward slashes
-	pub fn passes(&self, path: &Path) -> bool {
+	pub fn passes(&self, path: impl AsRef<Path>) -> bool {
 		// TODO this is presumptuous
-		let path_str = path.to_string_lossy().replace('\\', "/");
+		let path_str = path.as_ref().to_string_lossy().replace('\\', "/");
 		// let path = Path::new(&path_str);
 		let pass_include =
 			self.include.iter().any(|watch| watch.matches(&path_str))
@@ -135,7 +135,6 @@ impl std::fmt::Debug for GlobFilter {
 mod test {
 	use crate::prelude::*;
 	use glob::Pattern;
-	use std::path::Path;
 	#[test]
 	fn pattern() {
 		let pat = Pattern::new("*target*").unwrap();
@@ -147,56 +146,52 @@ mod test {
 	}
 	#[test]
 	fn passes() {
-		let watcher = GlobFilter {
-			include: vec![],
-			exclude: vec![Pattern::new("*bar*").unwrap()],
-			..Default::default()
-		};
-		assert!(watcher.passes(&Path::new("foo")));
-		assert!(!watcher.passes(&Path::new("bar")));
-		assert!(!watcher.passes(&Path::new("foo/bar/bazz")));
+		// test include all but
 
-		let watcher = GlobFilter {
-			include: vec![Pattern::new("*foo*").unwrap()],
-			exclude: vec![Pattern::new("*bar*").unwrap()],
-			..Default::default()
-		};
+		let watcher = GlobFilter::default().with_exclude("*bar*");
+		assert!(watcher.passes("foo"));
+		assert!(!watcher.passes("bar"));
+		assert!(!watcher.passes("foo/bar/bazz"));
 
-		assert!(watcher.passes(&Path::new("bing/foo/bong")));
+		// test include only
+
+		let watcher = GlobFilter::default()
+			.with_include("*foo*")
+			.with_exclude("*bar*");
+
+		assert!(watcher.passes("bing/foo/bong"));
 		// backslashes are normalized to forward slashes
-		assert!(watcher.passes(&Path::new("bing\\foo\\bong")));
-		assert!(!watcher.passes(&Path::new("froo")));
-		assert!(!watcher.passes(&Path::new("bar")));
+		assert!(watcher.passes("bing\\foo\\bong"));
+		assert!(!watcher.passes("froo"));
+		assert!(!watcher.passes("bar"));
 
+		// test backslashes
 
-		let watcher = GlobFilter {
-			include: vec![Pattern::new("foo/bar").unwrap()],
-			..Default::default()
-		};
+		let watcher = GlobFilter::default().with_include("foo/bar");
 
-		assert!(watcher.passes(&Path::new("foo/bar")));
+		assert!(watcher.passes("foo/bar"));
 		// backslashes are normalized to forward slashes
-		assert!(watcher.passes(&Path::new("foo\\bar")));
+		assert!(watcher.passes("foo\\bar"));
 
-
-		let pat = Pattern::new("**/*.rs").unwrap();
-		assert_eq!(pat.as_str(), "**/*.rs");
-
+		// test multi exclude
 
 		let watcher = GlobFilter::default()
 			.with_include("**/*.rs")
 			.with_exclude("*.git*")
 			.with_exclude("*target*");
 
-		assert!(watcher.passes(&Path::new("/foo/bar/bazz.rs")));
-		assert!(!watcher.passes(&Path::new("/foo/target/bazz.rs")));
+		assert!(watcher.passes("/foo/bar/bazz.rs"));
+		assert!(!watcher.passes("/foo/target/bazz.rs"));
+
+		// test or
 
 		let watcher = GlobFilter::default()
 			.with_include("**/*.rs")
 			.with_exclude("{.git,target,html}/**")
 			.with_exclude("*codegen*");
 
-		assert!(watcher.passes(&Path::new("src/lib.rs")));
-		assert!(!watcher.passes(&Path::new("src/codegen/mockups.rs")));
+		assert!(watcher.passes("src/lib.rs"));
+		assert!(watcher.passes("html/lib.rs"));
+		assert!(!watcher.passes("src/codegen/mockups.rs"));
 	}
 }
