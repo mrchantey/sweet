@@ -24,6 +24,17 @@ pub struct AutoMod {
 	pub quiet: bool,
 }
 
+/// Returns whether a change was made
+#[derive(PartialEq)]
+enum DidMutate {
+	No,
+	/// For printing
+	Yes {
+		action: String,
+		path: PathBuf,
+	},
+}
+
 
 impl AutoMod {
 	pub async fn run(mut self) -> Result<()> {
@@ -44,18 +55,43 @@ impl AutoMod {
 		self.watcher
 			.watch_async(|e| {
 				let mut files = ModFiles::default();
-				e.events
+				let any_mutated = e
+					.events
 					.iter()
 					.map(|e| self.handle_event(&mut files, e))
-					.collect::<Result<Vec<_>>>()?;
-				files.write_all()?;
+					.collect::<Result<Vec<_>>>()?
+					.into_iter()
+					.filter_map(|r| match r {
+						DidMutate::No => None,
+						DidMutate::Yes { action, path } => {
+							if !self.quiet {
+								println!(
+									"AutoMod: {action} {}",
+									PathExt::relative(&path)
+										.unwrap_or(&path)
+										.display(),
+								);
+							}
+							Some(())
+						}
+					})
+					.next()
+					.is_some();
+				if any_mutated {
+					files.write_all()?;
+				}
 				Ok(())
 			})
 			.await?;
 		Ok(())
 	}
 
-	fn handle_event(&self, files: &mut ModFiles, e: &WatchEvent) -> Result<()> {
+
+	fn handle_event(
+		&self,
+		files: &mut ModFiles,
+		e: &WatchEvent,
+	) -> Result<DidMutate> {
 		enum Step {
 			Insert,
 			Remove,
@@ -69,7 +105,8 @@ impl AutoMod {
 			| EventKind::Modify(ModifyKind::Name(RenameMode::To)) => Step::Insert,
 			EventKind::Remove(_)
 			| EventKind::Modify(ModifyKind::Name(RenameMode::From)) => Step::Remove,
-			EventKind::Modify(ModifyKind::Name(RenameMode::Both)) => {
+			EventKind::Modify(ModifyKind::Name(_))
+			| EventKind::Modify(ModifyKind::Data(_)) => {
 				if e.path.exists() {
 					Step::Insert
 				} else {
@@ -77,35 +114,16 @@ impl AutoMod {
 				}
 			}
 			_ => {
-				return Ok(());
+				return Ok(DidMutate::No);
 			}
 		};
 
 		let file_meta = FileMeta::new(&e.path)?;
 		let file = files.get_mut(&file_meta.parent_mod)?;
 		match step {
-			Step::Insert => {
-				Self::insert_mod(file, file_meta)?;
-				if !self.quiet {
-					println!(
-						"AutoMod: insert {}",
-						PathExt::relative(&e.path)?.display(),
-					);
-				}
-			}
-			Step::Remove => {
-				Self::remove_mod(file, file_meta)?;
-				if !self.quiet {
-					println!(
-						"AutoMod: remove {}",
-						PathExt::relative(&e.path)?.display(),
-					);
-				}
-			}
+			Step::Insert => Self::insert_mod(file, file_meta),
+			Step::Remove => Self::remove_mod(file, file_meta),
 		}
-
-
-		Ok(())
 	}
 
 	/// Load the parents `mod.rs` or `lib.rs` file and insert a new module
@@ -113,20 +131,17 @@ impl AutoMod {
 		mod_file: &mut File,
 		FileMeta {
 			is_lib_dir,
-			parent_mod,
 			file_stem,
 			mod_ident,
+			event_path,
 			..
 		}: FileMeta,
-	) -> Result<()> {
+	) -> Result<DidMutate> {
 		for item in &mut mod_file.items {
 			if let syn::Item::Mod(m) = item {
 				if m.ident == file_stem {
-					anyhow::bail!(
-						"Module {} already exists in {}",
-						file_stem,
-						parent_mod.display()
-					);
+					// module already exists, nothing to do here
+					return Ok(DidMutate::No);
 				}
 			}
 		}
@@ -174,22 +189,27 @@ impl AutoMod {
 			);
 		}
 
-		Ok(())
+		Ok(DidMutate::Yes {
+			action: "insert".into(),
+			path: event_path.to_path_buf(),
+		})
 	}
 
 	fn remove_mod(
 		mod_file: &mut File,
 		FileMeta {
 			is_lib_dir,
-			parent_mod,
 			file_stem,
 			mod_ident,
+			event_path,
 			..
 		}: FileMeta,
-	) -> Result<(PathBuf, String)> {
+	) -> Result<DidMutate> {
+		let mut did_mutate = false;
 		mod_file.items.retain(|item| {
 			if let syn::Item::Mod(m) = item {
 				if m.ident == file_stem {
+					did_mutate = true;
 					return false;
 				}
 			}
@@ -207,7 +227,10 @@ impl AutoMod {
 								if let syn::Item::Use(use_item) = item {
 									if let Some(last) = use_item_ident(use_item)
 									{
-										return last != &mod_ident;
+										if last == &mod_ident {
+											did_mutate = true;
+											return false;
+										}
 									}
 								}
 								true
@@ -222,14 +245,23 @@ impl AutoMod {
 			mod_file.items.retain(|item| {
 				if let syn::Item::Use(use_item) = item {
 					if let Some(last) = use_item_ident(use_item) {
-						return last != &mod_ident;
+						if last == &mod_ident {
+							did_mutate = true;
+							return false;
+						}
 					}
 				}
 				true
 			});
 		}
 
-		Ok((parent_mod, prettyplease::unparse(&mod_file)))
+		Ok(match did_mutate {
+			true => DidMutate::Yes {
+				action: "remove".into(),
+				path: event_path.to_path_buf(),
+			},
+			false => DidMutate::No,
+		})
 	}
 }
 /// find the first part of an ident, skiping `crate`, `super` or `self`
@@ -262,20 +294,28 @@ struct ModFiles {
 }
 
 impl ModFiles {
+	/// Get a mutable reference to the file at the given path.
+	/// If it doesnt exist, an empty file is created, and will be
+	/// written to disk on [`ModFiles::write_all`].
 	pub fn get_mut(&mut self, path: impl AsRef<Path>) -> Result<&mut File> {
 		let path = path.as_ref();
 		if !self.map.contains_key(path) {
-			let file = ReadFile::to_string(path)?;
+			// if it doesnt exist create an empty file
+			let file = ReadFile::to_string(path).unwrap_or_default();
 			let file = syn::parse_file(&file)?;
 			self.map.insert(path.to_path_buf(), file);
 		}
 		Ok(self.map.get_mut(path).unwrap())
 	}
 	pub fn write_all(&self) -> Result<()> {
+		// TODO only perform write if hash changed
 		for (path, file) in &self.map {
 			let file = prettyplease::unparse(file);
 			FsExt::write(path, &file)?;
-			println!("AutoMod: write {}", path.display());
+			println!(
+				"AutoMod: write  {}",
+				PathExt::relative(path).unwrap_or(path).display()
+			);
 		}
 		Ok(())
 	}

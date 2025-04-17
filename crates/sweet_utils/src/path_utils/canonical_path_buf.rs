@@ -96,6 +96,13 @@ impl AsRef<Path> for CanonicalPathBuf {
 	fn as_ref(&self) -> &Path { self.0.as_ref() }
 }
 
+impl Into<PathBuf> for CanonicalPathBuf {
+	fn into(self) -> PathBuf { self.0 }
+}
+impl Into<PathBuf> for &CanonicalPathBuf {
+	fn into(self) -> PathBuf { self.0.to_path_buf() }
+}
+
 impl std::ops::Deref for CanonicalPathBuf {
 	type Target = PathBuf;
 
