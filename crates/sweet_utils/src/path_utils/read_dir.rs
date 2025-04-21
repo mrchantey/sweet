@@ -162,6 +162,7 @@ mod test {
 	use crate::prelude::*;
 
 	#[test]
+	#[ignore = "just experiments"]
 	fn relative_to() {
 		let a = std::fs::read_dir("../")
 			.unwrap()

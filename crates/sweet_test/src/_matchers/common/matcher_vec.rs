@@ -15,10 +15,11 @@ impl<T: Debug> Matcher<&Vec<T>> {
 }
 
 impl<T: Debug + PartialEq> Matcher<&Vec<T>> {
-	pub fn to_contain_element(&self, other: &T) {
+	pub fn to_contain_element(&self, other: &T) -> &Self {
 		let result = self.value.contains(other);
 		let expected = format!("to contain {:?}", other);
 		self.assert_correct(result, &expected);
+		self
 	}
 }
 

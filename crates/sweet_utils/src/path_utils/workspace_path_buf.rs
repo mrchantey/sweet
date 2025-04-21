@@ -1,9 +1,9 @@
+#[allow(unused_imports)]
+use crate::prelude::*;
 use path_clean::PathClean;
 use std::path::Path;
 use std::path::PathBuf;
 use std::str::FromStr;
-#[allow(unused_imports)]
-use crate::prelude::*;
 
 
 
@@ -64,19 +64,19 @@ impl WorkspacePathBuf {
 	}
 
 	#[cfg(not(target_arch = "wasm32"))]
-	/// Convert to a [`CanonicalPathBuf`]. This should be used instead of
+	/// Convert to a [`AbsPathBuf`]. This should be used instead of
 	/// canonicalize because canonicalize expects cwd relative paths.
-	pub fn into_canonical(&self) -> FsResult<CanonicalPathBuf> {
+	pub fn into_canonical(&self) -> FsResult<AbsPathBuf> {
 		let path = FsExt::workspace_root().join(self).clean();
-		let canonical = CanonicalPathBuf::new(path)?;
+		let canonical = AbsPathBuf::new(path)?;
 		Ok(canonical)
 	}
 	#[cfg(not(target_arch = "wasm32"))]
-	/// Convert to a [`CanonicalPathBuf`] by simply prepending the workspace root
+	/// Convert to a [`AbsPathBuf`] by simply prepending the workspace root
 	/// and cleaning, without checking if the path exists.
-	pub fn into_canonical_unchecked(&self) -> CanonicalPathBuf {
+	pub fn into_canonical_unchecked(&self) -> AbsPathBuf {
 		let path = FsExt::workspace_root().join(self);
-		CanonicalPathBuf::new_unchecked(path)
+		AbsPathBuf::new_unchecked(path)
 	}
 }
 

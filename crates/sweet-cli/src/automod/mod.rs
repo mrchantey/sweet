@@ -373,7 +373,7 @@ mod test {
 	#[test]
 	fn insert_works() {
 		fn insert(workspace_path: impl AsRef<Path>) -> Result<String> {
-			let canonical = CanonicalPathBuf::new_unchecked(
+			let canonical = AbsPathBuf::new_unchecked(
 				FsExt::workspace_root().join(workspace_path.as_ref()),
 			);
 			let file_meta = FileMeta::new(canonical.as_ref())?;
@@ -395,7 +395,7 @@ mod test {
 	#[test]
 	fn remove_works() {
 		fn remove(workspace_path: impl AsRef<Path>) -> Result<String> {
-			let canonical = CanonicalPathBuf::new_unchecked(
+			let canonical = AbsPathBuf::new_unchecked(
 				FsExt::workspace_root().join(workspace_path.as_ref()),
 			);
 			let file_meta = FileMeta::new(canonical.as_ref())?;
