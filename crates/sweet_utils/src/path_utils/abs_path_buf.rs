@@ -2,6 +2,7 @@ use super::FsError;
 use super::FsExt;
 use super::FsResult;
 use super::PathExt;
+use crate::utils::PipelineTarget;
 use path_clean::PathClean;
 use std::path::Path;
 use std::path::PathBuf;
@@ -13,10 +14,10 @@ use std::str::FromStr;
 ///
 /// ```rust
 /// # use sweet_utils::prelude::*;
-/// let path = canonical_file!();
+/// let path = abs_file!();
 /// ```
 #[macro_export]
-macro_rules! canonical_file {
+macro_rules! abs_file {
 	() => {
 		AbsPathBuf::new_workspace_rel(file!()).unwrap()
 	};
@@ -71,11 +72,48 @@ impl AbsPathBuf {
 	}
 	/// Create a new [`AbsPathBuf`] from a path relative to the workspace root,
 	/// ie from using the `file!()` macro.
+	/// ## Errors
+	/// If the path cannot be canonicalized.
 	pub fn new_workspace_rel(path: impl AsRef<Path>) -> FsResult<Self> {
 		let path = FsExt::workspace_root().join(path);
 		Self::new(path)
 	}
-
+	/// Create a new unchecked [`AbsPathBuf`] from a path relative to the workspace root,
+	/// ie from using the `file!()` macro.
+	pub fn new_workspace_rel_unchecked(path: impl AsRef<Path>) -> Self {
+		let path = FsExt::workspace_root().join(path);
+		Self::new_unchecked(path)
+	}
+	/// Create a new [`AbsPathBuf`] from a path relative to `CARGO_MANIFEST_DIR`,
+	/// which will be the `crates/my_crate` dir in the case of a workspace.
+	/// This is particularly useful inside of `build.rs` files.
+	/// ## Errors
+	/// If the path cannot be canonicalized.
+	/// ## Panics
+	/// Panics if `CARGO_MANIFEST_DIR` is not set.
+	pub fn new_manifest_rel(path: impl AsRef<Path>) -> FsResult<Self> {
+		std::env::var("CARGO_MANIFEST_DIR")
+			.unwrap()
+			.xref()
+			.xmap(Path::new)
+			.join(path)
+			.xmap(Self::new)
+	}
+	/// Create a new unchecked [`AbsPathBuf`] from a path relative to `CARGO_MANIFEST_DIR`,
+	/// which will be the `crates/my_crate` dir in the case of a workspace.
+	/// This is particularly useful inside of `build.rs` files.
+	/// ## Panics
+	/// Panics if `CARGO_MANIFEST_DIR` is not set.
+	pub fn new_manifest_rel_unchecked(path: impl AsRef<Path>) -> Self {
+		std::env::var("CARGO_MANIFEST_DIR")
+			.unwrap()
+			.xref()
+			.xmap(Path::new)
+			.join(path)
+			.xmap(Self::new_unchecked)
+	}
+	/// Create a new [`AbsPathBuf`] without canonicalizing, instead it is the users
+	/// responsibility to ensure this path is already canonical.
 	pub fn new_unchecked(path: impl AsRef<Path>) -> Self {
 		let path = path.as_ref().clean();
 		#[cfg(target_os = "windows")]
@@ -117,12 +155,22 @@ mod test {
 	// use sweet_test::prelude::*;
 
 	#[test]
-	fn works() {
-		let _buf = AbsPathBuf::new("Cargo.toml").unwrap();
-		let buf1 =
-			AbsPathBuf::new(FsExt::workspace_root().join(file!())).unwrap();
-		let buf2 = canonical_file!();
-		assert_eq!(buf1, buf2);
-		assert!(buf1.to_string_lossy().ends_with("canonical_path_buf.rs"));
+	fn canonicalizes() { let _buf = AbsPathBuf::new("Cargo.toml").unwrap(); }
+
+	#[test]
+	fn abs_file() {
+		assert!(abs_file!().to_string_lossy().ends_with("abs_path_buf.rs"));
+	}
+	#[test]
+	fn workspace_rel() {
+		let buf = AbsPathBuf::new_workspace_rel(file!()).unwrap();
+		assert_eq!(buf, abs_file!());
+	}
+	#[test]
+	fn manifest_rel() {
+		let buf =
+			AbsPathBuf::new_manifest_rel("src/path_utils/abs_path_buf.rs")
+				.unwrap();
+		assert_eq!(buf, abs_file!());
 	}
 }

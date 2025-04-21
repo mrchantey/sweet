@@ -66,15 +66,15 @@ impl WorkspacePathBuf {
 	#[cfg(not(target_arch = "wasm32"))]
 	/// Convert to a [`AbsPathBuf`]. This should be used instead of
 	/// canonicalize because canonicalize expects cwd relative paths.
-	pub fn into_canonical(&self) -> FsResult<AbsPathBuf> {
+	pub fn into_abs(&self) -> FsResult<AbsPathBuf> {
 		let path = FsExt::workspace_root().join(self).clean();
-		let canonical = AbsPathBuf::new(path)?;
-		Ok(canonical)
+		let abs = AbsPathBuf::new(path)?;
+		Ok(abs)
 	}
 	#[cfg(not(target_arch = "wasm32"))]
 	/// Convert to a [`AbsPathBuf`] by simply prepending the workspace root
 	/// and cleaning, without checking if the path exists.
-	pub fn into_canonical_unchecked(&self) -> AbsPathBuf {
+	pub fn into_abs_unchecked(&self) -> AbsPathBuf {
 		let path = FsExt::workspace_root().join(self);
 		AbsPathBuf::new_unchecked(path)
 	}

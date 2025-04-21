@@ -373,10 +373,10 @@ mod test {
 	#[test]
 	fn insert_works() {
 		fn insert(workspace_path: impl AsRef<Path>) -> Result<String> {
-			let canonical = AbsPathBuf::new_unchecked(
+			let abs = AbsPathBuf::new_unchecked(
 				FsExt::workspace_root().join(workspace_path.as_ref()),
 			);
-			let file_meta = FileMeta::new(canonical.as_ref())?;
+			let file_meta = FileMeta::new(abs.as_ref())?;
 			let file = ReadFile::to_string(&file_meta.parent_mod)?;
 			let mut file = syn::parse_file(&file)?;
 			AutoMod::insert_mod(&mut file, file_meta)?;
@@ -395,10 +395,10 @@ mod test {
 	#[test]
 	fn remove_works() {
 		fn remove(workspace_path: impl AsRef<Path>) -> Result<String> {
-			let canonical = AbsPathBuf::new_unchecked(
+			let abs = AbsPathBuf::new_unchecked(
 				FsExt::workspace_root().join(workspace_path.as_ref()),
 			);
-			let file_meta = FileMeta::new(canonical.as_ref())?;
+			let file_meta = FileMeta::new(abs.as_ref())?;
 			let file = ReadFile::to_string(&file_meta.parent_mod)?;
 			let mut file = syn::parse_file(&file)?;
 			AutoMod::remove_mod(&mut file, file_meta)?;

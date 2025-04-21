@@ -4,7 +4,7 @@ pub mod extensions;
 pub mod path_utils;
 pub mod utils;
 pub mod prelude {
-	pub use crate::canonical_file;
+	pub use crate::abs_file;
 	pub use crate::extensions::*;
 	pub use crate::path_utils::*;
 	pub use crate::utils::*;
