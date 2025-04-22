@@ -3,6 +3,7 @@ resolver = "2" # Important! wgpu/Bevy needs this!
 members = [
 	"crates/sweet_bevy",
 	"crates/sweet_fs",
+	"crates/sweet_net",
 	# "crates/sweet_site",
 	"crates/sweet_server",
 	"crates/sweet_test/macros",
@@ -34,6 +35,7 @@ keywords = ["full-stack", "browser", "web", "test", "e2e"]
 sweet = { path = "", version = "0.3.0" }
 sweet_bevy = { path = "crates/sweet_bevy", version = "0.3.0" }
 sweet_fs = { path = "crates/sweet_fs", version = "0.3.0" }
+sweet_net = { path = "crates/sweet_net", version = "0.3.0" }
 sweet_server = { path = "crates/sweet_server", version = "0.3.0" }
 sweet_test = { path = "crates/sweet_test", version = "0.3.0" }
 sweet_test_macros = { path = "crates/sweet_test/macros", version = "0.3.0" }
@@ -73,6 +75,16 @@ tokio = { version = "1", features = [
 ] }
 flume = "0.11"
 rayon = "1"
+once_cell = "1"
+
+
+#💡 http
+http = "1"
+http-body-util = "0.1"
+reqwest = { version = "0.12", default-features = false, features = [
+	"rustls-tls",
+] }
+
 
 #💡 parsing
 proc-macro2 = "1"
@@ -121,12 +133,14 @@ serde = ["sweet_utils/serde"]
 fs = ["dep:sweet_fs"]
 rand = ["sweet_utils/rand", "sweet_bevy?/rand"]
 test = ["dep:sweet_test"]
+net = ["dep:sweet_net"]
 web = ["dep:sweet_web"]
 server = ["dep:sweet_server"]
 
 [dependencies]
 sweet_utils.workspace = true
 sweet_bevy = { workspace = true, optional = true }
+sweet_net = { workspace = true, optional = true }
 sweet_test = { workspace = true, optional = true }
 sweet_web = { workspace = true, optional = true }
 

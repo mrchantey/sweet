@@ -1,0 +1,24 @@
+[package]
+name = "sweet_net"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+documentation.workspace = true
+license.workspace = true
+readme.workspace = true
+description.workspace = true
+repository.workspace = true
+
+[features]
+
+[dependencies]
+sweet_utils.workspace = true
+
+once_cell.workspace = true
+http.workspace = true
+http-body-util.workspace = true
+reqwest.workspace = true
+
+[dev-dependencies]
+tokio.workspace = true
+sweet_test.workspace = true
