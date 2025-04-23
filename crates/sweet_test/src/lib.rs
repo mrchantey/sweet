@@ -56,6 +56,7 @@ pub mod prelude {
 	pub use anyhow::Result;
 }
 
+
 pub fn test_runner(tests: &[&test::TestDescAndFn]) {
 	#[cfg(target_arch = "wasm32")]
 	crate::wasm::run_libtest_wasm(tests).unwrap();

@@ -51,6 +51,7 @@ impl AutoMod {
 			.watcher
 			.filter
 			.with_exclude("**/mod.rs")
+			.with_exclude("**/lib.rs")
 			.with_include("**/*.rs");
 		self.watcher
 			.watch_async(|e| {
