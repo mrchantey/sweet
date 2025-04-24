@@ -18,4 +18,5 @@ pub mod prelude {
 	pub use crate::extensions::*;
 	pub use crate::logging::*;
 	pub use crate::net::*;
+	pub use wasm_bindgen_futures::spawn_local;
 }

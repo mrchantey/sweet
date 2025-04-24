@@ -99,3 +99,30 @@ watch *command:
 	--include "**/*.rs" \
 	--exclude "{.git,target,html}/**" \
 	--cmd "{{command}}"
+
+
+
+
+# creates a directory ~/chrome-for-testing and installs chrome and chromedriver there.
+# The latest version can be found at https://googlechromelabs.github.io/chrome-for-testing/
+# Previous versions can be found at
+install-chromedriver:
+	wget https://storage.googleapis.com/chrome-for-testing-public/135.0.7049.114/linux64/chrome-linux64.zip -P ~/chrome-for-testing
+	wget https://storage.googleapis.com/chrome-for-testing-public/135.0.7049.114/linux64/chromedriver-linux64.zip -P ~/chrome-for-testing
+	mkdir -p ~/chrome-for-testing
+	unzip ~/chrome-for-testing/chrome-linux64.zip -d ~/chrome-for-testing
+	unzip ~/chrome-for-testing/chromedriver-linux64.zip -d ~/chrome-for-testing
+	chmod +x ~/chrome-for-testing/chromedriver-linux64/chromedriver
+	export PATH="$PATH:$HOME/chrome-for-testing/chromedriver-linux64"
+	echo "Chrome installed at: $HOME/chrome-for-testing/chrome-linux64/chrome"
+	echo "ChromeDriver installed at: $HOME/chrome-for-testing/chromedriver-linux64/chromedriver"
+	echo "ChromeDriver version:"
+	~/chrome-for-testing/chromedriver-linux64/chromedriver --version
+
+
+# ~/chrome-for-testing/chromedriver-linux64/chromedriver --port=4444 --url-base=/wd/hub --verbose
+chromedriver *args:
+	~/chrome-for-testing/chromedriver-linux64/chromedriver --port=4444 --verbose {{args}}
+
+search *args:
+	cargo search {{args}} | head -n 1

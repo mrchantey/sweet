@@ -1,18 +1,16 @@
-pub mod file_logger;
-#[allow(unused_imports)]
-pub use self::file_logger::*;
-pub mod result_count;
-#[allow(unused_imports)]
-pub use self::result_count::*;
-pub mod runner_logger;
-#[allow(unused_imports)]
-pub use self::runner_logger::*;
-pub mod sweet_case_logger;
-#[allow(unused_imports)]
-pub use self::sweet_case_logger::*;
-pub mod test_logger;
-#[allow(unused_imports)]
-pub use self::test_logger::*;
-pub mod vanilla_case_logger;
-#[allow(unused_imports)]
-pub use self::vanilla_case_logger::*;
+mod file_logger;
+pub use file_logger::*;
+mod result_count;
+pub use result_count::*;
+mod runner_logger;
+pub use runner_logger::*;
+mod sweet_case_logger;
+pub use sweet_case_logger::*;
+mod test_logger;
+pub use test_logger::*;
+mod vanilla_case_logger;
+pub use vanilla_case_logger::*;
+mod suite_logger;
+pub use suite_logger::*;
+mod suite_result;
+pub use suite_result::*;

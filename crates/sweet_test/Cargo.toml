@@ -12,8 +12,10 @@ categories.workspace = true
 keywords.workspace = true
 
 [features]
-fn_traits = []      # allow for fn_traits, ie mock_fn(3);
+# allow for fn_traits, ie mock_fn(3);
+nightly = []
 bevy = ["dep:bevy"]
+e2e = ["dep:fantoccini", "dep:serde_json", "sweet_utils/tokio"]
 
 [dependencies]
 #💡 internal 
@@ -24,7 +26,8 @@ sweet_test_macros.workspace = true
 anyhow.workspace = true
 extend.workspace = true
 web-time = "1"
-
+fantoccini = { version = "0.21.5", optional = true }
+serde_json = { workspace = true, optional = true }
 
 #💡 console 
 log.workspace = true

@@ -1,3 +1,7 @@
+#[cfg(feature = "tokio")]
+mod async_utils;
+#[cfg(feature = "tokio")]
+pub use async_utils::*;
 mod pipeline;
 pub use pipeline::*;
 pub use tree::*;

@@ -6,8 +6,11 @@
 #![feature(panic_payload_as_str)]
 // implement FnMut for MockFunc
 #![feature(unboxed_closures)]
-#![cfg_attr(feature = "fn_traits", feature(fn_traits))]
+#![cfg_attr(feature = "nightly", feature(fn_traits))]
 // #![feature(panic_payload_as_str)]
+
+#[cfg(feature = "e2e")]
+pub mod e2e;
 
 extern crate test;
 // the #[sweet::test] macro
@@ -24,8 +27,6 @@ pub mod libtest;
 pub mod logging;
 /// Test runner module
 pub mod test_runner;
-/// Test suite module
-pub mod test_suite;
 pub mod utils;
 
 #[path = "_matchers/mod.rs"]
@@ -42,6 +43,8 @@ pub mod prelude {
 	pub use crate::backtrace::*;
 	#[cfg(feature = "bevy")]
 	pub use crate::bevy::*;
+	#[cfg(feature = "e2e")]
+	pub use crate::e2e::*;
 	pub use crate::libtest::*;
 	pub use crate::logging::*;
 	pub use crate::matchers::*;
@@ -49,7 +52,6 @@ pub mod prelude {
 	pub use crate::native::*;
 	pub use crate::test_case::*;
 	pub use crate::test_runner::*;
-	pub use crate::test_suite::*;
 	pub use crate::utils::*;
 	#[cfg(target_arch = "wasm32")]
 	pub use crate::wasm::*;
