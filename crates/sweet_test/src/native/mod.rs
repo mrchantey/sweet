@@ -1,3 +1,5 @@
+mod run_e2e;
+pub use run_e2e::*;
 pub mod run_async;
 #[allow(unused_imports)]
 pub use self::run_async::*;

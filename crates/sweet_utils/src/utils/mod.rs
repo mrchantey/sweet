@@ -1,6 +1,6 @@
-#[cfg(feature = "tokio")]
+#[cfg(all(feature = "tokio", not(target_arch = "wasm32")))]
 mod async_utils;
-#[cfg(feature = "tokio")]
+#[cfg(all(feature = "tokio", not(target_arch = "wasm32")))]
 pub use async_utils::*;
 mod pipeline;
 pub use pipeline::*;

@@ -9,7 +9,8 @@
 #![cfg_attr(feature = "nightly", feature(fn_traits))]
 // #![feature(panic_payload_as_str)]
 
-#[cfg(feature = "e2e")]
+/// Matchers and utilities for running webdriver tests
+#[cfg(all(feature = "e2e", not(target_arch = "wasm32")))]
 pub mod e2e;
 
 extern crate test;
@@ -43,7 +44,7 @@ pub mod prelude {
 	pub use crate::backtrace::*;
 	#[cfg(feature = "bevy")]
 	pub use crate::bevy::*;
-	#[cfg(feature = "e2e")]
+	#[cfg(all(feature = "e2e", not(target_arch = "wasm32")))]
 	pub use crate::e2e::*;
 	pub use crate::libtest::*;
 	pub use crate::logging::*;
@@ -56,12 +57,20 @@ pub mod prelude {
 	#[cfg(target_arch = "wasm32")]
 	pub use crate::wasm::*;
 	pub use anyhow::Result;
+	#[cfg(all(feature = "e2e", not(target_arch = "wasm32")))]
+	pub use fantoccini::Client;
+	#[cfg(all(feature = "e2e", not(target_arch = "wasm32")))]
+	pub use fantoccini::Locator;
 }
 
-
+/// Entry point for the sweet test runner
 pub fn test_runner(tests: &[&test::TestDescAndFn]) {
 	#[cfg(target_arch = "wasm32")]
-	crate::wasm::run_libtest_wasm(tests).unwrap();
+	let result = crate::wasm::run_libtest_wasm(tests);
 	#[cfg(not(target_arch = "wasm32"))]
-	crate::native::run_libtest_native(tests).unwrap();
+	let result = crate::native::run_libtest_native(tests);
+	if let Err(e) = result {
+		eprintln!("Test runner failed: {e}");
+		std::process::exit(1);
+	}
 }

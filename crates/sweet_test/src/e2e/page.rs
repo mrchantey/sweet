@@ -8,6 +8,7 @@ pub struct Page {
 }
 
 impl Page {
+	/// create a new page
 	pub fn new(client: Client) -> Self { Self { client } }
 	/// Await the closure of the page, this will be triggered
 	/// automatically when the page is dropped
@@ -17,6 +18,10 @@ impl Page {
 
 impl AsRef<Page> for Page {
 	fn as_ref(&self) -> &Page { self }
+}
+impl std::ops::Deref for Page {
+	type Target = Client;
+	fn deref(&self) -> &Self::Target { &self.client }
 }
 
 impl<T: AsRef<Page>> Matcher<T> {

@@ -33,7 +33,9 @@ test-cli *args:
 # could possibly be a cli command
 test crate *args:
 	just watch 'cargo test -p {{crate}} --lib -- --watch {{args}}'
-test-e2e crate test_name *args:
+test-e2e crate *args:
+	just watch 'cargo test -p {{crate}} --lib --features=e2e -- --e2e --watch {{args}}'
+test-integration crate test_name *args:
 	just watch 'cargo test -p {{crate}} --test {{test_name}} -- --watch {{args}}'
 test-doc crate *args:
 	just watch 'cargo test -p {{crate}} --doc -- {{args}}'
@@ -50,7 +52,8 @@ test-wasm-e2e crate test_name *args:
 # good news is at least compilation is tested because sweet_test depends on it
 # cargo test --lib --target wasm32-unknown-unknown --all-features -p sweet_utils	-- {{args}}
 test-all *args:
-	cargo test --workspace -- {{args}}
+	cargo test --workspace {{args}}
+	cargo test -p sweet_test --lib --all-features -- --e2e {{args}}
 	cargo test --lib --target wasm32-unknown-unknown --all-features -p sweet_test   -- {{args}}
 	cargo test --lib --target wasm32-unknown-unknown --all-features -p sweet_bevy   -- {{args}}
 	cargo test --lib --target wasm32-unknown-unknown --all-features -p sweet_web   	-- {{args}}
@@ -118,11 +121,6 @@ install-chromedriver:
 	echo "ChromeDriver installed at: $HOME/chrome-for-testing/chromedriver-linux64/chromedriver"
 	echo "ChromeDriver version:"
 	~/chrome-for-testing/chromedriver-linux64/chromedriver --version
-
-
-# ~/chrome-for-testing/chromedriver-linux64/chromedriver --port=4444 --url-base=/wd/hub --verbose
-chromedriver *args:
-	~/chrome-for-testing/chromedriver-linux64/chromedriver --port=4444 --verbose {{args}}
 
 search *args:
 	cargo search {{args}} | head -n 1

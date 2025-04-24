@@ -12,6 +12,8 @@ pub fn run_libtest_native(tests: &[&test::TestDescAndFn]) -> Result<()> {
 
 	let mut logger = RunnerLogger::start(config.clone(), &tests);
 
+	let chromedriver_process = try_run_e2e(&config)?;
+
 	let recv_result_handle = std::thread::spawn(move || {
 		tokio::runtime::Builder::new_current_thread()
 			.enable_all()
@@ -29,6 +31,11 @@ pub fn run_libtest_native(tests: &[&test::TestDescAndFn]) -> Result<()> {
 	TestRunnerRayon::collect_and_run(&config, future_tx, result_tx, tests)
 		.unwrap();
 	recv_result_handle.join().unwrap()?;
+
+	if let Some(mut child) = chromedriver_process {
+		child.kill()?;
+		child.wait()?;
+	}
 
 	Ok(())
 }

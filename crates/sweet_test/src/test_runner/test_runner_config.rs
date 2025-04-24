@@ -51,6 +51,9 @@ pub struct TestRunnerConfig {
 	/// Number of test threads to run, defaults to max available.
 	#[arg(long)]
 	pub test_threads: Option<usize>,
+	/// Spin up chromedriver for the duration of the tests
+	#[arg(long)]
+	pub e2e: bool,
 	// /// TODO
 	// #[arg(long)]
 	// report_time: bool,

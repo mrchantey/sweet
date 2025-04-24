@@ -34,7 +34,16 @@ impl Default for VisitOptions {
 /// - If the webdriver is not running
 /// - If the page cannot be reached
 pub async fn visit(url: &str) -> Page {
-	visit_with_opts(url, VisitOptions::default()).await.unwrap()
+	match visit_with_opts(url, VisitOptions::default()).await {
+		Ok(page) => page,
+		Err(err) => {
+			eprintln!(
+				"Error visiting page: {}\n\nPlease ensure the --e2e flag was passed to the test: \n\n`cargo test --lib -- --e2e`\n\n",
+				err
+			);
+			std::process::exit(1);
+		}
+	}
 }
 
 

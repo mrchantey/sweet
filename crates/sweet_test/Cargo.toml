@@ -26,8 +26,6 @@ sweet_test_macros.workspace = true
 anyhow.workspace = true
 extend.workspace = true
 web-time = "1"
-fantoccini = { version = "0.21.5", optional = true }
-serde_json = { workspace = true, optional = true }
 
 #💡 console 
 log.workspace = true
@@ -54,6 +52,8 @@ bevy = { workspace = true, optional = true }
 tokio.workspace = true
 sweet_fs.workspace = true
 pin-project-lite = "0.2.15"
+fantoccini = { version = "0.21.5", optional = true }
+serde_json = { workspace = true, optional = true }
 
 #💡 wasm
 [target.'cfg(target_arch = "wasm32")'.dependencies]

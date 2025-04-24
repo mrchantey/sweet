@@ -46,12 +46,8 @@ pub trait PipelineTarget: Sized {
 	}
 
 	fn xref(&self) -> &Self { self }
-	fn xok<E>(self) -> Result<Self, E>
-	where
-		Self: Sized,
-	{
-		Ok(self)
-	}
+	fn xok<E>(self) -> Result<Self, E> { Ok(self) }
+	fn xsome(self) -> Option<Self> { Some(self) }
 
 	fn xinto<T: From<Self>>(self) -> T { T::from(self) }
 }

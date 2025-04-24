@@ -1,5 +1,5 @@
 use crate::prelude::*;
-/// Create a new matcher with the provided received value.
+/// Create a new [`Matcher`] with the provided received value.
 ///
 /// # Example
 ///
@@ -9,3 +9,12 @@ use crate::prelude::*;
 /// expect("foobar").not().to_start_with("bar");
 /// ```
 pub fn expect<T>(value: T) -> Matcher<T> { Matcher::new(value) }
+
+
+
+pub trait Xpect: Sized {
+	/// Create a new [`Matcher`] with the provided received value.
+	fn xpect(self) -> Matcher<Self> { Matcher::new(self) }
+}
+
+impl<T> Xpect for T {}
