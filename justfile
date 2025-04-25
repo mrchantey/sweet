@@ -87,6 +87,7 @@ publish-all *args:
 	just publish sweet_server				{{args}} | true
 	just publish sweet_web					{{args}} | true
 	just publish sweet_bevy					{{args}} | true
+	just publish sweet_net					{{args}} | true
 	just publish sweet 							{{args}} | true
 	just publish sweet-cli					{{args}} | true
 

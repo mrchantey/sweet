@@ -11,6 +11,7 @@ use bevy::prelude::*;
 
 
 /// An alternative to types like [`Res`] that should `skip` instead of panic when they dont exist.
+/// Unlike [`Option<Res<T>>`], this will cause the system to be skipped entirely if the resource does not exist.
 pub struct When<'a, T> {
 	pub value: &'a T,
 }
@@ -66,6 +67,7 @@ unsafe impl<'a, T: Resource> SystemParam for When<'a, T> {
 }
 
 /// An alternative to types like [`ResMut`] that should `skip` instead of panic when they dont exist.
+/// Unlike [`Option<ResMut<T>>`], this will cause the system to be skipped entirely if the resource does not exist.
 pub struct WhenMut<'a, T> {
 	pub value: &'a mut T,
 }
