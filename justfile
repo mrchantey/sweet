@@ -53,9 +53,15 @@ test-wasm-e2e crate test_name *args:
 # cargo test --lib --target wasm32-unknown-unknown --all-features -p sweet_utils	-- {{args}}
 test-all *args:
 	cargo test --workspace {{args}}
-	cargo test -p sweet_test --lib --all-features -- --e2e {{args}}
-	cargo test --lib --target wasm32-unknown-unknown --all-features -p sweet_test   -- {{args}}
+	cargo test -p sweet_bevy 				--all-features -- {{args}}
+	cargo test -p sweet_fs 					--all-features -- {{args}}
+	cargo test -p sweet_net 				--all-features -- {{args}}
+	cargo test -p sweet_server 			--all-features -- {{args}}
+	cargo test -p sweet_test --lib 	--all-features -- --e2e {{args}}
+	cargo test -p sweet_utils 			--all-features -- {{args}}
+	cargo test -p sweet-cli 				--all-features -- {{args}}
 	cargo test --lib --target wasm32-unknown-unknown --all-features -p sweet_bevy   -- {{args}}
+	cargo test --lib --target wasm32-unknown-unknown --all-features -p sweet_test   -- {{args}}
 	cargo test --lib --target wasm32-unknown-unknown --all-features -p sweet_web   	-- {{args}}
 
 # upstream from sweet_test

@@ -137,6 +137,7 @@ test = ["dep:sweet_test"]
 net = ["dep:sweet_net"]
 web = ["dep:sweet_web"]
 server = ["dep:sweet_server"]
+e2e = ["sweet_test/e2e"]
 
 [dependencies]
 sweet_utils.workspace = true

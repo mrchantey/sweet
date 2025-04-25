@@ -54,19 +54,19 @@ pub async fn visit(url: &str) -> Page {
 pub async fn visit_with_opts(url: &str, opts: VisitOptions) -> Result<Page> {
 	let client = AsyncUtils::retry_async(
 		async || -> Result<Client> {
-			let cap = if opts.headless {
-				serde_json::from_str(
-					r#"{
-						"browserName" : "chrome",
-						"goog:chromeOptions": {
-							"args": ["--headless","--disable-gpu"]
-						}
-					}"#,
-				)
-				.unwrap()
+			let headless_args = if opts.headless {
+				r#""--headless","--disable-gpu""#
 			} else {
-				fantoccini::wd::Capabilities::default()
+				""
 			};
+			let cap = serde_json::from_str(&format!(
+				r#"{{
+						"browserName" : "chrome",
+						"goog:chromeOptions": {{
+							"args": [{headless_args}]
+					}}
+				}}"#
+			))?;
 			let client = ClientBuilder::native()
 				.capabilities(cap)
 				.connect(&format!("http://localhost:{}", opts.webdriver_port))
