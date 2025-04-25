@@ -55,7 +55,7 @@ rapidhash = "1"
 
 
 #💡 game
-bevy = { version = "0.15", default-features = false }
+bevy = { version = "0.16", default-features = false }
 
 #💡 io ###
 clap = { version = "4", features = ["derive"] }

@@ -2,8 +2,6 @@ mod app;
 pub use self::app::*;
 mod app_res;
 pub use self::app_res::*;
-mod map;
-pub use self::map::*;
 mod pose;
 pub use self::pose::*;
 mod quat;
