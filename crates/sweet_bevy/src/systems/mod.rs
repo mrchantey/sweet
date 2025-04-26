@@ -1,3 +1,4 @@
+use crate::prelude::When;
 use bevy::app::AppExit;
 use bevy::diagnostic::FrameCount;
 use bevy::prelude::*;
@@ -14,7 +15,7 @@ pub fn exit_in_frames(
 
 /// Closes the application when the Escape key is pressed.
 pub fn close_on_esc(
-	input: Res<ButtonInput<KeyCode>>,
+	input: When<Res<ButtonInput<KeyCode>>>,
 	mut exit: EventWriter<AppExit>,
 ) {
 	if input.just_pressed(KeyCode::Escape) {
@@ -25,7 +26,7 @@ pub fn close_on_esc(
 /// Toggles fullscreen mode when F11 is pressed.
 #[cfg(feature = "bevy_default")]
 pub fn toggle_fullscreen(
-	input: Res<ButtonInput<KeyCode>>,
+	input: When<Res<ButtonInput<KeyCode>>>,
 	mut windows: Populated<&mut Window>,
 ) {
 	use bevy::window::WindowMode;
