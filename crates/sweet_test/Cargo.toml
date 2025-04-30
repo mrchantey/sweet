@@ -52,7 +52,7 @@ bevy = { workspace = true, optional = true }
 tokio.workspace = true
 sweet_fs.workspace = true
 pin-project-lite = "0.2.15"
-fantoccini = { version = "0.21.5", optional = true }
+fantoccini = { version = "0.21.5", optional = true, features = ["rustls-tls"] }
 serde_json = { workspace = true, optional = true }
 
 #💡 wasm

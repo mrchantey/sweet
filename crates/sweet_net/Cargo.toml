@@ -32,7 +32,9 @@ http-body-util.workspace = true
 
 #💡 Native
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-reqwest.workspace = true
+reqwest = { version = "0.12", default-features = false, features = [
+	"rustls-tls",
+] }
 
 #💡 Web
 [target.'cfg(target_arch = "wasm32")'.dependencies]
