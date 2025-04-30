@@ -51,7 +51,11 @@ impl<'a> Request<'a> {
 	/// Serailizes the body to JSON and sets the `Content-Type` header to `application/json`.
 	pub fn body<T: Serialize>(mut self, body: T) -> Result<Self> {
 		self.body = Some(serde_json::to_vec(&body).map_err(|e| {
-			Error::Serialization(format!("Failed to serialize body: {}", e))
+			Error::Serialization(format!(
+				"Fail
+			ed to serialize body: {}",
+				e
+			))
 		})?);
 		self.headers.insert(
 			http::header::CONTENT_TYPE,
@@ -74,7 +78,7 @@ impl<'a> Request<'a> {
 mod test {
 	use crate::cross_fetch::ResponseInner;
 	use crate::prelude::*;
-	use sweet_test::prelude::*;
+	use sweet_test::as_sweet::*;
 	use sweet_utils::prelude::*;
 
 	const HTTPBIN: &str = "https://httpbin.org";
@@ -92,7 +96,7 @@ mod test {
 
 	#[sweet_test::test]
 	async fn get_works() {
-		Request::new(format!("{}/get", HTTPBIN))
+		Request::new(format!("{HTTPBIN}/get"))
 			.fetch()
 			.await
 			.unwrap()
@@ -103,7 +107,7 @@ mod test {
 
 	#[sweet_test::test]
 	async fn post_json_works() {
-		Request::new(format!("{}/post", HTTPBIN))
+		Request::new(format!("{HTTPBIN}/post"))
 			.method(HttpMethod::Post)
 			.body(&serde_json::json!({"foo": "bar"}))
 			.unwrap()
@@ -117,7 +121,7 @@ mod test {
 
 	#[sweet_test::test]
 	async fn custom_header_works() {
-		Request::new(format!("{}/headers", HTTPBIN))
+		Request::new(format!("{HTTPBIN}/headers"))
 			.header("X-Foo", "Bar")
 			.unwrap()
 			.fetch()
@@ -130,7 +134,7 @@ mod test {
 
 	#[sweet_test::test]
 	async fn put_and_delete_work() {
-		Request::new(format!("{}/put", HTTPBIN))
+		Request::new(format!("{HTTPBIN}/put"))
 			.method(HttpMethod::Put)
 			.fetch()
 			.await
@@ -139,7 +143,7 @@ mod test {
 			.xpect()
 			.to_be(200);
 
-		Request::new(format!("{}/delete", HTTPBIN))
+		Request::new(format!("{HTTPBIN}/delete"))
 			.method(HttpMethod::Delete)
 			.fetch()
 			.await
@@ -151,7 +155,7 @@ mod test {
 
 	#[sweet_test::test]
 	async fn body_raw_works() {
-		Request::new(format!("{}/post", HTTPBIN))
+		Request::new(format!("{HTTPBIN}/post"))
 			.method(HttpMethod::Post)
 			.body_raw(b"rawbytes".to_vec())
 			.fetch()

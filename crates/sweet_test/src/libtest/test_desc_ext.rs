@@ -1,4 +1,3 @@
-use crate::prelude::*;
 use test::TestDesc;
 
 pub struct TestDescExt;

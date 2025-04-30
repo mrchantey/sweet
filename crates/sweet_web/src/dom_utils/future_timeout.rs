@@ -8,8 +8,8 @@ use std::rc::Rc;
 use std::time::Duration;
 use wasm_bindgen::JsValue;
 use wasm_bindgen::UnwrapThrowExt;
-use wasm_bindgen_futures::spawn_local;
 use wasm_bindgen_futures::JsFuture;
+use wasm_bindgen_futures::spawn_local;
 
 
 pub async fn future_timeout<F, Fut, O>(fut: F, duration: Duration) -> Result<O>
@@ -49,8 +49,7 @@ where
 mod test {
 	use crate::prelude::*;
 	use std::time::Duration;
-	use sweet_test as sweet;
-	use sweet_test::prelude::*;
+	use sweet_test::as_sweet::*;
 
 	#[sweet_test::test]
 	pub async fn works() {

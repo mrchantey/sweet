@@ -1,3 +1,4 @@
+use anyhow::Result;
 use clap::Parser;
 use quote::quote;
 use rapidhash::RapidHashMap;
@@ -12,7 +13,6 @@ use syn::Ident;
 use syn::ItemMod;
 use syn::ItemUse;
 use syn::UseTree;
-
 
 #[derive(Debug, Default, Clone, Parser)]
 #[command(name = "mod")]

@@ -2,7 +2,7 @@
 #![cfg_attr(test, feature(test, custom_test_frameworks))]
 #![cfg_attr(test, test_runner(sweet_test::test_runner))]
 #[cfg(target_arch = "wasm32")]
-use sweet_test as sweet;
+use sweet_test::as_sweet::*;
 
 #[sweet_test::test]
 #[ignore = "it returns error"]

@@ -1,5 +1,7 @@
 #[allow(unused)]
 use crate::prelude::*;
+#[allow(unused)]
+use anyhow::Result;
 
 /// A sweet error is the panic payload emitted by matchers:
 /// ```should_panic
@@ -124,7 +126,5 @@ mod test {
 	}
 	#[test]
 	#[ignore = "use for visual testing"]
-	fn panics() -> Result<()> {
-		std::panic::panic_any(SweetError::new("expected bar", 1));
-	}
+	fn panics() { std::panic::panic_any(SweetError::new("expected bar", 1)); }
 }

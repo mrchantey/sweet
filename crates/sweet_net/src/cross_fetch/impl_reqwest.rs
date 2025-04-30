@@ -20,9 +20,8 @@ impl<'a> super::Request<'a> {
 				req
 			})
 			.send()
-			.await
-			.map_err(|e| Error::NetworkError(e.to_string()))?
-			.xmap(|res| Response::new(res))
+			.await?
+			.xinto::<Response>()
 			.xok()
 	}
 }
@@ -49,4 +48,25 @@ fn create_request(
 
 impl ResponseInner for reqwest::Response {
 	fn status_code(&self) -> StatusCode { self.status() }
+	async fn body_raw(self) -> Result<Vec<u8>> {
+		self.bytes()
+			.await
+			.map_err(|e| Error::NetworkError(e.to_string()))?
+			.to_vec()
+			.xok()
+	}
+	async fn text(self) -> Result<String> {
+		reqwest::Response::text(self).await?.xok()
+	}
+}
+
+impl From<reqwest::Response> for Response {
+	fn from(res: reqwest::Response) -> Self { Response::new(res) }
+}
+
+
+impl From<reqwest::Error> for Error {
+	fn from(err: reqwest::Error) -> Self {
+		Error::NetworkError(err.to_string())
+	}
 }

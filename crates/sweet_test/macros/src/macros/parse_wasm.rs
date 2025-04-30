@@ -42,7 +42,7 @@ fn wrap_func_inner(func: &ItemFn) -> syn::Result<TokenStream> {
 
 	match &func.sig.output {
 		ReturnType::Default => Ok(quote! {
-			async fn inner() -> Result<(),String> {
+			async fn inner() -> sweet::exports::Result<(),String> {
 				async #body.await;
 				Ok(())
 			}
@@ -55,7 +55,7 @@ fn wrap_func_inner(func: &ItemFn) -> syn::Result<TokenStream> {
 				));
 			}
 			Ok(quote! {
-				async fn inner() -> Result<(),String> {
+				async fn inner() -> sweet::exports::Result<(),String> {
 					let result:#ty = async #body.await;
 					match result {
 						Ok(_) => Ok(()),

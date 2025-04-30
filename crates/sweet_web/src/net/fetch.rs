@@ -18,8 +18,7 @@ pub async fn fetch(url: &str) -> Result<Response> {
 #[cfg(target_arch = "wasm32")]
 mod test {
 	use crate::prelude::*;
-	use sweet_test as sweet;
-	use sweet_test::prelude::*;
+	use sweet_test::as_sweet::*;
 
 	#[sweet_test::test]
 	async fn works() {

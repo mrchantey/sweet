@@ -56,11 +56,22 @@ pub mod prelude {
 	pub use crate::utils::*;
 	#[cfg(target_arch = "wasm32")]
 	pub use crate::wasm::*;
-	pub use anyhow::Result;
 	#[cfg(all(feature = "e2e", not(target_arch = "wasm32")))]
 	pub use fantoccini::Client;
 	#[cfg(all(feature = "e2e", not(target_arch = "wasm32")))]
 	pub use fantoccini::Locator;
+}
+
+pub mod as_sweet {
+	pub use crate::prelude::*;
+	pub mod sweet {
+		pub use crate::exports;
+		pub use crate::prelude;
+	}
+}
+
+pub mod exports {
+	pub use anyhow::Result;
 }
 
 /// Entry point for the sweet test runner

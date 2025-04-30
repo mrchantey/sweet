@@ -1,4 +1,5 @@
 use crate::prelude::*;
+use anyhow::Result;
 use flume::Sender;
 use rayon::iter::IntoParallelIterator;
 use rayon::iter::ParallelIterator;
@@ -6,7 +7,6 @@ use std::cell::Cell;
 use std::sync::Arc;
 use test::TestDesc;
 use thread_local::ThreadLocal;
-
 
 pub fn rayon_with_num_threads(
 	test_threads: Option<usize>,
@@ -43,7 +43,6 @@ impl TestRunner for TestRunnerRayon {
 		let tls_desc2 = tls_desc.clone();
 		let result_tx2 = result_tx.clone();
 		std::panic::set_hook(Box::new(move |info| {
-
 			if let Some(desc) = tls_desc2.get() {
 				if let Some(desc) = desc.take() {
 					let result = TestResult::from_panic(info, &desc);
