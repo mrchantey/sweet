@@ -14,11 +14,11 @@ pub struct Response {
 
 pub trait ResponseInner: Sized {
 	fn status_code(&self) -> StatusCode;
-	async fn body_raw(self) -> Result<Vec<u8>>;
+	async fn bytes(self) -> Result<Vec<u8>>;
 	async fn text(self) -> Result<String>;
 
 	async fn body<T: DeserializeOwned>(self) -> Result<T> {
-		let bytes = self.body_raw().await?;
+		let bytes = self.bytes().await?;
 
 		serde_json::from_slice(&bytes).map_err(|e| {
 			Error::Deserialization(format!("Failed to deserialize body: {}", e))
@@ -41,7 +41,9 @@ impl Response {
 
 impl ResponseInner for Response {
 	fn status_code(&self) -> StatusCode { self.inner.status_code() }
-	async fn body_raw(self) -> Result<Vec<u8>> { self.inner.body_raw().await }
+	async fn bytes(self) -> Result<Vec<u8>> {
+		ResponseInner::bytes(self.inner).await
+	}
 	async fn text(self) -> Result<String> {
 		self.inner
 			.text()
@@ -77,7 +79,7 @@ mod test {
 			.method(HttpMethod::Post)
 			.body(&serde_json::json!({"foo": "bar"}))
 			.unwrap()
-			.fetch()
+			.send()
 			.await
 			.unwrap()
 			.body::<serde_json::Value>()

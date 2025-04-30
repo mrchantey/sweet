@@ -7,7 +7,7 @@ use sweet_utils::utils::*;
 
 
 impl super::Request {
-	pub async fn fetch(self) -> Result<Response> {
+	pub async fn send(self) -> Result<Response> {
 		ReqwestClient::client()
 			.request(self.method.into(), self.url)
 			.headers(self.headers)
@@ -30,7 +30,7 @@ impl super::Request {
 
 impl ResponseInner for reqwest::Response {
 	fn status_code(&self) -> StatusCode { self.status() }
-	async fn body_raw(self) -> Result<Vec<u8>> {
+	async fn bytes(self) -> Result<Vec<u8>> {
 		self.bytes()
 			.await
 			.map_err(|e| Error::NetworkError(e.to_string()))?

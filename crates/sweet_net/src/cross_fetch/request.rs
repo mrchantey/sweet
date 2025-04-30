@@ -54,6 +54,17 @@ impl Request {
 		);
 		Ok(self)
 	}
+
+	/// Shorthand for an `Authorization: Bearer <token>` header.
+	pub fn auth_bearer(mut self, token: &str) -> Self {
+		self.headers.insert(
+			http::header::AUTHORIZATION,
+			http::header::HeaderValue::from_str(&format!("Bearer {}", token))
+				.unwrap(),
+		);
+		self
+	}
+
 	/// Serailizes the body to JSON and sets the `Content-Type` header to `application/json`.
 	pub fn body<T: Serialize>(mut self, body: T) -> Result<Self> {
 		self.body = Some(serde_json::to_vec(&body).map_err(|e| {
@@ -70,7 +81,11 @@ impl Request {
 		Ok(self)
 	}
 
-	pub fn query<T: Serialize>(mut self, query: &[(T, T)]) -> Result<Self> {
+	/// insert a list of query parameters
+	pub fn query<T1: Serialize, T2: Serialize>(
+		mut self,
+		query: &[(T1, T2)],
+	) -> Result<Self> {
 		{
 			let mut pairs = self.url.query_pairs_mut();
 			query
@@ -143,7 +158,7 @@ mod test {
 	#[sweet_test::test]
 	async fn works() {
 		Request::new("https://example.com")
-			.fetch()
+			.send()
 			.await
 			.unwrap()
 			.xmap(|res| res.status_code())
@@ -154,7 +169,7 @@ mod test {
 	#[sweet_test::test]
 	async fn get_works() {
 		Request::new(format!("{HTTPBIN}/get"))
-			.fetch()
+			.send()
 			.await
 			.unwrap()
 			.xmap(|res| res.status_code())
@@ -168,7 +183,7 @@ mod test {
 			.method(HttpMethod::Post)
 			.body(&serde_json::json!({"foo": "bar"}))
 			.unwrap()
-			.fetch()
+			.send()
 			.await
 			.unwrap()
 			.xmap(|res| res.status_code())
@@ -181,7 +196,7 @@ mod test {
 		Request::new(format!("{HTTPBIN}/headers"))
 			.header("X-Foo", "Bar")
 			.unwrap()
-			.fetch()
+			.send()
 			.await
 			.unwrap()
 			.xmap(|res| res.status_code())
@@ -193,7 +208,7 @@ mod test {
 	async fn put_and_delete_work() {
 		Request::new(format!("{HTTPBIN}/put"))
 			.method(HttpMethod::Put)
-			.fetch()
+			.send()
 			.await
 			.unwrap()
 			.xmap(|res| res.status_code())
@@ -202,7 +217,7 @@ mod test {
 
 		Request::new(format!("{HTTPBIN}/delete"))
 			.method(HttpMethod::Delete)
-			.fetch()
+			.send()
 			.await
 			.unwrap()
 			.xmap(|res| res.status_code())
@@ -215,7 +230,7 @@ mod test {
 		Request::new(format!("{HTTPBIN}/post"))
 			.method(HttpMethod::Post)
 			.body_raw(b"rawbytes".to_vec())
-			.fetch()
+			.send()
 			.await
 			.unwrap()
 			.xmap(|res| res.text())
@@ -225,12 +240,23 @@ mod test {
 			.to_contain("rawbytes");
 	}
 
+
+	#[test]
+	fn query_params() {
+		// #[derive(Serialize)]
+		// struct Foo{
+		Request::new(format!("{HTTPBIN}/get"))
+			.query(&[("foo", (1, 2))])
+			.xpect()
+			.to_be_err();
+	}
+
 	#[sweet_test::test]
 	async fn query_params_work() {
 		Request::new(format!("{HTTPBIN}/get"))
 			.query(&[("foo", "bar"), ("baz", "qux")])
 			.unwrap()
-			.fetch()
+			.send()
 			.await
 			.unwrap()
 			.xmap(|res| res.text())
@@ -240,6 +266,9 @@ mod test {
 			.to_contain("baz");
 	}
 
+	#[test]
+	#[should_panic]
+	fn bad_urp_fails() { Request::new("/foobar"); }
 	#[test]
 	fn invalid_header_fails() {
 		Request::new("http://localhost")

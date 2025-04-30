@@ -6,9 +6,9 @@ use wasm_bindgen::JsCast;
 
 
 
-impl<'a> super::Request<'a> {
-	pub async fn fetch(self) -> Result<Response> {
-		let request = web_sys::Request::new_with_str_and_init(&self.url, &{
+impl super::Request {
+	pub async fn send(self) -> Result<Response> {
+		let request = web_sys::Request::new_with_str_and_init(self.url.as_str(), &{
 			let init = web_sys::RequestInit::new();
 			init.set_method(&self.method.to_string());
 			if let Some(body) = &self.body {
@@ -55,7 +55,7 @@ impl ResponseInner for web_sys::Response {
 		StatusCode::from_u16(status as u16)
 			.unwrap_or(StatusCode::INTERNAL_SERVER_ERROR)
 	}
-	async fn body_raw(self) -> Result<Vec<u8>> {
+	async fn bytes(self) -> Result<Vec<u8>> {
 		self.blob()
 			.map_err(Error::network)?
 			.xmap(wasm_bindgen_futures::JsFuture::from)

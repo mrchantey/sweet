@@ -1,11 +1,11 @@
 mod error;
 #[cfg(not(target_arch = "wasm32"))]
 mod impl_reqwest;
+#[cfg(target_arch = "wasm32")]
+mod impl_wasm;
 mod request;
 mod response;
-#[cfg(target_arch = "wasm32")]
-mod impl_fetch;
-pub(crate) use error::*;
+pub use error::*;
 use http::StatusCode;
 pub use request::*;
 pub use response::*;
