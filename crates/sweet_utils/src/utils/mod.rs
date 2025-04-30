@@ -1,3 +1,5 @@
+mod build_utils;
+pub use build_utils::*;
 #[cfg(all(feature = "tokio", not(target_arch = "wasm32")))]
 mod async_utils;
 #[cfg(all(feature = "tokio", not(target_arch = "wasm32")))]

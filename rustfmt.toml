@@ -10,3 +10,4 @@ group_imports = "One"
 imports_layout = "Vertical"
 overflow_delimited_expr = true
 use_field_init_shorthand = true
+match_arm_leading_pipes = "Preserve"
