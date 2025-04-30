@@ -29,6 +29,8 @@ serde_json = { workspace = true, optional = true }
 #💡 HTTP
 http.workspace = true
 http-body-util.workspace = true
+url = "2"
+serde_urlencoded = "0.7"
 
 #💡 Native
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]

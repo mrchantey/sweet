@@ -6,9 +6,10 @@ use sweet_utils::utils::*;
 
 
 
-impl<'a> super::Request<'a> {
+impl super::Request {
 	pub async fn fetch(self) -> Result<Response> {
-		create_request(&self.url, self.method)?
+		ReqwestClient::client()
+			.request(self.method.into(), self.url)
 			.headers(self.headers)
 			.xmap(|mut req| {
 				if let Some(body) = self.body {
@@ -23,25 +24,6 @@ impl<'a> super::Request<'a> {
 			.await?
 			.xinto::<Response>()
 			.xok()
-	}
-}
-
-fn create_request(
-	url: &str,
-	method: HttpMethod,
-) -> Result<reqwest::RequestBuilder> {
-	let client = ReqwestClient::client();
-	match method {
-		HttpMethod::Get => client.get(url).xok(),
-		HttpMethod::Post => client.post(url).xok(),
-		HttpMethod::Put => client.put(url).xok(),
-		HttpMethod::Delete => client.delete(url).xok(),
-		HttpMethod::Patch => client.patch(url).xok(),
-		HttpMethod::Head => client.head(url).xok(),
-		_ => Err(Error::Serialization(format!(
-			"Unsupported HTTP method: {:?}",
-			method
-		))),
 	}
 }
 

@@ -5,6 +5,7 @@ use serde::Serialize;
 use std::borrow::Cow;
 use std::str::FromStr;
 use std::time::Duration;
+use url::Url;
 
 /// A cross-platform fetch function that works on both native and wasm targets.
 /// While `reqwest` does work on wasm it still is a heavy build, instead cross-fetch
@@ -15,24 +16,29 @@ use std::time::Duration;
 /// - Native: `reqwest`
 /// - Wasm: `fetch`
 #[derive(Debug, Clone)]
-pub struct Request<'a> {
-	pub url: Cow<'a, str>,
+pub struct Request {
+	pub url: Url,
 	pub method: HttpMethod,
 	pub headers: HeaderMap,
 	pub timeout: Option<Duration>,
 	pub body: Option<Vec<u8>>,
 }
 
-impl<'a> Request<'a> {
-	pub fn new(url: impl Into<Cow<'a, str>>) -> Self {
+impl Request {
+	/// Create a new request
+	/// ## Panics
+	/// Panics if the url cannot be parsed. This is a panic not error because
+	/// the cases of invalid urls are tiny and weird.
+	pub fn new(url: impl IntoUrl) -> Self {
 		Self {
-			url: url.into(),
+			url: url.into_url().unwrap(),
 			method: HttpMethod::Get,
 			headers: HeaderMap::new(),
 			timeout: None,
 			body: None,
 		}
 	}
+
 	pub fn method(mut self, method: HttpMethod) -> Self {
 		self.method = method;
 		self
@@ -63,6 +69,17 @@ impl<'a> Request<'a> {
 		);
 		Ok(self)
 	}
+
+	pub fn query<T: Serialize>(mut self, query: &[(T, T)]) -> Result<Self> {
+		{
+			let mut pairs = self.url.query_pairs_mut();
+			query
+				.serialize(serde_urlencoded::Serializer::new(&mut pairs))
+				.map_err(Error::serialization)?;
+		}
+		Ok(self)
+	}
+
 	/// Sets the body to a raw byte array and sets the `Content-Type` header to `application/octet-stream`.
 	pub fn body_raw(mut self, body: Vec<u8>) -> Self {
 		self.body = Some(body);
@@ -73,6 +90,46 @@ impl<'a> Request<'a> {
 		self
 	}
 }
+
+pub trait IntoUrl {
+	fn into_url(self) -> Result<Url>;
+}
+
+impl IntoUrl for Url {
+	fn into_url(self) -> Result<Url> {
+		// With blob url the `self.has_host()` check is always false, so we
+		// remove the `blob:` scheme and check again if the url is valid.
+		#[cfg(target_arch = "wasm32")]
+		if self.scheme() == "blob"
+					&& self.path().starts_with("http") // Check if the path starts with http or https to avoid validating a `blob:blob:...` url.
+					&& self.as_str()[5..].into_url().is_ok()
+		{
+			return Ok(self);
+		}
+		if self.has_host() {
+			Ok(self)
+		} else {
+			Err(Error::Serialization(format!(
+				"URL scheme is not allowed: {}",
+				self
+			)))
+		}
+	}
+}
+impl IntoUrl for &str {
+	fn into_url(self) -> Result<Url> {
+		Url::parse(self)
+			.map_err(|_| Error::Serialization(format!("Invalid URL: {}", self)))
+	}
+}
+impl IntoUrl for String {
+	fn into_url(self) -> Result<Url> { self.as_str().into_url() }
+}
+
+impl IntoUrl for &Cow<'_, str> {
+	fn into_url(self) -> Result<Url> { self.as_ref().into_url() }
+}
+
 
 #[cfg(test)]
 mod test {
@@ -161,14 +218,33 @@ mod test {
 			.fetch()
 			.await
 			.unwrap()
-			.xmap(|res| res.status_code())
+			.xmap(|res| res.text())
+			.await
+			.unwrap()
 			.xpect()
-			.to_be(200);
+			.to_contain("rawbytes");
+	}
+
+	#[sweet_test::test]
+	async fn query_params_work() {
+		Request::new(format!("{HTTPBIN}/get"))
+			.query(&[("foo", "bar"), ("baz", "qux")])
+			.unwrap()
+			.fetch()
+			.await
+			.unwrap()
+			.xmap(|res| res.text())
+			.await
+			.unwrap()
+			.xpect()
+			.to_contain("baz");
 	}
 
 	#[test]
 	fn invalid_header_fails() {
-		let err = Request::new("http://localhost").header("bad\nheader", "val");
-		expect(err.is_err()).to_be(true);
+		Request::new("http://localhost")
+			.header("bad\nheader", "val")
+			.xpect()
+			.to_be_err();
 	}
 }
