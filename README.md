@@ -1,3 +1,8 @@
+# Archived Repository
+
+this codebase now lives at the [beet repository](https://github.com/mrchantey/beet)
+
+
 # Sweet
 
 <div align="center">
